@@ -31,6 +31,10 @@
     </div>
 
     <div class="search-panel">
+      <div class="field field-wide">
+        <label for="fTexto">Colonia o palabra clave</label>
+        <input type="text" id="fTexto" placeholder="Ej. Providencia, Valle Real, Coto...">
+      </div>
       <div class="field">
         <label for="fMunicipio">Municipio</label>
         <select id="fMunicipio">
@@ -68,10 +72,46 @@
         <label for="fRecamaras">Recámaras</label>
         <select id="fRecamaras">
           <option value="">Cualquiera</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fBanos">Baños mín.</label>
+        <select id="fBanos">
+          <option value="">Cualquiera</option>
           <option value="1">1+</option>
           <option value="2">2+</option>
           <option value="3">3+</option>
           <option value="4">4+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fM2Min">m² mínimo</label>
+        <input type="number" id="fM2Min" placeholder="Ej. 100">
+      </div>
+      <div class="field">
+        <label for="fM2Max">m² máximo</label>
+        <input type="number" id="fM2Max" placeholder="Ej. 300">
+      </div>
+      <div class="field">
+        <label for="fNiveles">Niveles</label>
+        <select id="fNiveles">
+          <option value="">Cualquiera</option>
+          <option value="1">1 planta</option>
+          <option value="2">2 plantas</option>
+          <option value="3">3+ plantas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fOrden">Ordenar por</label>
+        <select id="fOrden">
+          <option value="precio_asc">Precio: menor a mayor</option>
+          <option value="precio_desc">Precio: mayor a menor</option>
+          <option value="m2_desc">m²: mayor a menor</option>
         </select>
       </div>
       <button class="search-btn" id="btnBuscar">Buscar</button>

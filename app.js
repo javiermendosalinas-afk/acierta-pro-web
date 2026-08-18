@@ -48,21 +48,43 @@ function cardHTML(p) {
 }
 
 function applyFilters() {
+  const texto = document.getElementById('fTexto').value.trim().toLowerCase();
   const municipio = document.getElementById('fMunicipio').value;
   const tipo = document.getElementById('fTipo').value;
   const precioMax = document.getElementById('fPrecioMax').value;
   const recamaras = document.getElementById('fRecamaras').value;
+  const banos = document.getElementById('fBanos').value;
+  const m2Min = document.getElementById('fM2Min').value;
+  const m2Max = document.getElementById('fM2Max').value;
+  const niveles = document.getElementById('fNiveles').value;
+  const orden = document.getElementById('fOrden').value;
 
   filtered = ALL_PROPS.filter(p => {
     if (currentOp && p.operacion !== currentOp) return false;
     if (municipio && p.municipio !== municipio) return false;
     if (tipo && p.tipo !== tipo) return false;
     if (precioMax && p.precio > parseInt(precioMax)) return false;
-    if (recamaras && (!p.recamaras || p.recamaras < parseInt(recamaras))) return false;
+    if (recamaras) {
+      const min = parseInt(recamaras);
+      if (!p.recamaras) return false;
+      if (min === 5 ? p.recamaras < 5 : p.recamaras !== min) return false;
+    }
+    if (banos && (!p.banos || p.banos < parseInt(banos))) return false;
+    if (m2Min && (!p.m2 || p.m2 < parseFloat(m2Min))) return false;
+    if (m2Max && (!p.m2 || p.m2 > parseFloat(m2Max))) return false;
+    if (niveles) {
+      const n = parseInt(niveles);
+      if (!p.niveles) return false;
+      if (n === 3 ? p.niveles < 3 : p.niveles !== n) return false;
+    }
+    if (texto && !(p.titulo || '').toLowerCase().includes(texto)) return false;
     return true;
   });
 
-  filtered.sort((a, b) => a.precio - b.precio);
+  if (orden === 'precio_desc') filtered.sort((a, b) => b.precio - a.precio);
+  else if (orden === 'm2_desc') filtered.sort((a, b) => (b.m2 || 0) - (a.m2 || 0));
+  else filtered.sort((a, b) => a.precio - b.precio);
+
   shown = 0;
   grid.innerHTML = '';
   renderNextPage();
@@ -104,8 +126,13 @@ document.getElementById('opToggle').addEventListener('click', (e) => {
 
 document.getElementById('btnBuscar').addEventListener('click', applyFilters);
 loadMoreBtn.addEventListener('click', renderNextPage);
-['fMunicipio', 'fTipo', 'fPrecioMax', 'fRecamaras'].forEach(id => {
+['fMunicipio', 'fTipo', 'fPrecioMax', 'fRecamaras', 'fBanos', 'fM2Min', 'fM2Max', 'fNiveles', 'fOrden'].forEach(id => {
   document.getElementById(id).addEventListener('change', applyFilters);
+});
+let textoTimeout;
+document.getElementById('fTexto').addEventListener('input', () => {
+  clearTimeout(textoTimeout);
+  textoTimeout = setTimeout(applyFilters, 350);
 });
 
 fetch('data.json')
