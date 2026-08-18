@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acierta Max — Compra, vende o renta con certeza en Guadalajara</title>
+<meta name="description" content="Busca casas, departamentos y terrenos en la Zona Metropolitana de Guadalajara, y recibe acompañamiento real en cada paso del proceso — no solo un anuncio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo"><span class="pin"></span>Acierta<b>Max</b></div>
+    <a class="header-cta" href="https://wa.me/523333777337?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener">Habla con MAX →</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Zona Metropolitana de Guadalajara · 20 años de experiencia</div>
+    <h1>No solo encuentres una propiedad. <em>Encuentra certeza.</em></h1>
+    <p>Miles de opciones en venta y renta, con acompañamiento real en cada paso — crédito, notario, documentación — no solo un anuncio.</p>
+
+    <div class="op-toggle" id="opToggle">
+      <button data-op="" class="active">Todas</button>
+      <button data-op="VENTA">Venta</button>
+      <button data-op="RENTA">Renta</button>
+    </div>
+
+    <div class="search-panel">
+      <div class="field">
+        <label for="fMunicipio">Municipio</label>
+        <select id="fMunicipio">
+          <option value="">Toda la ZMG</option>
+          <option value="Guadalajara">Guadalajara</option>
+          <option value="Zapopan">Zapopan</option>
+          <option value="Tlaquepaque">Tlaquepaque</option>
+          <option value="Tonala">Tonalá</option>
+          <option value="Tlajomulco">Tlajomulco</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fTipo">Tipo</label>
+        <select id="fTipo">
+          <option value="">Cualquiera</option>
+          <option value="casa">Casa</option>
+          <option value="departamento">Departamento</option>
+          <option value="terreno">Terreno</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fPrecioMax">Precio máximo</label>
+        <select id="fPrecioMax">
+          <option value="">Sin límite</option>
+          <option value="1000000">$1,000,000</option>
+          <option value="2000000">$2,000,000</option>
+          <option value="3000000">$3,000,000</option>
+          <option value="5000000">$5,000,000</option>
+          <option value="8000000">$8,000,000</option>
+          <option value="12000000">$12,000,000</option>
+          <option value="20000000">$20,000,000</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fRecamaras">Recámaras</label>
+        <select id="fRecamaras">
+          <option value="">Cualquiera</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+        </select>
+      </div>
+      <button class="search-btn" id="btnBuscar">Buscar</button>
+    </div>
+  </div>
+</section>
+
+<div class="stats-strip" id="statsStrip"></div>
+
+<section class="results-section">
+  <div class="results-header">
+    <h2>Propiedades disponibles</h2>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+  <div id="grid" class="grid">
+    <div class="loader">Cargando inventario…</div>
+  </div>
+  <button class="load-more" id="loadMore" style="display:none;">Ver más propiedades</button>
+</section>
+
+<section class="coaching">
+  <div class="coaching-inner">
+    <div>
+      <div class="coaching-eyebrow">Lo que nos distingue</div>
+      <h2>No vendemos anuncios.<br>Acompañamos tu proceso completo.</h2>
+      <p>Precalificación de crédito e Infonavit, selección de notario, qué exige PROFECO, cómo recibir tu propiedad — coaching real de principio a fin, con 20 años de experiencia ejecutiva respaldando cada paso.</p>
+      <a class="coaching-cta" href="https://wa.me/523333777337?text=Hola%2C%20quiero%20que%20me%20acompa%C3%B1en%20en%20todo%20el%20proceso" target="_blank" rel="noopener">Empieza tu proceso con MAX</a>
+    </div>
+    <div class="coaching-steps">
+      <div class="coaching-step">
+        <div class="num">01</div>
+        <div><h4>Presupuesto y crédito</h4><p>Sabemos exactamente qué te alcanza antes de que te enamores de algo que no puedes pagar.</p></div>
+      </div>
+      <div class="coaching-step">
+        <div class="num">02</div>
+        <div><h4>Búsqueda guiada</h4><p>No te mandamos una lista genérica — acotamos contigo hasta encontrar lo correcto.</p></div>
+      </div>
+      <div class="coaching-step">
+        <div class="num">03</div>
+        <div><h4>Oferta y documentación</h4><p>Te decimos exactamente qué va a pedir el banco o Infonavit, sin sorpresas.</p></div>
+      </div>
+      <div class="coaching-step">
+        <div class="num">04</div>
+        <div><h4>Cierre con certeza</h4><p>Notario calificado, requisitos de PROFECO y NOM, y cómo recibir tu propiedad correctamente.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <strong>Acierta Max</strong> · Profesionales Inmobiliarios · Zona Metropolitana de Guadalajara<br>
+  Socio AMPI, certificado · Información y disponibilidad sujetas a confirmación
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
