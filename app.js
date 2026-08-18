@@ -24,11 +24,14 @@ function cardHTML(p) {
   if (p.m2) metaBits.push(`${Math.round(p.m2)} m²`);
   const unidad = p.operacion === 'RENTA' ? '/mes' : '';
   const waTexto = encodeURIComponent(`Hola, me interesa esta propiedad: ${p.titulo} (${p.eb || 'sin código'}) — ${p.liga}`);
+  const mediaContent = p.foto
+    ? `<img src="${p.foto}" alt="${p.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
+    : iconHouse();
   return `
   <div class="card">
-    <div class="card-media">
+    <div class="card-media" ${p.foto ? 'style="background:#0f1f3d"' : ''}>
       <span class="card-op">${p.operacion}</span>
-      ${iconHouse()}
+      ${mediaContent}
       <span class="card-tipo">${p.tipo}</span>
     </div>
     <div class="card-body">
