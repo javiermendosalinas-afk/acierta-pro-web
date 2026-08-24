@@ -82,6 +82,10 @@ img { max-width: 100%; display: block; }
   transition: background 0.15s;
 }
 .header-cta:hover { background: var(--red-dark); }
+.header-nav { display: flex; gap: 22px; margin-right: auto; margin-left: 40px; }
+.header-nav a { font-size: 14px; font-weight: 600; color: #c7d1e6; }
+.header-nav a:hover { color: var(--white); }
+@media (max-width: 640px) { .header-nav { display: none; } }
 
 /* ── HERO ───────────────────────────────────────────── */
 .hero {
