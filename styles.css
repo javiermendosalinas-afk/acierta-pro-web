@@ -400,6 +400,55 @@ img { max-width: 100%; display: block; }
 .coaching-step h4 { font-size: 15px; margin-bottom: 4px; }
 .coaching-step p { font-size: 13px; color: #a8b3ca; margin: 0; }
 
+/* ── ACIERTA VERIFICA ─────────────────────────────────── */
+.verifica {
+  background: var(--cream);
+  padding: 56px 24px;
+}
+.verifica-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 40px;
+  align-items: center;
+}
+@media (max-width: 800px) { .verifica-inner { grid-template-columns: 1fr; } }
+.verifica-img {
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--radius);
+  justify-self: center;
+}
+.verifica-eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.verifica h2 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  margin-bottom: 14px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.verifica h2 em { color: var(--red); font-style: normal; }
+.verifica p { color: var(--gray); font-size: 15px; margin-bottom: 14px; }
+.verifica-precio { color: var(--ink); font-size: 15px; }
+.verifica-cta {
+  display: inline-block;
+  background: var(--navy);
+  color: var(--white);
+  padding: 13px 26px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
 /* ── FOOTER ─────────────────────────────────────────── */
 .site-footer {
   background: #0a1730;
