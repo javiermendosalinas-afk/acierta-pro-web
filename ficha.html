@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha de propiedad — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+</head>
+<body class="pg">
+
+<div class="pg-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <span class="pg-titulo">Ficha de propiedad</span>
+  <a href="mapa.html" class="pg-link">Buscar por zona</a>
+</div>
+
+<main class="ficha" id="ficha">
+  <p class="pg-cargando">Cargando propiedad…</p>
+</main>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const qs = new URLSearchParams(location.search);
+  const eb = qs.get('eb'), op = qs.get('op');
+  const raiz = $('ficha');
+
+  function noEncontrada(msg) {
+    raiz.innerHTML = `<div class="ficha-card"><h2>No encontramos esa propiedad</h2>
+      <p>${AM.esc(msg)}</p>
+      <p><a class="btn-solid" style="display:inline-block;padding:10px 18px;border-radius:999px;text-decoration:none" href="index.html">Ver todas las propiedades</a></p></div>`;
+  }
+
+  function barraPosicion(an) {
+    const d0 = Math.min(an.p10, an.pm2) * 0.92, d1 = Math.max(an.p90, an.pm2) * 1.08;
+    const pos = v => Math.max(0, Math.min(100, (v - d0) / (d1 - d0) * 100));
+    return `<div class="rango" aria-hidden="true">
+      <div class="rango-zona" style="left:${pos(an.p25)}%;width:${pos(an.p75) - pos(an.p25)}%"></div>
+      <div class="rango-med" style="left:${pos(an.mediana)}%"></div>
+      <div class="rango-yo" style="left:${pos(an.pm2)}%"></div>
+    </div>
+    <div class="rango-leyenda">
+      <span><i class="l-zona"></i> Rango típico (25%–75%): ${AM.money(an.p25)} – ${AM.money(an.p75)}</span>
+      <span><i class="l-med"></i> Mediana: ${AM.money(an.mediana)}</span>
+      <span><i class="l-yo"></i> Esta propiedad: ${AM.money(an.pm2)}</span>
+    </div>`;
+  }
+
+  function analisisHTML(p, an) {
+    const unidad = p.operacion === 'RENTA' ? '/m² al mes' : '/m²';
+    if (!an.disponible) return `<p class="muted">${AM.esc(an.motivo)}</p>`;
+    const menorQue = Math.round(an.percentil * 100);
+    const frase = an.veredicto === 'bajo'
+      ? `Su precio por m² está <b>${Math.round(Math.abs(an.diffPct) * 100)}% por debajo</b> de la mediana`
+      : an.veredicto === 'alto'
+        ? `Su precio por m² está <b>${Math.round(Math.abs(an.diffPct) * 100)}% por encima</b> de la mediana`
+        : `Su precio por m² está <b>en línea</b> con la mediana (${an.diffPct >= 0 ? '+' : '−'}${Math.round(Math.abs(an.diffPct) * 100)}%)`;
+    return `
+      <p class="an-frase">${frase} de ${AM.esc(an.descripcion)} <span class="muted">(${an.n} propiedades comparables)</span>.</p>
+      <div class="an-cifras">
+        <div><b>${AM.money(an.pm2)}</b><span>${unidad} · esta propiedad</span></div>
+        <div><b>${AM.money(an.mediana)}</b><span>${unidad} · mediana de la zona</span></div>
+        <div><b>${menorQue}%</b><span>de las comparables cuestan menos por m²</span></div>
+      </div>
+      ${barraPosicion(an)}
+      ${an.atipico ? '<p class="an-alerta">⚠️ Este precio se aleja mucho de lo normal en la zona. Puede ser un error de captura: confírmalo con un asesor antes de decidir.</p>' : ''}
+      <p class="muted an-aviso">${AM.esc(AM.AVISO_ANALISIS)}</p>`;
+  }
+
+  function pintar(p, todas) {
+    document.title = p.titulo + ' — Acierta Max';
+    const an = AM.analisis(p, todas);
+    const url = AM.fichaUrl(p);
+    const wa = encodeURIComponent('Hola, me interesa esta propiedad: ' + p.titulo + ' (' + p.eb + ', ' + (p.operacion === 'RENTA' ? 'renta' : 'venta') + ') — ' + location.origin + '/' + url);
+    const lugar = (p.colonia ? p.colonia + ', ' : '') + p.municipio;
+    const pm2 = AM.precioM2(p);
+    const chips = [];
+    if (p.recamaras) chips.push(p.recamaras + ' recámaras');
+    if (p.banos) chips.push(p.banos + ' baños');
+    if (p.m2) chips.push(Math.round(p.m2).toLocaleString('es-MX') + ' m²');
+    if (pm2) chips.push(AM.money(pm2) + (p.operacion === 'RENTA' ? '/m² al mes' : '/m²'));
+    if (p.niveles) chips.push(p.niveles + (p.niveles === 1 ? ' planta' : ' plantas'));
+    chips.push('Código ' + p.eb);
+    const sim = p.operacion === 'VENTA'
+      ? `<a class="btn-outline btn-lg" href="simulador.html?precio=${Math.round(p.precio)}">Simular crédito</a>` : '';
+    const otra = todas.find(x => x.eb === p.eb && x !== p && x.operacion !== p.operacion);
+    const otraHTML = otra ? `<p class="ficha-otra">También está disponible en <b>${otra.operacion === 'RENTA' ? 'renta' : 'venta'}</b>
+      (${AM.money(otra.precio)}${otra.operacion === 'RENTA' ? '/mes' : ''}) — <a href="${AM.fichaUrl(otra)}">ver esa ficha</a></p>` : '';
+    const similares = AM.similares(p, todas, 4);
+
+    raiz.innerHTML = `
+    <div class="ficha-top">
+      <div class="ficha-foto" ${p.foto ? 'style="background:#0f1f3d"' : ''}>
+        ${AM.iconHouse()}${p.foto ? `<img src="${AM.esc(p.foto)}" alt="${AM.esc(p.titulo)}" onerror="this.remove()">` : ''}
+        <span class="card-op">${AM.esc(p.operacion)}</span>
+        ${p.foto ? '' : '<span class="ficha-sinfoto">Foto próximamente</span>'}
+      </div>
+      <div class="ficha-info">
+        <div class="ficha-eyebrow">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)} · ${AM.esc(lugar)}</div>
+        <h1>${AM.esc(p.titulo)}</h1>
+        <div class="ficha-precio">${AM.money(p.precio)} <span>MXN${p.operacion === 'RENTA' ? '/mes' : ''}</span></div>
+        <div class="chips">${chips.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>
+        ${otraHTML}
+        <div class="ficha-cta">
+          <a class="btn-solid btn-lg" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener">Hablar con un asesor por WhatsApp</a>
+          <button class="btn-cmp btn-lg" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false">＋ Comparar</button>
+          ${sim}
+        </div>
+      </div>
+    </div>
+
+    <section class="ficha-card" id="secAnalisis">
+      <h2>¿Está bien de precio?</h2>
+      ${analisisHTML(p, an)}
+    </section>
+
+    ${p.lat && p.lon ? `<section class="ficha-card"><h2>Ubicación</h2><div id="miniMapa"></div>
+      <p class="muted">La ubicación en el mapa es aproximada.</p></section>` : ''}
+
+    ${similares.length ? `<section class="ficha-card"><h2>Propiedades similares</h2>
+      <div class="similares">${similares.map(s => AM.cardHTML(s)).join('')}</div></section>` : ''}
+
+    <p class="ficha-original">¿Quieres ver la publicación original con más fotos y descripción?
+      <a href="${AM.esc(p.liga)}" target="_blank" rel="noopener">Abrir en aciertamax.com ↗</a></p>`;
+
+    if (p.lat && p.lon && window.L) {
+      try {   // si el mapa falla, la ficha se queda funcionando sin él
+        const m = L.map('miniMapa', { scrollWheelZoom: false, preferCanvas: true }).setView([p.lat, p.lon], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
+        L.circleMarker([p.lat, p.lon], { radius: 10, color: '#d62828', fillOpacity: 0.85 }).addTo(m);
+      } catch (e) { console.error('mapa ficha:', e); const el = document.getElementById('miniMapa'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
+    }
+    AM.actualizarUI();
+  }
+
+  if (!eb) { noEncontrada('Falta el código de la propiedad en la dirección.'); return; }
+  fetch('data.json').then(r => r.json()).then(todas => {
+    const p = todas.find(x => x.eb === eb && (!op || x.operacion === op)) || todas.find(x => x.eb === eb);
+    if (!p) { noEncontrada('El código ' + eb + ' ya no está en nuestro inventario. Puede haberse rentado o vendido.'); return; }
+    pintar(p, todas);
+  }).catch(e => { console.error('ficha:', e); noEncontrada('No se pudo mostrar la propiedad. Recarga la página; si sigue igual, avísanos por WhatsApp.'); });
+})();
+</script>
+</body>
+</html>

@@ -162,6 +162,10 @@ function calcular() {
   document.getElementById('rTotal').textContent = money(totalPagado);
 }
 
+// Si llega desde una ficha (?precio=...), se precarga el precio de esa propiedad.
+const precioUrl = parseFloat(new URLSearchParams(location.search).get('precio'));
+if (precioUrl > 0) document.getElementById('precio').value = Math.round(precioUrl);
+
 ['precio', 'enganche', 'plazo', 'tasa'].forEach(id => {
   document.getElementById(id).addEventListener('input', calcular);
 });

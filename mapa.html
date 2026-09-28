@@ -56,6 +56,10 @@
   .lista .card-tipo-txt { font-size: 11px; color: var(--gray); text-transform: capitalize; }
   .lista .card-cta { margin-top: 6px; }
   .lista .btn-outline, .lista .btn-solid { padding: 6px 10px; font-size: 11px; }
+  .lista .card-op, .lista .card-tipo { display: none; }
+  .lista .card-loc { margin-bottom: 4px; font-size: 11.5px; text-transform: capitalize; }
+  .lista .card-meta { font-size: 11.5px; margin-bottom: 6px; gap: 8px; }
+  .lista .btn-cmp { margin-top: 6px; padding: 5px 8px; font-size: 11px; }
   .btn-mas { width: 100%; margin-top: 12px; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-light); background: var(--white); font-weight: 700; cursor: pointer; }
   .error-box { background: #fdecea; border: 1px solid #f5b5ae; color: #8a1f14; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
 </style>
@@ -163,6 +167,11 @@
             <option value="recamaras-desc">Más recámaras primero</option>
           </select>
         </div>
+        <div class="full">
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer">
+            <input type="checkbox" id="fFotoPrimero" checked style="width:auto"> Mostrar primero las que tienen foto
+          </label>
+        </div>
       </div>
     </div>
 
@@ -174,6 +183,7 @@
 
 <script src="assets/vendor/leaflet/leaflet.js"></script>
 <script src="assets/vendor/leaflet-draw/leaflet.draw.js"></script>
+<script src="js/comun.js"></script>
 <script>
 let ALL_PROPS = [];
 let currentPolygon = null;
@@ -182,15 +192,7 @@ let resultados = [];
 let mostrados = 0;
 const PAGINA = 40;
 
-const GRUPOS_TIPO = {
-  casa: ['casa', 'casa en condominio', 'casa con uso de suelo', 'quinta', 'rancho', 'villa'],
-  departamento: ['departamento'],
-  terreno: ['terreno', 'terreno industrial', 'terreno comercial'],
-  local: ['local comercial', 'local en centro comercial'],
-  oficina: ['oficina'],
-  bodega: ['bodega comercial', 'bodega industrial', 'nave industrial'],
-  edificio: ['edificio'],
-};
+const GRUPOS_TIPO = AM.GRUPOS_TIPO;
 
 function mostrarError(msg) {
   const el = document.getElementById('avisoError');
@@ -240,37 +242,7 @@ if (typeof L.Control.Draw === 'function') {
 }
 
 // ── Utilidades ───────────────────────────────────────────
-function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
-
-function iconHouse() {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>`;
-}
-
-function cardHTML(p) {
-  const metaBits = [];
-  if (p.recamaras) metaBits.push(`${p.recamaras} rec`);
-  if (p.banos) metaBits.push(`${p.banos} baños`);
-  if (p.m2) metaBits.push(`${Math.round(p.m2)} m²`);
-  const unidad = p.operacion === 'RENTA' ? '/mes' : '';
-  const waTexto = encodeURIComponent(`Hola, me interesa esta propiedad: ${p.titulo} (${p.eb || 'sin código'}) — ${p.liga}`);
-  const mediaContent = p.foto
-    ? `<img src="${p.foto}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
-    : iconHouse();
-  return `
-  <div class="card">
-    <div class="card-media" ${p.foto ? 'style="background:#0f1f3d"' : ''}>${mediaContent}</div>
-    <div class="card-body">
-      <div class="card-price">${money(p.precio)}<span> ${unidad}</span></div>
-      <div class="card-tipo-txt">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${p.tipo} · ${p.municipio}</div>
-      <div class="card-title">${p.titulo}</div>
-      <div class="card-meta">${metaBits.join(' · ')}</div>
-      <div class="card-cta">
-        <a class="btn-outline" href="${p.liga}" target="_blank" rel="noopener">Ver ficha</a>
-        <a class="btn-solid" href="https://wa.me/523333777337?text=${waTexto}" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
-    </div>
-  </div>`;
-}
+const money = AM.money;
 
 // Ray-casting: ¿el punto está dentro del polígono?
 function puntoEnPoligono(lat, lon, poligono) {
@@ -315,16 +287,11 @@ function leerFiltros() {
   };
 }
 
-function ordenar(lista, orden) {
-  const [campo, dir] = orden.split('-');
-  const sign = dir === 'asc' ? 1 : -1;
-  return lista.sort((a, b) => ((a[campo] || 0) - (b[campo] || 0)) * sign);
-}
-
 function pintarPagina() {
   const grid = document.getElementById('panelGrid');
   const siguiente = resultados.slice(mostrados, mostrados + PAGINA);
-  grid.insertAdjacentHTML('beforeend', siguiente.map(cardHTML).join(''));
+  grid.insertAdjacentHTML('beforeend', siguiente.map(p => AM.cardHTML(p, { compact: true })).join(''));
+  AM.actualizarUI();
   mostrados += siguiente.length;
   document.getElementById('btnMas').style.display = mostrados < resultados.length ? 'block' : 'none';
 }
@@ -346,7 +313,7 @@ function actualizarResultados() {
     if (poligono) return p.lat && p.lon && puntoEnPoligono(p.lat, p.lon, poligono);
     return true;
   });
-  ordenar(resultados, f.orden);
+  resultados = AM.ordenar(resultados, f.orden, document.getElementById('fFotoPrimero').checked);
 
   const n = resultados.length.toLocaleString('es-MX');
   const plural = resultados.length !== 1 ? 'es' : '';

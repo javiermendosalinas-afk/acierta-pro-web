@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comparar propiedades — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+</head>
+<body class="pg">
+
+<div class="pg-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <h1>Comparar propiedades</h1>
+  <a href="mapa.html" class="pg-link">Buscar por zona</a>
+</div>
+
+<main class="comparar" id="comparar">
+  <p class="pg-cargando">Cargando comparación…</p>
+</main>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  AM.sinBarra = true;
+  const raiz = document.getElementById('comparar');
+  const params = new URLSearchParams(location.search);
+  const desdeUrl = params.get('ids') ? params.get('ids').split(',').map(s => s.trim()).filter(Boolean).slice(0, AM.cmp.max) : null;
+  let ids = desdeUrl || AM.cmp.get();
+  let TODAS = [];
+  let mapa = null;
+
+  const corto = (t, n) => (t.length > (n || 46) ? t.slice(0, (n || 46) - 1) + '…' : t);
+
+  function mejores(items, fn, modo) {          // modo: 'min' | 'max'
+    const v = items.map(fn);
+    const validos = v.filter(x => x != null && isFinite(x));
+    if (validos.length < 2) return new Set();
+    const mejor = modo === 'min' ? Math.min(...validos) : Math.max(...validos);
+    if (Math.min(...validos) === Math.max(...validos)) return new Set();
+    return new Set(v.map((x, i) => (x === mejor ? i : -1)).filter(i => i >= 0));
+  }
+
+  function fila(titulo, celdas, mejorSet) {
+    return `<tr><th scope="row">${titulo}</th>${celdas.map((c, i) =>
+      `<td class="${mejorSet && mejorSet.has(i) ? 'mejor' : ''}">${c}</td>`).join('')}</tr>`;
+  }
+
+  function resumen(items) {
+    const L = [];
+    const ops = [...new Set(items.map(i => i.p.operacion))];
+    if (ops.length > 1) L.push({ tipo: 'alerta', t: 'Estás comparando propiedades en <b>venta</b> con propiedades en <b>renta</b>. Sus precios no son comparables entre sí; conviene compararlas por separado.' });
+    const grupos = [...new Set(items.map(i => AM.grupoDe(i.p.tipo)))];
+    if (grupos.length > 1) L.push({ tipo: 'alerta', t: 'Son de <b>tipos distintos</b> (' + grupos.map(g => AM.GRUPO_LABEL[g]).join(', ') + '). El precio por m² no es directamente comparable entre ellos.' });
+
+    const conPrecio = items.slice().sort((a, b) => a.p.precio - b.p.precio);
+    if (conPrecio.length > 1 && conPrecio[0].p.precio !== conPrecio[conPrecio.length - 1].p.precio && ops.length === 1) {
+      const lo = conPrecio[0], hi = conPrecio[conPrecio.length - 1];
+      const dif = hi.p.precio - lo.p.precio, pct = Math.round(dif / lo.p.precio * 100);
+      const u = lo.p.operacion === 'RENTA' ? '/mes' : '';
+      L.push({ t: `La más económica es <b>${AM.esc(corto(lo.p.titulo, 60))}</b> (${AM.money(lo.p.precio)}${u}). Entre la más barata y la más cara hay <b>${AM.money(dif)}${u}</b> de diferencia (${pct}%).` });
+    }
+    const conPm2 = items.filter(i => AM.precioM2(i.p));
+    if (conPm2.length > 1 && grupos.length === 1 && ops.length === 1) {
+      const m = conPm2.slice().sort((a, b) => AM.precioM2(a.p) - AM.precioM2(b.p))[0];
+      L.push({ t: `Menor precio por m²: <b>${AM.esc(corto(m.p.titulo, 60))}</b> (${AM.money(AM.precioM2(m.p))}/m²).` });
+    }
+    const conM2 = items.filter(i => i.p.m2 > 0);
+    if (conM2.length > 1) {
+      const g = conM2.slice().sort((a, b) => b.p.m2 - a.p.m2)[0];
+      if (conM2.some(i => i.p.m2 !== g.p.m2)) L.push({ t: `La más grande es <b>${AM.esc(corto(g.p.titulo, 60))}</b> (${Math.round(g.p.m2).toLocaleString('es-MX')} m²).` });
+    }
+    const disp = items.filter(i => i.an.disponible);
+    if (disp.length > 1) {
+      const b = disp.slice().sort((a, c) => a.an.diffPct - c.an.diffPct)[0];
+      if (b.an.diffPct < 0) L.push({ t: `Frente a propiedades parecidas de su zona, la que tiene el <b>precio por m² más bajo</b> es <b>${AM.esc(corto(b.p.titulo, 60))}</b> (${Math.round(Math.abs(b.an.diffPct) * 100)}% por debajo de la mediana).` });
+    }
+    items.forEach(i => {
+      if (i.an.disponible) {
+        L.push({ t: `<b>${AM.esc(corto(i.p.titulo, 50))}</b>: precio por m² ${AM.veredictoTexto(i.an)} de ${AM.esc(i.an.descripcion)} (${i.an.n} comparables).` +
+          (i.an.atipico ? ' ⚠️ Dato atípico: confírmalo con un asesor.' : '') });
+      } else {
+        L.push({ t: `<b>${AM.esc(corto(i.p.titulo, 50))}</b>: ${AM.esc(i.an.motivo)}` });
+      }
+    });
+    return L;
+  }
+
+  function guardarIds() {
+    if (!desdeUrl) AM.cmp.set(ids);
+    if (desdeUrl) history.replaceState(null, '', '?ids=' + ids.map(encodeURIComponent).join(','));
+  }
+
+  function pintar() {
+    const items = ids.map(id => AM.buscar(TODAS, id)).filter(Boolean).map(p => ({ p, an: AM.analisis(p, TODAS) }));
+    if (items.length < 2) {
+      raiz.innerHTML = `<div class="ficha-card"><h2>Elige al menos 2 propiedades</h2>
+        <p>Marca <b>＋ Comparar</b> en las propiedades que te interesen (hasta ${AM.cmp.max}) y regresa aquí.
+        ${items.length === 1 ? 'Ya tienes 1 seleccionada.' : ''}</p>
+        <p><a class="btn-solid" style="display:inline-block;padding:10px 18px;border-radius:999px;text-decoration:none" href="index.html">Elegir propiedades</a></p></div>`;
+      return;
+    }
+    const P = items.map(i => i.p);
+    const mPrecio = mejores(P, p => p.precio, 'min');
+    const mPm2 = mejores(P, p => AM.precioM2(p), 'min');
+    const mM2 = mejores(P, p => p.m2 || null, 'max');
+    const mRec = mejores(P, p => p.recamaras || null, 'max');
+    const mBan = mejores(P, p => p.banos || null, 'max');
+    const mDiff = mejores(items, i => (i.an.disponible ? i.an.diffPct : null), 'min');
+
+    const cabecera = items.map(({ p }) => `<th scope="col">
+      <a class="cmp-foto" href="${AM.fichaUrl(p)}" ${p.foto ? 'style="background:#0f1f3d"' : ''}>${AM.iconHouse()}${p.foto ? `<img src="${AM.esc(p.foto)}" alt="" onerror="this.remove()">` : ''}</a>
+      <a class="cmp-titulo" href="${AM.fichaUrl(p)}">${AM.esc(corto(p.titulo, 70))}</a>
+      <div class="cmp-cod">${AM.esc(p.eb)} · ${p.operacion === 'RENTA' ? 'renta' : 'venta'}</div></th>`).join('');
+
+    const filas = [
+      fila('Operación / tipo', P.map(p => `${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)}`)),
+      fila('Precio', P.map(p => `<b>${AM.money(p.precio)}</b>${p.operacion === 'RENTA' ? ' /mes' : ''}`), mPrecio),
+      fila('Superficie', P.map(p => p.m2 ? Math.round(p.m2).toLocaleString('es-MX') + ' m²' : '—'), mM2),
+      fila('Precio por m²', P.map(p => AM.precioM2(p) ? AM.money(AM.precioM2(p)) : '—'), mPm2),
+      fila('Recámaras', P.map(p => p.recamaras || '—'), mRec),
+      fila('Baños', P.map(p => p.banos || '—'), mBan),
+      fila('Ubicación', P.map(p => AM.esc((p.colonia ? p.colonia + ', ' : '') + p.municipio))),
+      fila('Frente a su zona', items.map(i => i.an.disponible
+        ? `${AM.veredictoTexto(i.an)}` : '<span class="muted">Sin referencia suficiente</span>'), mDiff),
+      `<tr class="acciones"><th scope="row"></th>${P.map(p => `<td>
+        <a class="btn-outline" href="${AM.fichaUrl(p)}">Ver ficha</a>
+        <button class="btn-quitar" type="button" data-quitar="${AM.esc(AM.clave(p))}">Quitar</button></td>`).join('')}</tr>`,
+    ].join('');
+
+    const res = resumen(items);
+    const listaTxt = P.map((p, i) => `${i + 1}) ${p.titulo} (${p.eb}, ${p.operacion === 'RENTA' ? 'renta' : 'venta'}) ${AM.money(p.precio)}${p.operacion === 'RENTA' ? '/mes' : ''}`).join('\n');
+    const link = location.origin + '/comparar.html?ids=' + items.map(i => AM.clave(i.p)).join(',');
+    const wa = encodeURIComponent('Hola, quiero que un asesor me ayude a decidir entre estas propiedades:\n' + listaTxt + '\n\nComparación: ' + link);
+
+    raiz.innerHTML = `
+      <div class="cmp-tabla-wrap"><table class="cmp-tabla"><thead><tr><th></th>${cabecera}</tr></thead><tbody>${filas}</tbody></table></div>
+      <p class="muted cmp-leyenda"><span class="mejor-chip">verde</span> = mejor valor de esa fila entre las propiedades comparadas.</p>
+
+      <section class="ficha-card"><h2>Análisis de esta comparación</h2>
+        <ul class="an-lista">${res.map(r => `<li class="${r.tipo === 'alerta' ? 'alerta' : ''}">${r.t}</li>`).join('')}</ul>
+        <p class="muted an-aviso">${AM.esc(AM.AVISO_ANALISIS)}</p>
+      </section>
+
+      <section class="ficha-card"><h2>Dónde están</h2><div id="mapaCmp"></div>
+        <p class="muted">Ubicaciones aproximadas.</p></section>
+
+      <section class="ficha-card cmp-final">
+        <h2>¿Quieres una segunda opinión?</h2>
+        <p>Un asesor de Acierta Max puede revisar esta comparación contigo y ayudarte a decidir.</p>
+        <div class="ficha-cta">
+          <a class="btn-solid btn-lg" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener">Pedir asesoría por WhatsApp</a>
+          <button class="btn-outline btn-lg" type="button" id="btnCopiar">Copiar enlace de esta comparación</button>
+          <a class="btn-outline btn-lg" href="index.html">Agregar más propiedades</a>
+        </div>
+      </section>`;
+
+    raiz.querySelectorAll('[data-quitar]').forEach(b => b.addEventListener('click', () => {
+      ids = ids.filter(x => x !== b.dataset.quitar); guardarIds(); pintar();
+    }));
+    document.getElementById('btnCopiar').addEventListener('click', () => {
+      const listo = () => AM.toast('Enlace copiado. Puedes compartirlo con quien quieras.');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(listo, () => prompt('Copia este enlace:', link));
+      else prompt('Copia este enlace:', link);
+    });
+
+    const conCoord = P.filter(p => p.lat && p.lon);
+    if (conCoord.length && window.L) try {
+      if (mapa) { mapa.remove(); mapa = null; }
+      mapa = L.map('mapaCmp', { scrollWheelZoom: false });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(mapa);
+      const pts = conCoord.map((p, i) => {
+        const n = P.indexOf(p) + 1;
+        return L.marker([p.lat, p.lon], { icon: L.divIcon({ className: 'cmp-pin', html: '<span>' + n + '</span>', iconSize: [30, 30] }) })
+          .bindPopup('<b>' + n + '.</b> ' + AM.esc(corto(p.titulo, 60)) + '<br>' + AM.money(p.precio)).addTo(mapa);
+      });
+      mapa.fitBounds(L.featureGroup(pts).getBounds().pad(0.25), { maxZoom: 15 });
+    } catch (e) { console.error('mapa comparar:', e); const el = document.getElementById('mapaCmp'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
+  }
+
+  fetch('data.json').then(r => r.json()).then(d => { TODAS = d; pintar(); })
+    .catch(e => { console.error('comparar:', e); raiz.innerHTML = '<div class="ficha-card"><h2>No se pudo mostrar la comparación</h2><p>Recarga la página; si sigue igual, avísanos por WhatsApp.</p></div>'; });
+})();
+</script>
+</body>
+</html>

@@ -9,46 +9,8 @@ const resultsCount = document.getElementById('resultsCount');
 const statsStrip = document.getElementById('statsStrip');
 const loadMoreBtn = document.getElementById('loadMore');
 
-function money(n) {
-  return '$' + Math.round(n).toLocaleString('es-MX');
-}
-
-function iconHouse() {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>`;
-}
-
-function cardHTML(p) {
-  const metaBits = [];
-  if (p.recamaras) metaBits.push(`${p.recamaras} rec`);
-  if (p.banos) metaBits.push(`${p.banos} baños`);
-  if (p.m2) metaBits.push(`${Math.round(p.m2)} m²`);
-  const unidad = p.operacion === 'RENTA' ? '/mes' : '';
-  const waTexto = encodeURIComponent(`Hola, me interesa esta propiedad: ${p.titulo} (${p.eb || 'sin código'}) — ${p.liga}`);
-  const mediaContent = p.foto
-    ? `<img src="${p.foto}" alt="${p.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
-    : iconHouse();
-  return `
-  <div class="card">
-    <div class="card-media" ${p.foto ? 'style="background:#0f1f3d"' : ''}>
-      <span class="card-op">${p.operacion}</span>
-      ${mediaContent}
-      <span class="card-tipo">${p.tipo}</span>
-    </div>
-    <div class="card-body">
-      <div class="card-price">${money(p.precio)}<span> MXN${unidad}</span></div>
-      <div class="card-title">${p.titulo}</div>
-      <div class="card-loc">📍 ${p.municipio}</div>
-      <div class="card-meta">${metaBits.map(b => `<span>${b}</span>`).join('')}</div>
-      <div class="card-cta">
-        <a class="btn-outline" href="${p.liga}" target="_blank" rel="noopener">Ver ficha</a>
-        <a class="btn-solid" href="https://wa.me/523333777337?text=${waTexto}" target="_blank" rel="noopener">WhatsApp</a>
-      </div>
-    </div>
-  </div>`;
-}
-
 function applyFilters() {
-  const texto = document.getElementById('fTexto').value.trim().toLowerCase();
+  const texto = AM.norm(document.getElementById('fTexto').value);
   const municipio = document.getElementById('fMunicipio').value;
   const tipo = document.getElementById('fTipo').value;
   const precioMax = document.getElementById('fPrecioMax').value;
@@ -58,6 +20,7 @@ function applyFilters() {
   const m2Max = document.getElementById('fM2Max').value;
   const niveles = document.getElementById('fNiveles').value;
   const orden = document.getElementById('fOrden').value;
+  const fotoPrimero = document.getElementById('fFotoPrimero').checked;
 
   filtered = ALL_PROPS.filter(p => {
     if (currentOp && p.operacion !== currentOp) return false;
@@ -77,13 +40,12 @@ function applyFilters() {
       if (!p.niveles) return false;
       if (n === 3 ? p.niveles < 3 : p.niveles !== n) return false;
     }
-    if (texto && !(p.titulo || '').toLowerCase().includes(texto)) return false;
+    // La búsqueda ignora acentos y mayúsculas, y revisa título y colonia.
+    if (texto && !AM.norm((p.titulo || '') + ' ' + (p.colonia || '')).includes(texto)) return false;
     return true;
   });
 
-  if (orden === 'precio_desc') filtered.sort((a, b) => b.precio - a.precio);
-  else if (orden === 'm2_desc') filtered.sort((a, b) => (b.m2 || 0) - (a.m2 || 0));
-  else filtered.sort((a, b) => a.precio - b.precio);
+  filtered = AM.ordenar(filtered, orden, fotoPrimero);
 
   shown = 0;
   grid.innerHTML = '';
@@ -98,9 +60,10 @@ function renderNextPage() {
     loadMoreBtn.style.display = 'none';
     return;
   }
-  grid.insertAdjacentHTML('beforeend', next.map(cardHTML).join(''));
+  grid.insertAdjacentHTML('beforeend', next.map(p => AM.cardHTML(p)).join(''));
   shown += next.length;
   loadMoreBtn.style.display = shown < filtered.length ? 'block' : 'none';
+  AM.actualizarUI();
 }
 
 function renderStats() {
@@ -126,7 +89,7 @@ document.getElementById('opToggle').addEventListener('click', (e) => {
 
 document.getElementById('btnBuscar').addEventListener('click', applyFilters);
 loadMoreBtn.addEventListener('click', renderNextPage);
-['fMunicipio', 'fTipo', 'fPrecioMax', 'fRecamaras', 'fBanos', 'fM2Min', 'fM2Max', 'fNiveles', 'fOrden'].forEach(id => {
+['fMunicipio', 'fTipo', 'fPrecioMax', 'fRecamaras', 'fBanos', 'fM2Min', 'fM2Max', 'fNiveles', 'fOrden', 'fFotoPrimero'].forEach(id => {
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 let textoTimeout;
