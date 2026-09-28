@@ -266,6 +266,7 @@ function pasaFiltros(p, f) {
   if (f.operacion && p.operacion !== f.operacion) return false;
   if (f.tipo && !GRUPOS_TIPO[f.tipo].includes(p.tipo)) return false;
   if (f.municipio && p.municipio !== f.municipio) return false;
+  if ((f.precioMin !== null || f.precioMax !== null) && !AM.esMXN(p)) return false;   // precios en dólares no se comparan con pesos
   if (f.precioMin !== null && !(p.precio >= f.precioMin)) return false;
   if (f.precioMax !== null && !(p.precio <= f.precioMax)) return false;
   if (f.recamaras !== null && !(p.recamaras && p.recamaras >= f.recamaras)) return false;
@@ -385,6 +386,14 @@ document.querySelectorAll('.filtros select, .filtros input').forEach(el => {
 });
 
 document.getElementById('btnMas').addEventListener('click', pintarPagina);
+
+// Filtros que llegan desde otras páginas (p. ej. "Tu proceso paso a paso"): ?op=&tipo=&municipio=&precioMax=&recamaras=
+(function () {
+  const q = new URLSearchParams(location.search);
+  const poner = (id, v) => { if (v) document.getElementById(id).value = v; };
+  poner('fOperacion', q.get('op')); poner('fTipo', q.get('tipo')); poner('fMunicipio', q.get('municipio'));
+  poner('fPrecioMax', q.get('precioMax')); poner('fRecamaras', q.get('recamaras'));
+})();
 
 fetch('data.json')
   .then(r => r.json())

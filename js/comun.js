@@ -26,7 +26,10 @@
     for (const [k, arr] of Object.entries(AM.GRUPOS_TIPO)) if (arr.includes(tipo)) return k;
     return 'otro';
   };
-  AM.precioM2 = p => (p.m2 > 0 && p.precio > 0) ? p.precio / p.m2 : null;
+  // Algunas publicaciones (pocas, sobre todo edificios y macro-lotes) están en dólares: no se mezclan con pesos.
+  AM.esMXN = p => !p.moneda || p.moneda === 'MXN';
+  AM.precioTxt = p => (AM.esMXN(p) ? AM.money(p.precio) : 'US' + AM.money(p.precio));
+  AM.precioM2 = p => (p.m2 > 0 && p.precio > 0 && AM.esMXN(p)) ? p.precio / p.m2 : null;
   // Un mismo código EB puede estar publicado en venta Y en renta (dos anuncios distintos):
   // el identificador único es código + operación (p. ej. EB-VM0258-R).
   AM.clave = p => p.eb + '-' + (p.operacion === 'RENTA' ? 'R' : 'V');
@@ -38,6 +41,7 @@
     const [campo, dir] = String(orden || 'precio-asc').replace('_', '-').split('-');
     const s = dir === 'desc' ? -1 : 1;
     lista.sort((a, b) => ((a[campo] || 0) - (b[campo] || 0)) * s);
+    if (campo === 'precio') { const mx = lista.filter(AM.esMXN), us = lista.filter(p => !AM.esMXN(p)); lista.length = 0; lista.push(...mx, ...us); }
     if (!fotoPrimero) return lista;
     const con = [], sin = [];
     lista.forEach(p => (p.foto ? con : sin).push(p));
@@ -146,7 +150,7 @@
       <span class="card-tipo">${AM.esc(p.tipo)}</span>
     </a>
     <div class="card-body">
-      <div class="card-price">${AM.money(p.precio)}<span> MXN${unidad}</span></div>
+      <div class="card-price">${AM.precioTxt(p)}<span> ${AM.esMXN(p) ? 'MXN' : 'USD'}${unidad}</span></div>
       <a class="card-title" href="${url}">${AM.esc(p.titulo)}</a>
       <div class="card-loc">${AM.esc(loc)}</div>
       <div class="card-meta">${bits.map(b => `<span>${AM.esc(b)}</span>`).join('')}</div>
@@ -170,6 +174,7 @@
   // misma operación (venta/renta), mismo grupo de tipo y, en casas/deptos, ±1 recámara.
   // Usa la colonia si hay al menos MIN_MUESTRA comparables; si no, el municipio.
   AM.analisis = function (p, all) {
+    if (!AM.esMXN(p)) return { disponible: false, motivo: 'El precio de esta propiedad está en dólares; el análisis por m² compara solo propiedades en pesos.' };
     const pm2 = AM.precioM2(p);
     if (!pm2) return { disponible: false, motivo: 'Esta propiedad no tiene m² o precio registrados, por eso no se puede calcular su precio por m².' };
     const g = AM.grupoDe(p.tipo);
@@ -217,8 +222,9 @@
 
   AM.similares = function (p, all, n) {
     n = n || 4;
+    if (!AM.esMXN(p)) return [];
     const g = AM.grupoDe(p.tipo);
-    let c = all.filter(q => q !== p && q.operacion === p.operacion && AM.grupoDe(q.tipo) === g && q.municipio === p.municipio);
+    let c = all.filter(q => q !== p && q.operacion === p.operacion && AM.grupoDe(q.tipo) === g && q.municipio === p.municipio && AM.esMXN(q));
     const cerca = c.filter(q => Math.abs(q.precio - p.precio) <= p.precio * 0.3);
     if (cerca.length >= n) c = cerca;
     const misma = q => (AM.norm(q.colonia) === AM.norm(p.colonia) ? 0 : 1);

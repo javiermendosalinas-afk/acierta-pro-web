@@ -51,11 +51,13 @@
     const L = [];
     const ops = [...new Set(items.map(i => i.p.operacion))];
     if (ops.length > 1) L.push({ tipo: 'alerta', t: 'Estás comparando propiedades en <b>venta</b> con propiedades en <b>renta</b>. Sus precios no son comparables entre sí; conviene compararlas por separado.' });
+    const mixMoneda = items.some(i => !AM.esMXN(i.p)) && items.some(i => AM.esMXN(i.p));
+    if (mixMoneda) L.push({ tipo: 'alerta', t: 'Hay precios en <b>dólares</b> y en <b>pesos</b>. No se comparan entre sí; pide a un asesor la equivalencia.' });
     const grupos = [...new Set(items.map(i => AM.grupoDe(i.p.tipo)))];
     if (grupos.length > 1) L.push({ tipo: 'alerta', t: 'Son de <b>tipos distintos</b> (' + grupos.map(g => AM.GRUPO_LABEL[g]).join(', ') + '). El precio por m² no es directamente comparable entre ellos.' });
 
     const conPrecio = items.slice().sort((a, b) => a.p.precio - b.p.precio);
-    if (conPrecio.length > 1 && conPrecio[0].p.precio !== conPrecio[conPrecio.length - 1].p.precio && ops.length === 1) {
+    if (conPrecio.length > 1 && conPrecio[0].p.precio !== conPrecio[conPrecio.length - 1].p.precio && ops.length === 1 && !mixMoneda) {
       const lo = conPrecio[0], hi = conPrecio[conPrecio.length - 1];
       const dif = hi.p.precio - lo.p.precio, pct = Math.round(dif / lo.p.precio * 100);
       const u = lo.p.operacion === 'RENTA' ? '/mes' : '';
@@ -116,7 +118,7 @@
 
     const filas = [
       fila('Operación / tipo', P.map(p => `${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)}`)),
-      fila('Precio', P.map(p => `<b>${AM.money(p.precio)}</b>${p.operacion === 'RENTA' ? ' /mes' : ''}`), mPrecio),
+      fila('Precio', P.map(p => `<b>${AM.precioTxt(p)}</b>${AM.esMXN(p) ? '' : ' USD'}${p.operacion === 'RENTA' ? ' /mes' : ''}`), P.some(p => !AM.esMXN(p)) ? null : mPrecio),
       fila('Superficie', P.map(p => p.m2 ? Math.round(p.m2).toLocaleString('es-MX') + ' m²' : '—'), mM2),
       fila('Precio por m²', P.map(p => AM.precioM2(p) ? AM.money(AM.precioM2(p)) : '—'), mPm2),
       fila('Recámaras', P.map(p => p.recamaras || '—'), mRec),

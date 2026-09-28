@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tu proceso paso a paso — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="pg proc">
+
+<div class="pg-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <span class="pg-titulo">Tu proceso paso a paso</span>
+  <a href="mapa.html" class="pg-link">Buscar por zona</a>
+</div>
+
+<main class="proc-main">
+  <section class="proc-hero">
+    <h1>Sabe qué viene, cuánto cuesta y por qué importa — antes de empezar</h1>
+    <p>Elige si quieres comprar o rentar, juega con tus números y mira cada etapa del proceso con su costo estimado.
+       Tu avance se guarda para que no pierdas nada.</p>
+    <div class="modo" id="modo" role="tablist">
+      <button data-modo="compra" role="tab">🏠 Quiero comprar</button>
+      <button data-modo="renta" role="tab">🔑 Quiero rentar</button>
+    </div>
+  </section>
+
+  <div class="proc-grid">
+    <aside class="proc-lado">
+      <section class="ficha-card vars" id="vars"></section>
+      <section class="ficha-card resumen" id="resumen"></section>
+    </aside>
+
+    <section class="proc-pasos">
+      <div class="avance"><div class="avance-txt" id="avanceTxt"></div><div class="avance-barra"><i id="avanceBarra"></i></div></div>
+      <ol class="pasos" id="pasos"></ol>
+
+      <section class="ficha-card guardar" id="guardar">
+        <h2>Guarda tu proceso</h2>
+        <p>Tu avance y tus números se guardan <b>automáticamente en este navegador</b>: puedes cerrar la página y retomarlo después.
+           Nosotros <b>solo recibimos algo si tú decides enviarlo</b> por WhatsApp.</p>
+        <div class="guardar-campo"><label for="nombre">¿Cómo te llamas? <span class="muted">(opcional, solo para personalizar tu mensaje)</span></label>
+          <input type="text" id="nombre" maxlength="60" placeholder="Tu nombre"></div>
+        <div class="ficha-cta">
+          <a class="btn-solid btn-lg" id="btnWa" target="_blank" rel="noopener" href="#">Enviar mi resumen a Acierta Max por WhatsApp</a>
+          <button class="btn-outline btn-lg" type="button" id="btnEnlace">Copiar enlace para retomarlo</button>
+          <button class="btn-outline btn-lg" type="button" id="btnImprimir">Imprimir / guardar como PDF</button>
+        </div>
+        <p class="muted">Un asesor puede revisar contigo esta estimación y confirmar las cifras que dependen de terceros (notario, banco, Registro Público).</p>
+      </section>
+    </section>
+  </div>
+</main>
+
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  AM.sinBarra = true;
+  const $ = id => document.getElementById(id);
+  const money = AM.money;
+  const rango = (a, b) => money(a) + ' – ' + money(b);
+  const CLAVE = 'aciertaProceso';
+  const DEF = { v: 1, modo: 'compra', precio: 2500000, enganche: 20, plazo: 20, tasa: 12, ingresos: '', renta: 15000,
+                municipio: '', tipo: '', recamaras: '', verifica: false, m2: 80, nombre: '', hechos: { compra: [], renta: [] } };
+  let D = null, TODAS = [], S = Object.assign({}, DEF);
+
+  // ── Estado: URL (?s=) > navegador > valores por defecto ──
+  const b64e = o => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const b64d = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/')))));
+  function cargarEstado() {
+    const q = new URLSearchParams(location.search);
+    let base = null;
+    try { if (q.get('s')) base = b64d(q.get('s')); } catch (e) { base = null; }
+    if (!base) { try { base = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { base = null; } }
+    S = Object.assign({}, DEF, base || {});
+    S.hechos = Object.assign({ compra: [], renta: [] }, S.hechos || {});
+    // Vienen de una ficha: ?modo=renta&precio=..&renta=..&mun=..&tipo=..&rec=..&m2=..
+    if (q.get('modo') === 'compra' || q.get('modo') === 'renta') S.modo = q.get('modo');
+    const num = k => { const v = parseFloat(q.get(k)); return v > 0 ? v : null; };
+    if (num('precio')) S.precio = Math.round(num('precio'));
+    if (num('renta')) S.renta = Math.round(num('renta'));
+    if (num('m2')) { S.m2 = Math.round(num('m2')); }
+    if (q.get('mun')) S.municipio = q.get('mun');
+    if (q.get('tipo')) S.tipo = q.get('tipo');
+    if (num('rec')) S.recamaras = String(Math.round(num('rec')));
+  }
+  function guardarEstado() { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} }
+
+  // ── Cálculos ─────────────────────────────────────────────
+  function pmt(monto, tasaAnual, anios) {
+    const n = anios * 12, r = tasaAnual / 100 / 12;
+    return r > 0 ? monto * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : monto / n;
+  }
+  function pagoMaxAMonto(pago, tasaAnual, anios) {
+    const n = anios * 12, r = tasaAnual / 100 / 12;
+    return r > 0 ? pago * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n)) : pago * n;
+  }
+  const costoVerifica = () => Math.max(D.tarifas.verifica.minimo, Math.round(D.tarifas.verifica.por_m2 * (S.m2 || 0)));
+  function mediana(v) { const a = v.slice().sort((x, y) => x - y), m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+
+  function segmento() {
+    const op = S.modo === 'compra' ? 'VENTA' : 'RENTA';
+    const grupo = S.tipo;
+    const usaRec = !grupo || grupo === 'casa' || grupo === 'departamento';
+    const rec = parseInt(S.recamaras) || 0;
+    const seg = TODAS.filter(p => AM.esMXN(p) && p.operacion === op &&
+      (!S.municipio || p.municipio === S.municipio) &&
+      (!grupo || AM.GRUPOS_TIPO[grupo].includes(p.tipo)) &&
+      (!(usaRec && rec) || (p.recamaras && p.recamaras >= rec)));
+    const tope = S.modo === 'compra' ? S.precio : S.renta;
+    const dentro = seg.filter(p => p.precio <= tope);
+    return { op, seg, dentro, mediana: seg.length ? mediana(seg.map(p => p.precio)) : null };
+  }
+
+  // ── Render: variables ────────────────────────────────────
+  function opciones(lista, actual) { return lista.map(([v, t]) => `<option value="${AM.esc(v)}" ${String(actual) === String(v) ? 'selected' : ''}>${AM.esc(t)}</option>`).join(''); }
+  const MUNI = [['', 'Toda la ZMG'], ['Guadalajara', 'Guadalajara'], ['Zapopan', 'Zapopan'], ['Tlajomulco de Zúñiga', 'Tlajomulco'], ['Tlaquepaque', 'Tlaquepaque'], ['Tonalá', 'Tonalá']];
+  const TIPOS = [['', 'Cualquiera'], ['casa', 'Casa'], ['departamento', 'Departamento'], ['terreno', 'Terreno'], ['local', 'Local comercial'], ['oficina', 'Oficina'], ['bodega', 'Bodega / nave'], ['edificio', 'Edificio']];
+  const RECS = [['', 'Cualquiera'], ['1', '1 o más'], ['2', '2 o más'], ['3', '3 o más'], ['4', '4 o más'], ['5', '5 o más']];
+
+  function pintarVars() {
+    const c = S.modo === 'compra';
+    $('vars').innerHTML = `<h2>Juega con tus números</h2>
+      ${c ? `
+      <div class="campo"><label for="v_precio">Precio de la propiedad que buscas</label>
+        <div class="valor">${money(S.precio)}</div>
+        <input type="range" id="v_precio_r" data-k="precio" min="300000" max="20000000" step="50000" value="${Math.min(Math.max(S.precio, 300000), 20000000)}">
+        <input type="number" id="v_precio" data-k="precio" min="0" step="50000" value="${S.precio}"></div>
+      <div class="campo"><label for="v_enganche">Enganche: <b id="lbl_enganche">${S.enganche}%</b></label>
+        <input type="range" id="v_enganche" data-k="enganche" min="5" max="50" step="1" value="${S.enganche}"></div>
+      <div class="campo dos"><div><label for="v_plazo">Plazo</label>
+        <select id="v_plazo" data-k="plazo">${opciones([5, 10, 15, 20, 25, 30].map(a => [a, a + ' años']), S.plazo)}</select></div>
+        <div><label for="v_tasa">Tasa anual: <b id="lbl_tasa">${Number(S.tasa).toFixed(1)}%</b></label>
+        <input type="range" id="v_tasa" data-k="tasa" min="8" max="16" step="0.1" value="${S.tasa}"></div></div>
+      <p class="muted nota">La tasa es un supuesto tuyo: ajústala a la oferta real que te den.</p>` : `
+      <div class="campo"><label for="v_renta">Renta mensual que buscas</label>
+        <div class="valor">${money(S.renta)}</div>
+        <input type="range" id="v_renta_r" data-k="renta" min="3000" max="150000" step="500" value="${Math.min(Math.max(S.renta, 3000), 150000)}">
+        <input type="number" id="v_renta" data-k="renta" min="0" step="500" value="${S.renta}"></div>`}
+      <div class="campo"><label for="v_ingresos">Ingresos mensuales del hogar <span class="muted">(opcional)</span></label>
+        <input type="number" id="v_ingresos" data-k="ingresos" min="0" step="1000" placeholder="Ej. 60000" value="${S.ingresos}"></div>
+      <div class="campo dos"><div><label for="v_municipio">Zona</label><select id="v_municipio" data-k="municipio">${opciones(MUNI, S.municipio)}</select></div>
+        <div><label for="v_tipo">Tipo</label><select id="v_tipo" data-k="tipo">${opciones(TIPOS, S.tipo)}</select></div></div>
+      <div class="campo"><label for="v_recamaras">Recámaras (mínimo)</label><select id="v_recamaras" data-k="recamaras">${opciones(RECS, S.recamaras)}</select></div>
+      <div class="campo check"><label><input type="checkbox" id="v_verifica" data-k="verifica" ${S.verifica ? 'checked' : ''}> Incluir <b>Acierta Verifica</b> (revisión física y documental)</label>
+        <div id="verifBox" style="display:${S.verifica ? 'block' : 'none'}"><label for="v_m2">Superficie a revisar (m²)</label>
+          <input type="number" id="v_m2" data-k="m2" min="1" step="5" value="${S.m2}"></div></div>`;
+  }
+
+  // ── Render: resumen / estimación ─────────────────────────
+  function pintarResumen() {
+    const c = S.modo === 'compra', seg = segmento(), T = D.tarifas;
+    const filas = [];
+    let capacidad = '';
+    const ing = parseFloat(S.ingresos) || 0;
+    if (c) {
+      const eng = S.precio * S.enganche / 100, monto = S.precio - eng, mens = pmt(monto, S.tasa, S.plazo);
+      const gMin = S.precio * T.compra.gastos_min_pct / 100, gMax = S.precio * T.compra.gastos_max_pct / 100;
+      const ver = S.verifica ? costoVerifica() : 0;
+      filas.push(['Precio de la propiedad', money(S.precio)], ['Enganche (' + S.enganche + '%)', money(eng)], ['Crédito solicitado', money(monto)],
+        ['Mensualidad estimada <small>(' + Number(S.tasa).toFixed(1) + '% a ' + S.plazo + ' años)</small>', '<b>' + money(mens) + '/mes</b>'],
+        ['Impuestos, notario, registro y gastos de cierre <small>(' + T.compra.gastos_min_pct + '%–' + T.compra.gastos_max_pct + '% del valor)</small>', rango(gMin, gMax)]);
+      if (S.verifica) filas.push(['Acierta Verifica <small>(' + S.m2 + ' m²)</small>', money(ver)]);
+      filas.push(['Efectivo para arrancar <small>(enganche + gastos' + (S.verifica ? ' + Verifica' : '') + ')</small>', '<b>' + rango(eng + gMin + ver, eng + gMax + ver) + '</b>']);
+      if (ing > 0) {
+        const pct = mens / ing * 100, tope = pagoMaxAMonto(0.30 * ing, S.tasa, S.plazo) / (1 - S.enganche / 100);
+        const nivel = pct <= 30 ? ['ok', 'dentro de la regla práctica'] : pct <= 40 ? ['medio', 'ajustada'] : ['alto', 'elevada'];
+        capacidad = `<div class="capacidad ${nivel[0]}"><b>Tu mensualidad sería ${Math.round(pct)}% de tus ingresos</b> — ${nivel[1]}.
+          Con esos ingresos, una mensualidad de hasta 30% permitiría una propiedad de unos <b>${money(tope)}</b>.
+          <span class="muted">Orientación general; cada banco evalúa tu caso.</span></div>`;
+      }
+    } else {
+      const R = S.renta, ini = R * (T.renta.meses_deposito + T.renta.meses_anticipada), ver = S.verifica ? costoVerifica() : 0;
+      const total = ini + T.renta.investigacion + T.renta.ija + ver;
+      filas.push(['Renta mensual', '<b>' + money(R) + '/mes</b>'],
+        ['Depósito en garantía (' + T.renta.meses_deposito + ' mes)', money(R * T.renta.meses_deposito)],
+        ['Renta anticipada (' + T.renta.meses_anticipada + ' mes)', money(R * T.renta.meses_anticipada)],
+        ['Investigación del inquilino', money(T.renta.investigacion)], ['Contrato ante Justicia Alternativa (IJA)', money(T.renta.ija)]);
+      if (S.verifica) filas.push(['Acierta Verifica <small>(' + S.m2 + ' m²)</small>', money(ver)]);
+      filas.push(['Total para firmar <small>(primer pago)</small>', '<b>' + money(total) + '</b>']);
+      if (ing > 0) {
+        const pct = R / ing * 100, nivel = pct <= 33 ? ['ok', 'dentro de la regla práctica'] : pct <= 40 ? ['medio', 'ajustada'] : ['alto', 'elevada'];
+        capacidad = `<div class="capacidad ${nivel[0]}"><b>La renta sería ${Math.round(pct)}% de tus ingresos</b> — ${nivel[1]}.
+          Una regla práctica es que la renta no rebase aproximadamente un tercio de tus ingresos.
+          <span class="muted">Orientación general, no un requisito de Acierta Max.</span></div>`;
+      }
+    }
+    const zona = (S.municipio || 'toda la ZMG'), tipoTxt = (TIPOS.find(t => t[0] === S.tipo) || [0, 'propiedades'])[1].toLowerCase();
+    const mercado = seg.seg.length
+      ? `<div class="mercado"><b>${seg.dentro.length.toLocaleString('es-MX')}</b> ${S.modo === 'compra' ? 'propiedades en venta' : 'propiedades en renta'} dentro de tu ${S.modo === 'compra' ? 'presupuesto' : 'renta'}
+         <span class="muted">(de ${seg.seg.length.toLocaleString('es-MX')} en ${AM.esc(zona)}${S.tipo ? ', ' + AM.esc(tipoTxt) : ''}). Precio mediano de esa zona y tipo: <b>${money(seg.mediana)}</b>${S.modo === 'renta' ? '/mes' : ''}.</span>
+         <a class="btn-outline btn-lg" href="${urlMapa()}">Ver esas propiedades en el mapa</a></div>`
+      : `<div class="mercado">No hay propiedades con esos criterios. Prueba ampliando la zona o el tipo.</div>`;
+    $('resumen').innerHTML = `<h2>Tu estimación</h2>
+      <table class="est">${filas.map(f => `<tr><td>${f[0]}</td><td>${f[1]}</td></tr>`).join('')}</table>
+      ${capacidad}${mercado}
+      <p class="muted aviso">Estimación informativa, no es una oferta ni una cotización vinculante. Montos de Acierta Max al ${fechaBonita(D.actualizado)};
+      los impuestos y gastos de notario, registro y banco los confirman el notario y tu institución.</p>`;
+  }
+  const fechaBonita = iso => { const [y, m, d] = iso.split('-'); return d + '/' + m + '/' + y; };
+  function urlMapa() {
+    const q = new URLSearchParams({ op: S.modo === 'compra' ? 'VENTA' : 'RENTA' });
+    if (S.municipio) q.set('municipio', S.municipio);
+    if (S.tipo) q.set('tipo', S.tipo);
+    if (S.recamaras) q.set('recamaras', S.recamaras);
+    q.set('precioMax', String(Math.round(S.modo === 'compra' ? S.precio : S.renta)));
+    return 'mapa.html?' + q.toString();
+  }
+
+  // ── Render: pasos ────────────────────────────────────────
+  function costoChip(p) {
+    const T = D.tarifas, R = S.renta, P = S.precio;
+    switch (p.costo) {
+      case 'ninguno': return ['chip-libre', 'No implica un pago en esta etapa'];
+      case 'verifica': return ['chip-opc', 'Opcional: ' + (S.verifica ? money(costoVerifica()) : 'desde ' + money(T.verifica.minimo)) + ' <small>($' + T.verifica.por_m2 + '/m², mínimo ' + money(T.verifica.minimo) + ')</small>'];
+      case 'apartado': return ['chip-var', 'Monto por acordar en la oferta'];
+      case 'banco': return ['chip-var', 'Según tu banco: avalúo, comisiones y seguros. Nuestro equipo de crédito te da el detalle'];
+      case 'gastos': return ['chip-costo', rango(P * T.compra.gastos_min_pct / 100, P * T.compra.gastos_max_pct / 100) + ' <small>(' + T.compra.gastos_min_pct + '%–' + T.compra.gastos_max_pct + '% del valor; el notario da la cifra exacta)</small>'];
+      case 'incluido': return ['chip-libre', 'Incluido en los gastos de escrituración'];
+      case 'investigacion': return ['chip-costo', money(T.renta.investigacion)];
+      case 'ija': return ['chip-costo', money(T.renta.ija)];
+      case 'inicial': return ['chip-costo', money(R * (T.renta.meses_deposito + T.renta.meses_anticipada)) + ' <small>(depósito + renta anticipada)</small>'];
+    }
+    return ['chip-var', ''];
+  }
+  function pintarPasos() {
+    const lista = D.pasos[S.modo], hechos = S.hechos[S.modo];
+    $('pasos').innerHTML = lista.map((p, i) => {
+      const [cls, txt] = costoChip(p), hecho = hechos.includes(p.id);
+      return `<li class="paso ${hecho ? 'hecho' : ''}" data-id="${p.id}">
+        <div class="paso-num">${hecho ? '✓' : i + 1}</div>
+        <div class="paso-cuerpo">
+          <h3>${AM.esc(p.titulo)}</h3>
+          <p class="paso-res">${AM.esc(p.resumen)}</p>
+          <p class="paso-imp"><b>Por qué importa:</b> ${AM.esc(p.importancia)}</p>
+          <p class="paso-quien"><b>Quién participa:</b> ${AM.esc(p.quien)}</p>
+          <details><summary>Qué necesitas</summary><ul>${p.necesitas.map(n => `<li>${AM.esc(n)}</li>`).join('')}</ul></details>
+          <div class="paso-pie"><span class="chip ${cls}">${txt}</span>
+            <label class="paso-hecho"><input type="checkbox" data-hecho="${p.id}" ${hecho ? 'checked' : ''}> Ya lo hice</label></div>
+        </div></li>`;
+    }).join('');
+    const n = hechos.filter(id => lista.some(p => p.id === id)).length;
+    $('avanceTxt').textContent = 'Llevas ' + n + ' de ' + lista.length + ' pasos';
+    $('avanceBarra').style.width = (n / lista.length * 100) + '%';
+  }
+
+  // ── Guardar / compartir ──────────────────────────────────
+  function resumenTexto() {
+    const c = S.modo === 'compra', T = D.tarifas, lin = [];
+    lin.push('Hola' + (S.nombre ? ', soy ' + S.nombre : '') + '. Quiero que me ayuden con mi proceso de ' + (c ? 'COMPRA' : 'RENTA') + '. Mi resumen:');
+    if (c) {
+      const eng = S.precio * S.enganche / 100, mens = pmt(S.precio - eng, S.tasa, S.plazo);
+      lin.push('• Busco una propiedad de ' + money(S.precio) + ' con ' + S.enganche + '% de enganche (' + money(eng) + ').');
+      lin.push('• Mensualidad estimada: ' + money(mens) + ' (' + Number(S.tasa).toFixed(1) + '% a ' + S.plazo + ' años).');
+      lin.push('• Gastos de cierre estimados: ' + rango(S.precio * T.compra.gastos_min_pct / 100, S.precio * T.compra.gastos_max_pct / 100) + '.');
+    } else {
+      lin.push('• Busco rentar alrededor de ' + money(S.renta) + ' al mes.');
+      lin.push('• Total estimado para firmar: ' + money(S.renta * (T.renta.meses_deposito + T.renta.meses_anticipada) + T.renta.investigacion + T.renta.ija + (S.verifica ? costoVerifica() : 0)) + '.');
+    }
+    const z = [S.municipio, (TIPOS.find(t => t[0] === S.tipo) || [0, ''])[1] && S.tipo ? TIPOS.find(t => t[0] === S.tipo)[1] : '', S.recamaras ? S.recamaras + '+ recámaras' : ''].filter(Boolean);
+    if (z.length) lin.push('• Zona / tipo: ' + z.join(', ') + '.');
+    if (S.ingresos) lin.push('• Ingresos mensuales del hogar: ' + money(parseFloat(S.ingresos)) + '.');
+    if (S.verifica) lin.push('• Quiero incluir Acierta Verifica (' + S.m2 + ' m²).');
+    const n = S.hechos[S.modo].length, tot = D.pasos[S.modo].length;
+    lin.push('• Avance: ' + n + ' de ' + tot + ' pasos.');
+    lin.push('Mi proceso: ' + enlace());
+    return lin.join('\n');
+  }
+  function enlace() { return location.origin + '/proceso.html?s=' + b64e(S); }
+  function actualizarGuardar() {
+    $('btnWa').href = 'https://wa.me/523333777337?text=' + encodeURIComponent(resumenTexto());
+  }
+
+  function todo() { guardarEstado(); pintarResumen(); actualizarGuardar(); }
+  function repintarTodo() { pintarVars(); pintarPasos(); todo(); document.querySelectorAll('#modo button').forEach(b => b.classList.toggle('activo', b.dataset.modo === S.modo)); }
+
+  // ── Eventos ──────────────────────────────────────────────
+  $('modo').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.modo = b.dataset.modo; repintarTodo(); });
+  $('vars').addEventListener('input', e => {
+    const el = e.target, k = el.dataset.k; if (!k) return;
+    if (el.type === 'checkbox') S[k] = el.checked;
+    else if (['precio', 'renta', 'enganche', 'tasa', 'plazo', 'm2'].includes(k)) S[k] = parseFloat(el.value) || 0;
+    else S[k] = el.value;
+    if (k === 'verifica') $('verifBox').style.display = S.verifica ? 'block' : 'none';
+    if (k === 'enganche') $('lbl_enganche').textContent = S.enganche + '%';
+    if (k === 'tasa') $('lbl_tasa').textContent = Number(S.tasa).toFixed(1) + '%';
+    if (k === 'precio' || k === 'renta') {   // mantener sincronizados slider y número
+      document.querySelectorAll('#vars [data-k="' + k + '"]').forEach(o => { if (o !== el) o.value = S[k]; });
+      const v = document.querySelector('#vars .valor'); if (v) v.textContent = money(S[k]);
+    }
+    if (k === 'municipio' || k === 'tipo' || k === 'recamaras' || k === 'precio' || k === 'renta' || k === 'enganche' || k === 'plazo' || k === 'tasa' || k === 'ingresos' || k === 'verifica' || k === 'm2') {
+      guardarEstado(); pintarResumen(); actualizarGuardar(); if (k === 'verifica' || k === 'm2' || k === 'precio' || k === 'renta') pintarPasosCostos();
+    }
+  });
+  function pintarPasosCostos() { // solo refresca los chips de costo sin perder el estado de los checkboxes
+    D.pasos[S.modo].forEach(p => { const li = document.querySelector('.paso[data-id="' + p.id + '"] .chip'); if (li) { const [cls, txt] = costoChip(p); li.className = 'chip ' + cls; li.innerHTML = txt; } });
+  }
+  $('pasos').addEventListener('change', e => {
+    const id = e.target.dataset.hecho; if (!id) return;
+    const arr = S.hechos[S.modo], i = arr.indexOf(id);
+    if (e.target.checked && i < 0) arr.push(id); else if (!e.target.checked && i >= 0) arr.splice(i, 1);
+    pintarPasos(); todo();
+  });
+  $('nombre').addEventListener('input', e => { S.nombre = e.target.value.trim(); guardarEstado(); actualizarGuardar(); });
+  $('btnEnlace').addEventListener('click', () => {
+    const url = enlace(), listo = () => AM.toast('Enlace copiado. Ábrelo cuando quieras para retomar tu proceso.');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(listo, () => prompt('Copia este enlace:', url));
+    else prompt('Copia este enlace:', url);
+  });
+  $('btnImprimir').addEventListener('click', () => window.print());
+
+  Promise.all([fetch('proceso-datos.json').then(r => r.json()), fetch('data.json').then(r => r.json())])
+    .then(([datos, todas]) => { D = datos; TODAS = todas; cargarEstado(); $('nombre').value = S.nombre || ''; repintarTodo(); })
+    .catch(e => { console.error('proceso:', e); document.querySelector('.proc-main').innerHTML = '<div class="ficha-card"><h2>No se pudo cargar esta página</h2><p>Recarga; si sigue igual, avísanos por WhatsApp.</p></div>'; });
+})();
+</script>
+</body>
+</html>

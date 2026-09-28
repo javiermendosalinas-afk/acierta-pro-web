@@ -26,7 +26,7 @@ function applyFilters() {
     if (currentOp && p.operacion !== currentOp) return false;
     if (municipio && p.municipio !== municipio) return false;
     if (tipo && p.tipo !== tipo) return false;
-    if (precioMax && p.precio > parseInt(precioMax)) return false;
+    if (precioMax && (!AM.esMXN(p) || p.precio > parseInt(precioMax))) return false;
     if (recamaras) {
       const min = parseInt(recamaras);
       if (!p.recamaras) return false;

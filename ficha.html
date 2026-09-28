@@ -86,6 +86,9 @@
     chips.push('Código ' + p.eb);
     const sim = p.operacion === 'VENTA'
       ? `<a class="btn-outline btn-lg" href="simulador.html?precio=${Math.round(p.precio)}">Simular crédito</a>` : '';
+    const g = AM.grupoDe(p.tipo);
+    const procUrl = 'proceso.html?modo=' + (p.operacion === 'RENTA' ? 'renta' : 'compra') + '&' + (p.operacion === 'RENTA' ? 'renta' : 'precio') + '=' + Math.round(p.precio) +
+      '&mun=' + encodeURIComponent(p.municipio) + (g !== 'otro' ? '&tipo=' + g : '') + (p.recamaras ? '&rec=' + p.recamaras : '') + (p.m2 ? '&m2=' + Math.round(p.m2) : '');
     const otra = todas.find(x => x.eb === p.eb && x !== p && x.operacion !== p.operacion);
     const otraHTML = otra ? `<p class="ficha-otra">También está disponible en <b>${otra.operacion === 'RENTA' ? 'renta' : 'venta'}</b>
       (${AM.money(otra.precio)}${otra.operacion === 'RENTA' ? '/mes' : ''}) — <a href="${AM.fichaUrl(otra)}">ver esa ficha</a></p>` : '';
@@ -101,13 +104,14 @@
       <div class="ficha-info">
         <div class="ficha-eyebrow">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)} · ${AM.esc(lugar)}</div>
         <h1>${AM.esc(p.titulo)}</h1>
-        <div class="ficha-precio">${AM.money(p.precio)} <span>MXN${p.operacion === 'RENTA' ? '/mes' : ''}</span></div>
+        <div class="ficha-precio">${AM.precioTxt(p)} <span>${AM.esMXN(p) ? 'MXN' : 'USD'}${p.operacion === 'RENTA' ? '/mes' : ''}</span></div>
         <div class="chips">${chips.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>
         ${otraHTML}
         <div class="ficha-cta">
           <a class="btn-solid btn-lg" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener">Hablar con un asesor por WhatsApp</a>
           <button class="btn-cmp btn-lg" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false">＋ Comparar</button>
           ${sim}
+          <a class="btn-outline btn-lg" href="${procUrl}">Iniciar mi proceso con esta propiedad</a>
         </div>
       </div>
     </div>
