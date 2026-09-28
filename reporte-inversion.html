@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Estudio de oportunidad de inversión — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<style>
+  body.rp { background: #f4f6fb; margin: 0; color: var(--ink); }
+  .rp-wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .rp-hero { background: radial-gradient(1200px 500px at 85% -10%, #2a4a8a 0%, transparent 60%), linear-gradient(135deg, #0b1733 0%, #13284f 100%); color: #fff; padding: 36px 0 54px; }
+  .rp-marca { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; font-size: 14px; color: #c7d1e6; }
+  .rp-marca b { font-family: var(--font-display); font-size: 22px; color: #fff; letter-spacing: .01em; } .rp-marca b span { color: #ff6b5b; }
+  .rp-eyebrow { text-transform: uppercase; letter-spacing: .16em; font-size: 12px; color: #ff8d80; font-weight: 800; margin-bottom: 14px; }
+  .rp-hero h1 { font-family: var(--font-display); font-size: 44px; line-height: 1.1; margin: 0 0 16px; max-width: 820px; }
+  .rp-hero h1 em { font-style: normal; color: #ff6b5b; }
+  .rp-hero p.sub { font-size: 18px; line-height: 1.5; color: #d6def0; max-width: 720px; margin: 0 0 26px; }
+  .rp-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 30px 0 26px; }
+  .rp-kpi { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 16px; }
+  .rp-kpi b { display: block; font-family: var(--font-display); font-size: 28px; } .rp-kpi span { font-size: 12.5px; color: #c7d1e6; }
+  .rp-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .rp-btn { display: inline-block; padding: 14px 24px; border-radius: 999px; font: 800 15px var(--font-body); text-decoration: none; cursor: pointer; border: 0; }
+  .rp-btn.rojo { background: var(--red); color: #fff; } .rp-btn.claro { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.3); }
+  .rp-btn.borde { background: #fff; color: var(--navy); border: 2px solid var(--navy); }
+  section.rp-sec { padding: 46px 0 6px; }
+  .rp-sec h2 { font-family: var(--font-display); font-size: 30px; margin: 0 0 8px; color: var(--navy); }
+  .rp-sec .lead { color: var(--gray); font-size: 16px; line-height: 1.55; margin: 0 0 24px; max-width: 760px; }
+  .rp-insights { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .rp-ins { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 18px rgba(20,40,80,.07); }
+  .rp-ins .ico { font-size: 28px; } .rp-ins b { display: block; font-size: 17px; margin: 8px 0 6px; color: var(--navy); line-height: 1.25; } .rp-ins p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--gray); }
+  #rpMapa { height: 380px; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 18px rgba(20,40,80,.1); }
+  .rp-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .rp-card { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 24px rgba(20,40,80,.09); display: flex; flex-direction: column; }
+  .rp-foto { position: relative; aspect-ratio: 16/9; background: linear-gradient(135deg, #13284f, #2a4a8a); display: flex; align-items: center; justify-content: center; }
+  .rp-foto svg { width: 54px; height: 54px; opacity: .3; } .rp-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .rp-foto .sinfoto { position: absolute; left: 14px; bottom: 12px; color: rgba(255,255,255,.75); font-size: 12.5px; }
+  .rp-num { position: absolute; top: 14px; left: 14px; z-index: 2; background: var(--red); color: #fff; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font: 800 18px var(--font-body); box-shadow: 0 3px 10px rgba(0,0,0,.3); }
+  .rp-fav { position: absolute; top: 18px; right: 14px; z-index: 2; background: #ffd24d; color: #4a3500; font: 800 11.5px var(--font-body); padding: 6px 11px; border-radius: 999px; letter-spacing: .04em; }
+  .rp-cuerpo { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .rp-cuerpo h3 { margin: 0; font-size: 17px; line-height: 1.3; color: var(--navy); } .rp-cuerpo .loc { color: var(--gray); font-size: 13.5px; }
+  .rp-precio { font-family: var(--font-display); font-size: 30px; color: var(--ink); } .rp-precio small { font: 400 13px var(--font-body); color: var(--gray); }
+  .rp-datos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .rp-datos div { background: #f4f6fb; border-radius: 10px; padding: 9px 10px; } .rp-datos b { display: block; font-size: 15.5px; color: var(--navy); } .rp-datos span { font-size: 11.5px; color: var(--gray); }
+  .rp-meter { font-size: 12.5px; color: var(--gray); } .rp-meter .t { display: flex; justify-content: space-between; margin-bottom: 4px; } .rp-meter .t b { color: var(--ink); }
+  .rp-bar { position: relative; height: 10px; background: #e6ebf5; border-radius: 999px; } .rp-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; } .rp-bar u { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #1a1a1a; }
+  .rp-tags { display: flex; flex-wrap: wrap; gap: 6px; } .rp-tag { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: 999px; }
+  .t-ok { background: #e6f6ec; color: #14532d; } .t-med { background: #eef3fb; color: #1d3f7a; } .t-baja { background: #fdecea; color: #8a1f14; } .t-nota { background: #fff7e6; color: #6b5a1e; }
+  .rp-acc { display: flex; gap: 10px; margin-top: auto; padding-top: 4px; } .rp-acc a { flex: 1; text-align: center; padding: 11px 8px; border-radius: 999px; font: 800 13.5px var(--font-body); text-decoration: none; }
+  .rp-acc .ficha { border: 2px solid var(--navy); color: var(--navy); } .rp-acc .visita { background: #1f9d55; color: #fff; }
+  .rp-panel { background: #fff; border-radius: 18px; padding: 24px; box-shadow: 0 4px 18px rgba(20,40,80,.07); margin-bottom: 20px; }
+  .rp-panel h3 { margin: 0 0 4px; font-size: 18px; color: var(--navy); } .rp-panel .nota { color: var(--gray); font-size: 13px; margin: 0 0 14px; line-height: 1.5; }
+  .rp-panel svg { width: 100%; height: auto; display: block; }
+  .rp-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .rp-sel { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; } .rp-sel select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--gray-light); font: 15px var(--font-body); max-width: 100%; }
+  table.rp-tabla { width: 100%; border-collapse: collapse; font-size: 14px; } .rp-tabla th, .rp-tabla td { padding: 9px 8px; border-bottom: 1px solid #e6ebf5; text-align: right; } .rp-tabla th:first-child, .rp-tabla td:first-child { text-align: left; } .rp-tabla th { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: .04em; }
+  .rp-tabla .gan { color: #14532d; font-weight: 800; }
+  .rp-leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 12.5px; color: var(--gray); margin-top: 8px; } .rp-leyenda i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .rp-costos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; } .rp-costos div { background: #f4f6fb; border-radius: 12px; padding: 14px; } .rp-costos b { display: block; font-size: 20px; color: var(--navy); } .rp-costos span { font-size: 12.5px; color: var(--gray); line-height: 1.4; display: block; }
+  .rp-isr { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; } .rp-isr .c { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 18px rgba(20,40,80,.07); font-size: 14px; line-height: 1.55; } .rp-isr h3 { margin: 0 0 8px; color: var(--navy); font-size: 17px; }
+  .rp-aviso { background: #fff7e6; border: 1px solid #f0d896; color: #5c4b14; border-radius: 12px; padding: 14px 16px; font-size: 13.5px; line-height: 1.55; margin-top: 16px; }
+  .rp-pasos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; counter-reset: p; } .rp-pasos div { background: #fff; border-radius: 14px; padding: 16px 12px; text-align: center; font-size: 13px; line-height: 1.4; box-shadow: 0 3px 12px rgba(20,40,80,.07); } .rp-pasos b { display: flex; width: 34px; height: 34px; margin: 0 auto 8px; border-radius: 50%; background: var(--navy); color: #fff; align-items: center; justify-content: center; }
+  .rp-final { background: linear-gradient(135deg, #0b1733, #13284f); color: #fff; border-radius: 22px; padding: 34px; margin: 38px 0 24px; text-align: center; } .rp-final h2 { color: #fff; margin: 0 0 8px; } .rp-final p { color: #c7d1e6; margin: 0 auto 18px; max-width: 620px; line-height: 1.55; }
+  .rp-pie { font-size: 12.5px; color: var(--gray); line-height: 1.6; padding: 10px 0 60px; } .rp-pie h4 { margin: 18px 0 6px; color: var(--ink); font-size: 13px; }
+  .rp-err { max-width: 560px; margin: 90px auto; text-align: center; background: #fff; padding: 34px; border-radius: 18px; }
+  @media (max-width: 860px) { .rp-hero h1 { font-size: 32px; } .rp-kpis, .rp-insights { grid-template-columns: 1fr 1fr; } .rp-cards, .rp-dos, .rp-isr { grid-template-columns: 1fr; } .rp-pasos { grid-template-columns: 1fr 1fr; } .rp-costos { grid-template-columns: 1fr 1fr; } }
+  @media print {
+    .rp-btns, .rp-acc, .rp-sel, #rpMapa, .rp-final .rp-btn, .no-print { display: none !important; }
+    body.rp { background: #fff; } .rp-hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 24px 0 30px; }
+    .rp-card, .rp-panel, .rp-ins, .rp-isr .c { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
+    section.rp-sec { padding-top: 24px; break-inside: auto; } .rp-cards { grid-template-columns: 1fr 1fr; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body class="rp">
+<div id="rp"><p class="pg-cargando">Cargando tu estudio…</p></div>
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  AM.sinBarra = true;
+  const $ = id => document.getElementById(id), raiz = $('rp');
+  const esc = AM.esc, money = AM.money;
+  const pct = (x, d) => (x * 100).toFixed(d == null ? 1 : d) + '%';
+  const WA = '523333777337';
+  const slug = new URLSearchParams(location.search).get('r') || '';
+  const error = m => { raiz.innerHTML = `<div class="rp-err"><h2>${esc(m)}</h2><p class="muted">Si recibiste este enlace de tu asesor, pídele que te lo reenvíe.</p><p><a class="rp-btn rojo" href="index.html">Ir a Acierta Max</a></p></div>`; };
+  if (!/^[a-z0-9-]{3,60}$/.test(slug)) { error('Este enlace no es válido'); return; }
+
+  // ── Modelo de inversión (mismo que usa la herramienta que generó los datos) ──
+  function patrimonio(P, rentaAnual, g, S, n) {
+    const inv = P * (1 + S.compra); let acum = 0; const out = [inv];
+    for (let a = 1; a <= n; a++) {
+      const valorIni = P * Math.pow(1 + g, a - 1);
+      acum += rentaAnual * Math.pow(1 + S.inpc, a - 1) * (1 - S.vacancia) - valorIni * (S.mantenimiento + S.predial);
+      out.push(acum + P * Math.pow(1 + g, a) * (1 - S.venta));
+    }
+    return out;
+  }
+  const cetesSerie = (P, S, n) => Array.from({ length: n + 1 }, (_, t) => P * (1 + S.compra) * Math.pow(1 + S.cetes, t));
+
+  // ── Gráficas SVG ─────────────────────────────────────────
+  const C = { navy: '#0f1f3d', rojo: '#d62828', verde: '#1f9d55', gris: '#8a94a8', azul: '#2f6fdb', oro: '#e0a100' };
+  function grafBarras(items, ref, opt) {   // items: [{et, v, color}], ref: [{v, et, color}]
+    const W = 760, fila = 34, top = 30, H = top + items.length * fila + 18, izq = 210, ancho = W - izq - 40;
+    const max = opt.max, x = v => izq + Math.min(v / max, 1) * ancho;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.aria)}" class="${opt.cls}">`;
+    items.forEach((it, i) => {
+      const y = top + i * fila;
+      s += `<text x="${izq - 10}" y="${y + 20}" text-anchor="end" font-size="13" fill="#3a4257">${esc(it.et)}</text>`;
+      s += `<rect class="barra" x="${izq}" y="${y + 6}" width="${Math.max(x(it.v) - izq, 2)}" height="20" rx="6" fill="${it.color}"><title>${esc(it.et)}: ${pct(it.v)}</title></rect>`;
+      s += `<text x="${x(it.v) + 8}" y="${y + 21}" font-size="13" font-weight="700" fill="#1a1a1a">${pct(it.v)}</text>`;
+    });
+    ref.forEach((r, j) => {
+      const xx = x(r.v);
+      s += `<line class="ref" x1="${xx}" x2="${xx}" y1="${top - 6}" y2="${H - 14}" stroke="${r.color}" stroke-width="2" stroke-dasharray="5 4"/>`;
+      s += `<text x="${xx}" y="${14 + (j % 2) * 12}" text-anchor="middle" font-size="12" font-weight="800" fill="${r.color}">${esc(r.et)}</text>`;
+    });
+    return s + '</svg>';
+  }
+  function grafLineas(series, n) {
+    const W = 760, H = 360, izq = 78, der = 150, sup = 24, inf = 46, w = W - izq - der, h = H - sup - inf;
+    const todos = series.flatMap(s => s.v), min = Math.floor(Math.min(...todos) / 250000) * 250000, max = Math.ceil(Math.max(...todos) / 250000) * 250000;
+    const X = t => izq + t / n * w, Y = v => sup + (1 - (v - min) / (max - min)) * h;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Patrimonio a ${n} años" class="lineas">`;
+    s += `<rect x="${X(3)}" y="${sup}" width="${X(4) - X(3)}" height="${h}" fill="#ffe9a8" opacity=".55"/><text x="${(X(3) + X(4)) / 2}" y="${sup + 14}" text-anchor="middle" font-size="11.5" font-weight="800" fill="#7a5b00">tu horizonte</text>`;
+    for (let v = min; v <= max; v += 250000) { s += `<line x1="${izq}" x2="${W - der}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e6ebf5"/><text x="${izq - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11.5" fill="#6b7386">${'$' + (v / 1e6).toFixed(2) + 'M'}</text>`; }
+    for (let t = 0; t <= n; t++) s += `<text x="${X(t)}" y="${H - 22}" text-anchor="middle" font-size="12.5" fill="#3a4257">${t === 0 ? 'Hoy' : 'Año ' + t}</text>`;
+    series.forEach(sr => {
+      const pts = sr.v.map((v, t) => `${X(t)},${Y(v)}`).join(' ');
+      s += `<polyline class="serie" data-serie="${esc(sr.et)}" points="${pts}" fill="none" stroke="${sr.color}" stroke-width="${sr.grueso ? 4 : 3}" ${sr.disc ? 'stroke-dasharray="7 5"' : ''} stroke-linecap="round" stroke-linejoin="round"/>`;
+      sr.v.forEach((v, t) => { s += `<circle cx="${X(t)}" cy="${Y(v)}" r="3.6" fill="${sr.color}"><title>${esc(sr.et)} · ${t === 0 ? 'Hoy' : 'Año ' + t}: ${money(v)}</title></circle>`; });
+      s += `<text x="${X(n) + 8}" y="${Y(sr.v[n]) + 4}" font-size="12" font-weight="800" fill="${sr.color}">${'$' + (sr.v[n] / 1e6).toFixed(2) + 'M'}</text>`;
+    });
+    return s + '</svg>';
+  }
+  function grafPlusvalia(serie) {
+    const W = 760, H = 210, izq = 30, base = 150, ancho = (W - izq * 2) / serie.length, max = 0.14;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Plusvalía anual de la vivienda en la ZM de Guadalajara" class="plusv">`;
+    serie.forEach((d, i) => {
+      const bh = d.v / max * 120, x = izq + i * ancho + 30, bw = ancho - 60;
+      s += `<rect x="${x}" y="${base - bh}" width="${bw}" height="${bh}" rx="8" fill="${i === serie.length - 1 ? C.rojo : C.navy}"/><text x="${x + bw / 2}" y="${base - bh - 8}" text-anchor="middle" font-size="15" font-weight="800" fill="#1a1a1a">${pct(d.v, 2)}</text><text x="${x + bw / 2}" y="${base + 22}" text-anchor="middle" font-size="13" fill="#3a4257">${esc(d.t)}</text>`;
+    });
+    return s + '</svg>';
+  }
+  const casaSVG = AM.iconHouse();
+
+  function render(R) {
+    const S = R.supuestos, O = R.opciones, M = R.mercado, N = R.inventario, ph = R.puerta_de_hierro;
+    document.title = 'Estudio de oportunidad de inversión — ' + R.cliente + ' — Acierta Max';
+    const wa = t => `https://wa.me/${WA}?text=${encodeURIComponent(t)}`;
+    const nombre = esc(R.cliente);
+    const conFoto = O.filter(o => o.foto).length;
+
+    const tags = o => {
+      const t = [];
+      t.push(`<span class="rp-tag ${o.confianza === 'alta' ? 't-ok' : o.confianza === 'media' ? 't-med' : 't-baja'}">Confianza del estimado: ${o.confianza}</span>`);
+      if (o.flags.includes('desarrollo_nuevo')) t.push('<span class="rp-tag t-nota">Desarrollo nuevo: confirma fecha de entrega y cuándo empieza a rentar</span>');
+      if (o.flags.includes('comercializamos')) t.push('<span class="rp-tag t-nota">Desarrollo que Acierta Max comercializa</span>');
+      return t.join('');
+    };
+    const tarjeta = o => {
+      const barra = Math.min(o.neto / 0.10, 1) * 100, refPos = Math.min(M.cetes / 0.10, 1) * 100;
+      return `<article class="rp-card" id="op${o.rank}" data-eb="${esc(o.eb)}">
+        <div class="rp-foto">${casaSVG}${o.foto ? `<img src="${esc(o.foto)}" alt="${esc(o.titulo)}" loading="lazy" onerror="this.remove()">` : '<span class="sinfoto">Foto próximamente</span>'}
+          <span class="rp-num">${o.rank}</span>${o.rank <= 3 ? '<span class="rp-fav">★ FAVORITA</span>' : ''}</div>
+        <div class="rp-cuerpo">
+          <div><h3>${esc(o.titulo)}</h3><div class="loc">📍 ${esc(o.colonia)}, ${esc(o.municipio)} · ${Math.round(o.m2)} m²${o.rec ? ' · ' + o.rec + ' rec' : ''} · ${esc(o.eb)}</div></div>
+          <div class="rp-precio">${money(o.precio)} <small>· ${money(o.pm2)}/m²</small></div>
+          <div class="rp-datos"><div><b>${money(o.renta)}</b><span>renta estimada/mes</span></div><div><b>${pct(o.neto)}</b><span>rendimiento neto</span></div><div><b>${pct(o.geq4)}</b><span>plusvalía mínima anual*</span></div></div>
+          <div class="rp-meter"><div class="t"><span>Rendimiento neto vs CETES ${pct(M.cetes)}</span><b>${o.neto >= M.cetes ? 'supera CETES' : 'bajo CETES'}</b></div>
+            <div class="rp-bar"><i style="width:${barra}%;background:${o.neto >= M.cetes ? C.verde : C.navy}"></i><u style="left:${refPos}%"></u></div></div>
+          <div class="rp-tags">${tags(o)}</div>
+          <div class="rp-acc"><a class="ficha" href="ficha.html?eb=${encodeURIComponent(o.eb)}&op=VENTA">Ver ficha completa</a>
+            <a class="visita" target="_blank" rel="noopener" href="${wa('Hola, soy ' + R.cliente + '. Vi mi estudio de inversión y quiero agendar visita a la opción #' + o.rank + ' (' + o.eb + ') — ' + o.titulo)}">Agendar visita</a></div>
+        </div></article>`;
+    };
+
+    const netos = O.map(o => ({ et: '#' + o.rank + ' ' + o.colonia.replace(/ Secc$/, ''), v: o.neto, color: o.neto >= M.cetes ? C.verde : C.navy }));
+    const geqs = O.map(o => ({ et: '#' + o.rank + ' ' + o.colonia.replace(/ Secc$/, ''), v: o.geq4, color: o.geq4 <= M.inpc_ponderado ? C.verde : o.geq4 <= S.plusvalia_base ? C.azul : C.oro }));
+    const minPlus = Math.min(...O.map(o => o.geq4)), maxPlus = Math.max(...O.map(o => o.geq4));
+    const nValidas = O.filter(o => o.neto >= M.cetes).length;
+
+    raiz.innerHTML = `
+    <header class="rp-hero"><div class="rp-wrap">
+      <div class="rp-marca"><b>Acierta <span>Max</span></b><span>Preparado para ${nombre} · ${esc(R.generado)}</span></div>
+      <div class="rp-eyebrow">Estudio de oportunidad de inversión</div>
+      <h1>${ph && ph.n && ph.minimo > R.objetivo.tope ? `Con ${money(R.objetivo.tope)} no llegas a Puerta de Hierro, pero sí a <em>${O.length} departamentos</em> bien ubicados dentro del Periférico` : `Encontramos <em>${O.length} departamentos</em> donde tu ${money(R.objetivo.tope)} rinde más`}</h1>
+      <p class="sub">${nombre}, revisamos ${N.en_zona_venta} departamentos en venta de tu zona y los comparamos contra las rentas reales que hay alrededor. Estas son las ${O.length} mejores opciones para tu meta: renta hoy, plusvalía mañana.</p>
+      <div class="rp-kpis">
+        <div class="rp-kpi"><b>${money(R.objetivo.tope)}</b><span>tu presupuesto máximo</span></div>
+        <div class="rp-kpi"><b>${esc(R.objetivo.horizonte)}</b><span>tu horizonte de inversión</span></div>
+        <div class="rp-kpi"><b>${N.evaluados}</b><span>opciones evaluadas de ${N.candidatos} en tu presupuesto</span></div>
+        <div class="rp-kpi"><b>${pct(M.cetes)}</b><span>CETES hoy: la vara para medir</span></div>
+      </div>
+      <div class="rp-btns"><a class="rp-btn rojo" href="#opciones">Ver mis ${O.length} opciones</a>
+        <a class="rp-btn claro" target="_blank" rel="noopener" href="${wa('Hola, soy ' + R.cliente + '. Ya vi mi estudio de inversión y quiero hablar con mi asesor.')}">Hablar con mi asesor</a></div>
+    </div></header>
+
+    <div class="rp-wrap">
+    <section class="rp-sec"><h2>Lo que necesitas saber en 30 segundos</h2><p class="lead">Lo que encontramos con los datos de nuestro inventario, dicho sin adornos.</p>
+      <div class="rp-insights">
+        ${ph && ph.n && ph.minimo > R.objetivo.tope
+          ? `<div class="rp-ins"><div class="ico">📍</div><b>Puerta de Hierro empieza en ${money(ph.minimo)}</b><p>Hay ${ph.n} departamentos en venta ahí, a ${money(ph.mediana_pm2)} el m². Con ${money(R.objetivo.tope)} el dinero rinde más unos kilómetros al sur y al oriente, sin salirte del Periférico.</p></div>`
+          : `<div class="rp-ins"><div class="ico">📍</div><b>${N.en_zona_venta} departamentos revisados</b><p>${N.candidatos} caben en tu presupuesto y ${N.evaluados} tenían suficientes comparables cercanos para estimar su renta.</p></div>`}
+        <div class="rp-ins"><div class="ico">⚖️</div><b>La renta sola no le gana a CETES</b><p>La renta neta mediana de estas opciones es ${pct(R.mediana_neto_evaluados)} contra ${pct(M.cetes)} de CETES. Solo ${nValidas} de las ${O.length} lo supera. La inversión se construye con renta <b>más</b> plusvalía.</p></div>
+        <div class="rp-ins"><div class="ico">📈</div><b>Necesitas ${pct(minPlus)}–${pct(maxPlus)} de plusvalía al año</b><p>Ese es el crecimiento de precio que se necesita para igualar CETES en 4 años. La inflación es ${pct(M.inflacion, 2)} y la vivienda de la ZM de Guadalajara subió ${pct(M.plusvalia_zmg[3].v, 2)} el último año, aunque con tendencia a la baja.</p></div>
+        <div class="rp-ins"><div class="ico">⏱️</div><b>En 3 o 4 años los gastos pesan</b><p>Comprar y vender cuesta (estimamos ${pct(S.compra, 0)} y ${pct(S.venta, 0)}). Por eso mostramos hasta 5 años: entre más tiempo, más se diluyen.</p></div>
+      </div></section>
+
+    <section class="rp-sec"><h2>Dónde están</h2><p class="lead">Ubicación aproximada de las ${O.length} opciones dentro de tu zona de búsqueda.</p><div id="rpMapa"></div></section>
+
+    <section class="rp-sec" id="opciones"><h2>Tus ${O.length} mejores opciones</h2>
+      <p class="lead">Ordenadas por un puntaje que pondera <b>50% rendimiento neto</b>, <b>30% precio por m² frente a sus vecinos</b> y <b>20% confiabilidad de los comparables</b>. ${conFoto < O.length ? `Algunas fichas aún no tienen foto; las estamos completando.` : ''}</p>
+      <div class="rp-cards">${O.map(tarjeta).join('')}</div>
+      <p class="muted" style="margin-top:12px">*Plusvalía anual mínima para que la propiedad iguale a CETES (${pct(M.cetes)}) en 4 años, considerando renta, vacancia, mantenimiento, predial y gastos de compra y venta.</p></section>
+
+    <section class="rp-sec"><h2>Compáralas de un vistazo</h2><p class="lead">Rendimiento neto por renta contra CETES, y cuánta plusvalía necesita cada una.</p>
+      <div class="rp-dos">
+        <div class="rp-panel"><h3>Rendimiento neto anual por renta</h3><p class="nota">En verde, las que superan CETES sin contar plusvalía.</p>${grafBarras(netos, [{ v: M.cetes, et: 'CETES ' + pct(M.cetes), color: C.rojo }], { max: 0.10, cls: 'barras-neto', aria: 'Rendimiento neto por opción' })}</div>
+        <div class="rp-panel"><h3>Plusvalía anual mínima para igualar CETES (4 años)</h3><p class="nota">Entre más corta la barra, más margen tienes.</p>${grafBarras(geqs, [{ v: M.inpc_ponderado, et: 'Inflación pond. ' + pct(M.inpc_ponderado, 1), color: C.gris }, { v: S.plusvalia_base, et: 'Base 6%', color: C.azul }], { max: 0.10, cls: 'barras-plusv', aria: 'Plusvalía mínima por opción' })}</div>
+      </div></section>
+
+    <section class="rp-sec"><h2>Simula tu inversión a 5 años</h2><p class="lead">Elige una opción y mira cómo se compara con dejar tu dinero en CETES. La línea suma <b>el valor de venta más las rentas netas acumuladas</b>, ya descontando los gastos de vender.</p>
+      <div class="rp-panel"><div class="rp-sel"><label for="rpSel"><b>Opción:</b></label><select id="rpSel">${O.map(o => `<option value="${o.rank}">#${o.rank} · ${esc(o.colonia)} · ${money(o.precio)}</option>`).join('')}</select></div>
+        <div id="rpLineas"></div>
+        <div class="rp-leyenda"><span><i style="background:${C.rojo}"></i>CETES ${pct(M.cetes)}</span><span><i style="background:${C.gris}"></i>Propiedad, plusvalía = inflación</span><span><i style="background:${C.azul}"></i>Propiedad, plusvalía 6%</span><span><i style="background:${C.verde}"></i>Propiedad, plusvalía 10% (reciente en la ZM de Guadalajara)</span></div>
+        <div id="rpTabla" style="margin-top:14px"></div>
+    </div></section>
+
+    <section class="rp-sec"><h2>Qué plusvalía ha tenido Guadalajara</h2><p class="lead">Variación anual del Índice de Precios de la Vivienda de la SHF para la Zona Metropolitana de Guadalajara. A nivel nacional fue ${pct(M.plusvalia_nacional_2t26, 2)} en el 2T 2026.</p>
+      <div class="rp-panel">${grafPlusvalia(M.plusvalia_zmg)}<p class="nota" style="margin-top:8px">Fuente: SHF, publicado por el IIEG de Jalisco. Cifras preliminares sujetas a revisión. El rendimiento pasado no garantiza el futuro, y esta tendencia viene bajando.</p></div></section>
+
+    <section class="rp-sec"><h2>Los costos que sí cuentan</h2><p class="lead">Supuestos de este estudio. No incluye honorarios de administración.</p>
+      <div class="rp-costos">
+        <div><b>${pct(S.compra, 0)}</b><span>gastos de compra (escritura, impuestos, registro; referencia 4% a 8%)</span></div>
+        <div><b>${pct(S.venta, 0)}</b><span>gastos al vender (comisión y trámites)</span></div>
+        <div><b>${pct(S.mantenimiento)}/año</b><span>mantenimiento, sobre el valor de la propiedad</span></div>
+        <div><b>${pct(S.predial, 2)}/año</b><span>predial estimado (el real depende del valor catastral y del municipio)</span></div>
+        <div><b>1 mes/año</b><span>sin inquilino (vacancia)</span></div>
+        <div><b>${pct(S.inpc, 2)}/año</b><span>aumento anual de la renta (inflación ponderada)</span></div>
+      </div></section>
+
+    <section class="rp-sec"><h2>El impuesto (ISR) explicado claro</h2><p class="lead">Es donde más confusión hay. Esto es lo que debes saber antes de contar con un beneficio fiscal.</p>
+      <div class="rp-isr">
+        <div class="c"><h3>🏠 La exención de casa habitación</h3><p>Una persona física puede vender <b>su casa habitación</b> sin pagar ISR si el precio no pasa de <b>700,000 UDIS</b> (unos $6.2 millones; la UDI cambia a diario), la operación se hace ante notario y <b>no aplicó esta exención en los tres años anteriores</b>. Debe demostrar ante el notario que ahí vivía (por ejemplo, con su INE y sus recibos).</p><p><b>Importante:</b> es para <u>tu casa donde vives</u>, no para un departamento que compras para rentar. Y los "3 años" son un límite de <u>frecuencia</u>, no un tiempo mínimo de propiedad. Si el departamento es una inversión con renta, normalmente <b>no aplica</b>.</p></div>
+        <div class="c"><h3>💼 Si vendes como inversión</h3><p><b>Persona física sin exención:</b> el ISR se calcula sobre la <u>ganancia</u>, no sobre el precio: precio de venta menos el costo de compra actualizado por inflación y los gastos documentados. El notario lo calcula y lo retiene.</p><p><b>Persona moral:</b> no hay exención; la utilidad se grava con las deducciones que marca la ley.</p><p><b>En este estudio:</b> con nuestro cálculo simplificado, si vendes a 4 años el impuesto es prácticamente cero mientras la plusvalía sea de <b>hasta ${pct(R.isr.plusvalia_sin_ganancia_4)} anual</b> (a 3 años, ${pct(R.isr.plusvalia_sin_ganancia_3)}); por encima, empieza a haber ganancia gravable.</p></div>
+      </div>
+      <div class="rp-aviso"><b>Antes de decidir:</b> esto es información general, no asesoría fiscal. Tu contador debe confirmar tu caso (régimen, deducciones y qué pasa con el ISR de tus rentas, que este estudio <u>no</u> incluye).</div></section>
+
+    <section class="rp-sec"><h2>Cómo llegamos a estos números</h2><p class="lead">Transparencia total, para que puedas cuestionarlos.</p>
+      <div class="rp-panel"><p style="margin:0;line-height:1.65;font-size:14.5px">Buscamos entre nuestro inventario de <b>${N.total.toLocaleString('es-MX')}</b> propiedades en la Zona Metropolitana de Guadalajara. En tu zona hay <b>${N.en_zona_venta}</b> departamentos en venta; <b>${N.candidatos}</b> caben en tu presupuesto y <b>${N.evaluados}</b> tenían suficientes comparables cercanos (${N.sin_comparables} no se pudieron evaluar). Para cada uno estimamos su renta con la <b>renta por m² de departamentos similares en renta a 1–2 km</b> (${N.rentas_comparables} departamentos en renta en tu zona) y comparamos su precio por m² contra sus vecinos.</p>
+      <div class="rp-aviso" style="margin-top:14px"><b>Lo que este estudio no dice:</b> las rentas y precios son de <b>lista</b> (no de cierre) y cada estimado usa entre 5 y 11 comparables; en desarrollos nuevos la renta empezaría hasta la entrega; el rendimiento es <b>antes</b> del ISR por rentas; y la plusvalía del futuro puede ser distinta a la del pasado. Ninguna cifra es una garantía.</div></div></section>
+
+    <section class="rp-sec"><h2>Tu camino con Acierta Max</h2><p class="lead">Te acompañamos en cada paso, desde hoy hasta que tu departamento esté rentando.</p>
+      <div class="rp-pasos"><div><b>1</b>Eliges tus 3 finalistas</div><div><b>2</b>Visitas con tu asesor</div><div><b>3</b>Acierta Verifica: revisión física y documental</div><div><b>4</b>Crédito o recursos propios, con nuestro equipo de crédito</div><div><b>5</b>Oferta y escrituración ante notario</div><div><b>6</b>Entrega, renta y seguimiento</div></div>
+      <div class="rp-final"><h2>¿Lo platicamos, ${nombre}?</h2><p>Escoge tus favoritas y agenda una visita. Nosotros verificamos que lo que ves en el estudio sea lo que hay en la realidad.</p>
+        <div class="rp-btns" style="justify-content:center"><a class="rp-btn rojo" target="_blank" rel="noopener" href="${wa('Hola, soy ' + R.cliente + '. Quiero agendar visitas a mis opciones favoritas del estudio de inversión.')}">Agendar mis visitas</a><button class="rp-btn claro" type="button" id="rpImprimir">Guardar como PDF</button></div></div>
+    </section>
+
+    <footer class="rp-pie">
+      ${AM.confianzaHTML()}
+      <p><b>Este es un ejercicio inicial de estudio</b>, realizado con los datos de nuestro inventario de ${N.total.toLocaleString('es-MX')} propiedades disponibles hoy en la Zona Metropolitana de Guadalajara. <b>El parámetro de aceptación de la inversión es responsabilidad y decisión del cliente.</b> No constituye asesoría financiera, fiscal ni legal, ni garantía de rendimiento, y no genera ningún compromiso. Las cifras son estimaciones basadas en precios de lista.</p>
+      <h4>Fuentes de referencia</h4>
+      <p>Plusvalía: Índice de Precios de la Vivienda, SHF (publicado por el IIEG de Jalisco), 3T 2025 a 2T 2026. Inflación: INEGI, INPC primera quincena de septiembre de 2026 (${pct(M.inflacion, 2)} anual); ponderada ${pct(M.inpc_ponderado, 2)} (50% 2026, 30% 2025, 20% 2024). CETES: ${pct(M.cetes)} como referencia; ${esc(M.cetes_nota)} Exención de ISR: Ley del ISR, artículo 93, fracción XIX.</p>
+    </footer></div>`;
+
+    // ── Interactivo: simulador ──
+    const pintarSim = rank => {
+      const o = O.find(x => x.rank === Number(rank)), n = 5;
+      const ser = [
+        { et: 'CETES ' + pct(M.cetes), v: cetesSerie(o.precio, S, n), color: C.rojo, disc: true },
+        { et: 'Propiedad, plusvalía = inflación', v: patrimonio(o.precio, o.renta_anual, S.inpc, S, n), color: C.gris },
+        { et: 'Propiedad, plusvalía 6%', v: patrimonio(o.precio, o.renta_anual, S.plusvalia_base, S, n), color: C.azul, grueso: true },
+        { et: 'Propiedad, plusvalía 10%', v: patrimonio(o.precio, o.renta_anual, S.plusvalia_alta, S, n), color: C.verde }
+      ];
+      $('rpLineas').innerHTML = grafLineas(ser, n);
+      const fila = a => `<tr><td>Año ${a}</td>${ser.map((s, i) => `<td class="${i > 0 && s.v[a] > ser[0].v[a] ? 'gan' : ''}">${money(s.v[a])}</td>`).join('')}</tr>`;
+      $('rpTabla').innerHTML = `<table class="rp-tabla"><thead><tr><th>Si vendieras al final del…</th><th>CETES</th><th>Plusv. = inflación</th><th>Plusv. 6%</th><th>Plusv. 10%</th></tr></thead><tbody>${[3, 4, 5].map(fila).join('')}</tbody></table>
+        <p class="nota" style="margin-top:8px">Parte de ${money(o.precio * (1 + S.compra))} invertidos (precio + gastos de compra). En verde, cuando la propiedad supera a CETES. Antes de ISR por rentas.</p>`;
+    };
+    $('rpSel').addEventListener('change', e => pintarSim(e.target.value));
+    pintarSim(1);
+    $('rpImprimir').addEventListener('click', () => window.print());
+
+    // ── Mapa (si falla, el reporte sigue completo) ──
+    try {
+      const m = L.map('rpMapa', { scrollWheelZoom: false, preferCanvas: true });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(m);
+      const z = R.zona_caja;
+      L.rectangle([[z.la0, z.lo0], [z.la1, z.lo1]], { color: '#d62828', weight: 2, fillOpacity: 0.05, dashArray: '6 6' }).addTo(m);
+      const pts = O.map(o => L.marker([o.lat, o.lon], { icon: L.divIcon({ className: 'cmp-pin', html: '<span>' + o.rank + '</span>', iconSize: [30, 30] }) })
+        .bindPopup('<b>#' + o.rank + '</b> ' + esc(o.colonia) + '<br>' + money(o.precio)).addTo(m));
+      m.fitBounds(L.featureGroup(pts).getBounds().pad(0.3), { maxZoom: 14 });
+    } catch (e) { const el = $('rpMapa'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
+  }
+
+  fetch('reportes/' + slug + '.json').then(r => { if (!r.ok) throw new Error('404'); return r.json(); }).then(render)
+    .catch(e => { console.error('reporte:', e); error('No encontramos este estudio'); });
+})();
+</script>
+</body>
+</html>
