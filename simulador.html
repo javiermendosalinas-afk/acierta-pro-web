@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de crédito hipotecario — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--cream); }
+  .sim-header {
+    background: var(--navy); color: var(--white);
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .sim-header a.back { color: #c7d1e6; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .sim-header a.back:hover { color: var(--white); }
+  .sim-header h1 { font-family: var(--font-display); font-size: 20px; margin: 0; }
+  .sim-wrap {
+    max-width: 920px; margin: 0 auto; padding: 32px 20px 60px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 28px;
+  }
+  @media (max-width: 760px) { .sim-wrap { grid-template-columns: 1fr; } }
+  .sim-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .sim-card h2 { font-family: var(--font-display); font-size: 20px; margin-bottom: 18px; color: var(--ink); }
+  .campo { margin-bottom: 18px; }
+  .campo label { display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .campo input[type="number"], .campo input[type="range"] { width: 100%; }
+  .campo input[type="number"] {
+    padding: 10px 12px; border-radius: 8px; border: 1px solid var(--gray-light); font-size: 15px;
+  }
+  .campo .valor-tasa { font-size: 22px; font-weight: 800; color: var(--red); margin-bottom: 4px; }
+  .disclaimer {
+    background: #fff7e6; border: 1px solid #f0d896; border-radius: 8px;
+    padding: 12px 14px; font-size: 12.5px; color: #6b5a1e; line-height: 1.5; margin-top: 8px;
+  }
+  .resultado-item {
+    display: flex; justify-content: space-between; padding: 12px 0;
+    border-bottom: 1px solid var(--gray-light);
+  }
+  .resultado-item:last-child { border-bottom: none; }
+  .resultado-item .label { color: var(--gray); font-size: 14px; }
+  .resultado-item .valor { font-weight: 800; font-size: 16px; color: var(--ink); }
+  .resultado-destacado .valor { color: var(--red); font-size: 24px; }
+  .sim-cta {
+    display: block; text-align: center; background: var(--navy); color: var(--white);
+    padding: 13px; border-radius: 999px; font-weight: 700; margin-top: 20px; text-decoration: none;
+  }
+  .sim-condusef {
+    text-align: center; font-size: 12.5px; color: var(--gray); margin-top: 14px;
+  }
+  .sim-condusef a { color: var(--red); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="sim-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <h1>Simulador de crédito hipotecario</h1>
+</div>
+
+<div class="sim-wrap">
+  <div class="sim-card">
+    <h2>Datos de tu crédito</h2>
+    <div class="campo">
+      <label for="precio">Precio de la propiedad (MXN)</label>
+      <input type="number" id="precio" value="2500000" step="50000" min="0">
+    </div>
+    <div class="campo">
+      <label for="enganche">Enganche (%)</label>
+      <input type="range" id="enganche" min="5" max="50" value="20" step="1">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--gray);margin-top:4px;">
+        <span id="engancheTexto">20%</span>
+        <span id="engancheMonto"></span>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="plazo">Plazo (años)</label>
+      <select id="plazo" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--gray-light);font-size:15px;">
+        <option value="5">5 años</option>
+        <option value="10">10 años</option>
+        <option value="15">15 años</option>
+        <option value="20" selected>20 años</option>
+        <option value="25">25 años</option>
+        <option value="30">30 años</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="tasa">Tasa de interés anual — ajústala según la oferta que te den</label>
+      <div class="valor-tasa"><span id="tasaTexto">12.0</span>%</div>
+      <input type="range" id="tasa" min="8" max="16" value="12" step="0.1">
+      <div class="disclaimer">
+        Esta tasa es un supuesto tuyo, no un dato oficial de ningún banco — las tasas reales varían
+        mucho según tu perfil, buró de crédito y la institución. Ajusta el control según la cotización
+        real que te den. Para tasas oficiales vigentes, usa el simulador de CONDUSEF (liga abajo).
+      </div>
+    </div>
+  </div>
+
+  <div class="sim-card">
+    <h2>Resultado estimado</h2>
+    <div class="resultado-item">
+      <span class="label">Monto del crédito</span>
+      <span class="valor" id="rMonto">—</span>
+    </div>
+    <div class="resultado-item resultado-destacado">
+      <span class="label">Pago mensual estimado</span>
+      <span class="valor" id="rMensual">—</span>
+    </div>
+    <div class="resultado-item">
+      <span class="label">Total de intereses a pagar</span>
+      <span class="valor" id="rIntereses">—</span>
+    </div>
+    <div class="resultado-item">
+      <span class="label">Costo total del crédito</span>
+      <span class="valor" id="rTotal">—</span>
+    </div>
+    <a class="sim-cta" href="https://wa.me/523333777337?text=Hola%2C%20quiero%20que%20me%20ayuden%20a%20precalificar%20un%20cr%C3%A9dito%20hipotecario" target="_blank" rel="noopener">
+      Que Acierta Max me ayude a precalificar →
+    </a>
+    <div class="sim-condusef">
+      Este cálculo es solo una estimación con matemáticas de amortización estándar —
+      no incluye comisiones, seguros ni CAT. Para una comparación oficial de tasas reales entre bancos,
+      visita el <a href="https://phpapps.condusef.gob.mx/condusefhipotecario/index.php" target="_blank" rel="noopener">simulador de CONDUSEF</a>.
+    </div>
+  </div>
+</div>
+
+<script>
+function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
+
+function calcular() {
+  const precio = parseFloat(document.getElementById('precio').value) || 0;
+  const enganchePct = parseFloat(document.getElementById('enganche').value);
+  const plazoAnios = parseInt(document.getElementById('plazo').value);
+  const tasaAnual = parseFloat(document.getElementById('tasa').value);
+
+  document.getElementById('engancheTexto').textContent = enganchePct + '%';
+  document.getElementById('tasaTexto').textContent = tasaAnual.toFixed(1);
+
+  const engancheMonto = precio * (enganchePct / 100);
+  document.getElementById('engancheMonto').textContent = money(engancheMonto);
+
+  const monto = precio - engancheMonto;
+  const n = plazoAnios * 12;
+  const rMensual = (tasaAnual / 100) / 12;
+
+  let pagoMensual = 0;
+  if (rMensual > 0) {
+    pagoMensual = monto * (rMensual * Math.pow(1 + rMensual, n)) / (Math.pow(1 + rMensual, n) - 1);
+  } else {
+    pagoMensual = monto / n;
+  }
+
+  const totalPagado = pagoMensual * n;
+  const totalIntereses = totalPagado - monto;
+
+  document.getElementById('rMonto').textContent = money(monto);
+  document.getElementById('rMensual').textContent = money(pagoMensual) + '/mes';
+  document.getElementById('rIntereses').textContent = money(totalIntereses);
+  document.getElementById('rTotal').textContent = money(totalPagado);
+}
+
+['precio', 'enganche', 'plazo', 'tasa'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcular);
+});
+calcular();
+</script>
+</body>
+</html>
