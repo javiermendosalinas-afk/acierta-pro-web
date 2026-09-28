@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busca por zona — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<style>
+  html, body { height: 100%; margin: 0; font-family: var(--font-body); }
+  .mapa-header {
+    background: var(--navy); color: var(--white);
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .mapa-header a.back { color: #c7d1e6; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .mapa-header a.back:hover { color: var(--white); }
+  .mapa-header h1 { font-family: var(--font-display); font-size: 20px; margin: 0; flex: 1; }
+  .mapa-wrap { display: flex; height: calc(100vh - 60px); }
+  #map { flex: 1; min-width: 0; }
+  .panel {
+    width: 380px; max-width: 40vw; background: var(--cream);
+    overflow-y: auto; padding: 18px; flex-shrink: 0;
+  }
+  @media (max-width: 800px) {
+    .mapa-wrap { flex-direction: column; height: auto; }
+    #map { height: 55vh; }
+    .panel { width: 100%; max-width: 100%; max-height: 45vh; }
+  }
+  .panel-hint {
+    background: var(--white); border-radius: var(--radius); padding: 14px;
+    font-size: 13px; color: var(--gray); margin-bottom: 14px; line-height: 1.5;
+  }
+  .panel-hint b { color: var(--ink); }
+  .panel-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .panel-toolbar select {
+    flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--gray-light);
+    font-size: 13px; min-width: 100px;
+  }
+  .btn-clear {
+    background: var(--white); border: 1px solid var(--gray-light); color: var(--gray);
+    border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .panel-count { font-size: 14px; color: var(--ink); font-weight: 700; margin-bottom: 12px; }
+  .panel-grid { display: flex; flex-direction: column; gap: 12px; }
+  .panel-grid .card { display: flex; gap: 10px; }
+  .panel-grid .card-media { width: 90px; height: 70px; flex-shrink: 0; border-radius: 8px; overflow: hidden; position: relative; }
+  .panel-grid .card-media img { width: 100%; height: 100%; object-fit: cover; }
+  .panel-grid .card-body { padding: 0; flex: 1; min-width: 0; }
+  .panel-grid .card-title { font-size: 12.5px; }
+  .panel-grid .card-price { font-size: 14px; }
+  .panel-grid .card-cta { margin-top: 6px; }
+  .panel-grid .btn-outline, .panel-grid .btn-solid { padding: 6px 10px; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="mapa-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <h1>Dibuja tu zona de interés</h1>
+</div>
+
+<div class="mapa-wrap">
+  <div id="map"></div>
+  <div class="panel">
+    <div class="panel-hint">
+      <b>1.</b> Usa el ícono de polígono (⬠) en la esquina superior izquierda del mapa.<br>
+      <b>2.</b> Haz clic para marcar cada esquina de tu zona, y doble clic para cerrarla.<br>
+      <b>3.</b> Las propiedades dentro de esa zona aparecen aquí abajo.
+    </div>
+    <div class="panel-toolbar">
+      <select id="fOperacion">
+        <option value="">Venta y renta</option>
+        <option value="VENTA">Solo venta</option>
+        <option value="RENTA">Solo renta</option>
+      </select>
+      <button class="btn-clear" id="btnLimpiar">Borrar zona</button>
+    </div>
+    <div class="panel-count" id="panelCount">Dibuja una zona para ver resultados</div>
+    <div class="panel-grid" id="panelGrid"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
+<script>
+let ALL_PROPS = [];
+let currentPolygon = null;
+
+const map = L.map('map').setView([20.6767, -103.3475], 11); // Guadalajara
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap',
+  maxZoom: 19,
+}).addTo(map);
+
+const drawnItems = new L.FeatureGroup();
+map.addLayer(drawnItems);
+
+const drawControl = new L.Control.Draw({
+  draw: {
+    polygon: { shapeOptions: { color: '#d62828', weight: 3, fillOpacity: 0.12 } },
+    polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false,
+  },
+  edit: { featureGroup: drawnItems, remove: false },
+});
+map.addControl(drawControl);
+
+const markersLayer = L.layerGroup().addTo(map);
+
+function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
+
+function iconHouse() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>`;
+}
+
+function cardHTML(p) {
+  const metaBits = [];
+  if (p.recamaras) metaBits.push(`${p.recamaras} rec`);
+  if (p.banos) metaBits.push(`${p.banos} baños`);
+  if (p.m2) metaBits.push(`${Math.round(p.m2)} m²`);
+  const unidad = p.operacion === 'RENTA' ? '/mes' : '';
+  const waTexto = encodeURIComponent(`Hola, me interesa esta propiedad: ${p.titulo} (${p.eb || 'sin código'}) — ${p.liga}`);
+  const mediaContent = p.foto
+    ? `<img src="${p.foto}" alt="${p.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
+    : iconHouse();
+  return `
+  <div class="card">
+    <div class="card-media" ${p.foto ? 'style="background:#0f1f3d"' : ''}>${mediaContent}</div>
+    <div class="card-body">
+      <div class="card-price">${money(p.precio)}<span> ${unidad}</span></div>
+      <div class="card-title">${p.titulo}</div>
+      <div class="card-meta">${metaBits.map(b => `<span>${b}</span>`).join(' · ')}</div>
+      <div class="card-cta">
+        <a class="btn-outline" href="${p.liga}" target="_blank" rel="noopener">Ver ficha</a>
+        <a class="btn-solid" href="https://wa.me/523333777337?text=${waTexto}" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Ray-casting: punto dentro de polígono
+function puntoEnPoligono(lat, lon, poligono) {
+  let dentro = false;
+  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
+    const xi = poligono[i].lat, yi = poligono[i].lng;
+    const xj = poligono[j].lat, yj = poligono[j].lng;
+    const interseca = ((yi > lon) !== (yj > lon)) &&
+      (lat < (xj - xi) * (lon - yi) / (yj - yi) + xi);
+    if (interseca) dentro = !dentro;
+  }
+  return dentro;
+}
+
+function actualizarResultados() {
+  const panelCount = document.getElementById('panelCount');
+  const panelGrid = document.getElementById('panelGrid');
+  markersLayer.clearLayers();
+
+  if (!currentPolygon) {
+    panelCount.textContent = 'Dibuja una zona para ver resultados';
+    panelGrid.innerHTML = '';
+    return;
+  }
+
+  const poligono = currentPolygon.getLatLngs()[0];
+  const operacion = document.getElementById('fOperacion').value;
+
+  const dentro = ALL_PROPS.filter(p => {
+    if (!p.lat || !p.lon) return false;
+    if (operacion && p.operacion !== operacion) return false;
+    return puntoEnPoligono(p.lat, p.lon, poligono);
+  });
+
+  panelCount.textContent = `${dentro.length.toLocaleString('es-MX')} propiedad${dentro.length !== 1 ? 'es' : ''} en esta zona`;
+  panelGrid.innerHTML = dentro.slice(0, 60).map(cardHTML).join('');
+
+  dentro.slice(0, 300).forEach(p => {
+    L.circleMarker([p.lat, p.lon], {
+      radius: 5, color: p.operacion === 'RENTA' ? '#0f1f3d' : '#d62828',
+      fillOpacity: 0.8,
+    }).bindPopup(`<b>${money(p.precio)}</b><br>${p.titulo}`).addTo(markersLayer);
+  });
+}
+
+map.on(L.Draw.Event.CREATED, function (e) {
+  drawnItems.clearLayers();
+  drawnItems.addLayer(e.layer);
+  currentPolygon = e.layer;
+  actualizarResultados();
+});
+
+map.on(L.Draw.Event.EDITED, function () {
+  actualizarResultados();
+});
+
+document.getElementById('btnLimpiar').addEventListener('click', () => {
+  drawnItems.clearLayers();
+  currentPolygon = null;
+  actualizarResultados();
+});
+
+document.getElementById('fOperacion').addEventListener('change', actualizarResultados);
+
+fetch('data.json')
+  .then(r => r.json())
+  .then(data => { ALL_PROPS = data; });
+</script>
+</body>
+</html>
