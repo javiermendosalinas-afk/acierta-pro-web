@@ -244,18 +244,7 @@ if (typeof L.Control.Draw === 'function') {
 // ── Utilidades ───────────────────────────────────────────
 const money = AM.money;
 
-// Ray-casting: ¿el punto está dentro del polígono?
-function puntoEnPoligono(lat, lon, poligono) {
-  let dentro = false;
-  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
-    const xi = poligono[i].lat, yi = poligono[i].lng;
-    const xj = poligono[j].lat, yj = poligono[j].lng;
-    const interseca = ((yi > lon) !== (yj > lon)) &&
-      (lat < (xj - xi) * (lon - yi) / (yj - yi) + xi);
-    if (interseca) dentro = !dentro;
-  }
-  return dentro;
-}
+const puntoEnPoligono = AM.puntoEnPoligono;
 
 function valNum(id) {
   const v = document.getElementById(id).value;

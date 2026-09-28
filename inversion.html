@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudio de inversión — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/vendor/leaflet-draw/leaflet.draw.css">
+<style>
+  html, body { height: 100%; margin: 0; font-family: var(--font-body); background: var(--cream); }
+  .inv-header { background: var(--navy); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .inv-header a.back { color: #c7d1e6; font-size: 14px; font-weight: 600; text-decoration: none; }
+  .inv-header h1 { font-family: var(--font-display); font-size: 20px; margin: 0; flex: 1; }
+  .inv-wrap { display: flex; min-height: calc(100vh - 60px); }
+  #invMapa { flex: 1.1; min-width: 0; min-height: 420px; }
+  .inv-panel { width: 460px; max-width: 46vw; overflow-y: auto; padding: 16px; }
+  @media (max-width: 900px) { .inv-wrap { flex-direction: column; } #invMapa { height: 46vh; flex: none; } .inv-panel { width: 100%; max-width: 100%; } }
+  .btn-dibujar { width: 100%; background: var(--red); color: #fff; border: 0; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 6px; }
+  .btn-dibujar.activo { background: var(--navy); }
+  .hint { font-size: 12px; color: var(--gray); line-height: 1.5; margin-bottom: 12px; }
+  .filtros { background: #fff; border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+  .filtros h3 { font-size: 12.5px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray); }
+  .filtros .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .filtros label { display: block; font-size: 11.5px; font-weight: 700; color: var(--gray); margin-bottom: 3px; }
+  .filtros select, .filtros input[type=number] { width: 100%; box-sizing: border-box; padding: 8px 9px; border-radius: 8px; border: 1px solid var(--gray-light); font-size: 13.5px; }
+  .band { display: block; font-size: 13px; margin-bottom: 8px; cursor: pointer; }
+  .band b { display: block; } .band small { color: var(--gray); font-size: 11.5px; }
+  .tasa-cred { margin-top: 6px; display: none; }
+  .tasa-cred .val { font-family: var(--font-display); color: var(--navy); font-size: 18px; }
+  .cetes-chip { background: var(--cream); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--ink); margin-top: 8px; }
+  .conteo { background: #fff; border-radius: var(--radius); padding: 12px 14px; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .conteo .aviso { font-weight: 400; font-size: 12.5px; color: #6b5a1e; margin-top: 4px; }
+  .grafica-wrap { background: #fff; border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+  .grafica-wrap svg { width: 100%; height: auto; }
+  .lista { display: flex; flex-direction: column; gap: 10px; }
+  .icard { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 10px rgba(20,40,80,.07); }
+  .icard .top { display: flex; gap: 10px; padding: 10px; }
+  .icard .foto { position: relative; width: 92px; height: 72px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: linear-gradient(135deg,var(--navy),#274475); display: flex; align-items: center; justify-content: center; }
+  .icard .foto svg { width: 30px; height: 30px; opacity: .35; } .icard .foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .icard .num { position: absolute; top: 4px; left: 4px; background: var(--red); color: #fff; width: 22px; height: 22px; border-radius: 50%; font: 800 12px var(--font-body); display: flex; align-items: center; justify-content: center; }
+  .icard .cuerpo { flex: 1; min-width: 0; }
+  .icard .cuerpo h4 { margin: 0 0 2px; font-size: 13px; line-height: 1.3; }
+  .icard .loc { font-size: 11.5px; color: var(--gray); }
+  .icard .precio { font-weight: 800; font-size: 15px; margin-top: 3px; }
+  .icard .fila2 { display: flex; gap: 8px; padding: 0 10px 10px; flex-wrap: wrap; }
+  .icard .chip { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; }
+  .c-ok { background: #e6f6ec; color: #14532d; } .c-med { background: #eef3fb; color: #1d3f7a; } .c-baja { background: #fdecea; color: #8a1f14; } .c-nota { background: #fff7e6; color: #6b5a1e; }
+  .icard .acc { display: flex; gap: 8px; padding: 0 10px 12px; }
+  .icard .acc a { flex: 1; text-align: center; padding: 8px; border-radius: 999px; font: 700 12px var(--font-body); text-decoration: none; }
+  .icard .acc .ficha { border: 1.5px solid var(--navy); color: var(--navy); } .icard .acc .visita { background: #1f9d55; color: #fff; }
+  details.preventas { background: #fff; border-radius: var(--radius); padding: 12px 14px; margin-top: 14px; }
+  details.preventas summary { cursor: pointer; font-weight: 700; font-size: 13.5px; }
+  .cta-final { background: var(--navy); color: #fff; border-radius: var(--radius); padding: 16px; text-align: center; margin-top: 16px; }
+  .cta-final a { display: inline-block; margin-top: 10px; background: var(--red); color: #fff; padding: 11px 20px; border-radius: 999px; font-weight: 800; text-decoration: none; }
+  .btn-clear { background: #fff; border: 1px solid var(--gray-light); color: var(--gray); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 12px; }
+  .limite { background: #fff7e6; border: 1px solid #f0d896; color: #6b5a1e; border-radius: 8px; padding: 10px; font-size: 12px; line-height: 1.5; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="inv-header"><a href="index.html" class="back">← Acierta Max</a><h1>Estudio de inversión</h1><a href="proceso.html" class="back">Tu proceso paso a paso</a></div>
+<div class="inv-wrap">
+  <div id="invMapa"></div>
+  <div class="inv-panel">
+    <div id="avisoError" class="limite" style="display:none"></div>
+    <button class="btn-dibujar" id="btnDibujar">✏️ Dibujar mi zona de interés</button>
+    <div class="hint">Marca en el mapa las esquinas de la zona donde te gustaría invertir. Cierra el polígono en el primer punto.</div>
+    <button class="btn-clear" id="btnLimpiar">Borrar zona</button>
+
+    <div class="filtros">
+      <h3>¿Qué buscas?</h3>
+      <div class="fila">
+        <div><label for="fTipo">Tipo</label><select id="fTipo"><option value="departamento">Departamento</option><option value="casa">Casa</option></select></div>
+        <div><label for="fHorizonte">Horizonte</label><select id="fHorizonte"><option value="3">3 años</option><option value="4" selected>4 años</option><option value="5">5 años</option></select></div>
+      </div>
+      <div class="fila">
+        <div><label for="fTope">Presupuesto máx.</label><input type="number" id="fTope" value="3500000" step="50000" min="0"></div>
+        <div><label for="fRec">Recámaras mín.</label><select id="fRec"><option value="0">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option></select></div>
+      </div>
+    </div>
+
+    <div class="filtros">
+      <h3>¿Con crédito? (opcional)</h3>
+      <label class="band"><input type="checkbox" id="bPagaSola"> <b>Solo mostrar las que "se pagan solas"</b><small>La renta neta cubre la mensualidad del crédito</small></label>
+      <label class="band"><input type="checkbox" id="bPalanca"> <b>Solo mostrar donde la palanca ayuda</b><small>El crédito mejora tu rendimiento sobre lo que pones tú</small></label>
+      <div class="tasa-cred" id="tasaCredBox"><label for="fTasaCred">Supuesto: 50% de enganche, a 20 años, tasa anual</label>
+        <div class="val"><span id="lblTasaCred">11.0</span>%</div><input type="range" id="fTasaCred" min="8" max="16" step="0.1" value="11"></div>
+    </div>
+    <div class="cetes-chip" id="cetesChip"></div>
+
+    <div class="conteo" id="conteo">Dibuja tu zona para empezar</div>
+    <div class="grafica-wrap" id="graficaWrap" style="display:none"><svg id="svgBarras"></svg></div>
+    <div class="lista" id="lista"></div>
+    <details class="preventas" id="secPreventas" style="display:none"><summary id="tituloPreventas"></summary><div class="lista" id="listaPreventas" style="margin-top:10px"></div></details>
+    <div class="cta-final" id="ctaFinal" style="display:none">
+      <div>¿Quieres que revisemos esto juntos?</div>
+      <a target="_blank" rel="noopener" id="ctaWa" href="#">Hablar con un asesor</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/vendor/leaflet-draw/leaflet.draw.js"></script>
+<script src="js/comun.js"></script>
+<script>
+AM.sinBarra = true;
+const $ = id => document.getElementById(id), money = AM.money, pct = (x, d) => (x * 100).toFixed(d == null ? 1 : d) + '%';
+let TODAS = [], currentPolygon = null, drawer = null;
+
+  const map = L.map('invMapa', { preferCanvas: true }).setView([20.6767, -103.3475], 11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 19 }).addTo(map);
+  const drawnItems = new L.FeatureGroup(); map.addLayer(drawnItems);
+  const markersLayer = L.layerGroup().addTo(map);
+  const shapeOpts = { shapeOptions: { color: '#d62828', weight: 3, fillOpacity: 0.1 } };
+  if (typeof L.Control.Draw === 'function') {
+    map.addControl(new L.Control.Draw({ draw: { polygon: shapeOpts, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false }, edit: { featureGroup: drawnItems, remove: false } }));
+  } else { $('avisoError').style.display = 'block'; $('avisoError').textContent = 'No se pudo cargar la herramienta de dibujo. Recarga la página.'; }
+
+  function iniciarDibujo() {
+    if (typeof L.Draw === 'undefined') return;
+    if (drawer) drawer.disable();
+    drawer = new L.Draw.Polygon(map, shapeOpts); drawer.enable();
+    $('btnDibujar').classList.add('activo'); $('btnDibujar').textContent = '✏️ Dibujando… toca el mapa';
+  }
+  $('btnDibujar').addEventListener('click', iniciarDibujo);
+  map.on(L.Draw.Event.CREATED, e => { drawnItems.clearLayers(); drawnItems.addLayer(e.layer); currentPolygon = e.layer; $('btnDibujar').classList.remove('activo'); $('btnDibujar').textContent = '✏️ Dibujar otra zona'; actualizar(); });
+  map.on(L.Draw.Event.EDITED, actualizar);
+  $('btnLimpiar').addEventListener('click', () => { drawnItems.clearLayers(); currentPolygon = null; $('btnDibujar').textContent = '✏️ Dibujar mi zona de interés'; actualizar(); });
+
+  ['fTipo', 'fHorizonte', 'fTope', 'fRec'].forEach(id => $(id).addEventListener('change', actualizar));
+  ['bPagaSola', 'bPalanca'].forEach(id => $(id).addEventListener('change', () => { $('tasaCredBox').style.display = ($('bPagaSola').checked || $('bPalanca').checked) ? 'block' : 'none'; actualizar(); }));
+  $('fTasaCred').addEventListener('input', () => { $('lblTasaCred').textContent = Number($('fTasaCred').value).toFixed(1); actualizar(); });
+
+  function iconHouse() { return AM.iconHouse(); }
+  function tarjeta(o, esPreventa) {
+    const url = 'ficha.html?eb=' + encodeURIComponent(o.eb) + '&op=VENTA';
+    const wa = encodeURIComponent(`Hola, me interesa esta opción de mi estudio de inversión: #${o.rank} ${o.titulo} (${o.eb}) — ${money(o.precio)}`);
+    const chips = [`<span class="chip ${o.confianza === 'alta' ? 'c-ok' : o.confianza === 'media' ? 'c-med' : 'c-baja'}">Confianza ${o.confianza}</span>`];
+    if (o.propio) chips.push('<span class="chip c-nota">Acierta Max lo comercializa</span>');
+    if (esPreventa) chips.push('<span class="chip c-nota">Preventa: aún no renta</span>');
+    return `<div class="icard">
+      <div class="top"><div class="foto">${iconHouse()}${o.foto ? `<img src="${AM.esc(o.foto)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="num">${o.rank}</span></div>
+        <div class="cuerpo"><h4>${AM.esc(o.titulo)}</h4><div class="loc">${AM.esc(o.colonia)}, ${AM.esc(o.municipio)} · ${Math.round(o.m2)} m²${o.rec ? ' · ' + o.rec + ' rec' : ''}</div>
+          <div class="precio">${money(o.precio)}</div></div></div>
+      <div class="fila2">${esPreventa ? '' : `<span class="chip c-med">Neto ${pct(o.netoDespuesIsr)}</span><span class="chip c-med">Plusv. mín. ${pct(o.geq)}</span>`}${o.credito ? `<span class="chip ${o.credito.sePagaSola ? 'c-ok' : 'c-baja'}">${o.credito.sePagaSola ? 'Se paga sola' : 'No se paga sola'}</span>` : ''}${chips.join('')}</div>
+      <div class="acc"><a class="ficha" href="${url}">Ver ficha</a><a class="visita" target="_blank" rel="noopener" href="https://wa.me/523333777337?text=${wa}">Agendar visita</a></div>
+    </div>`;
+  }
+
+  function graficaBarras(opciones, cetesNeto) {
+    if (!opciones.length) return '';
+    const W = 380, fila = 26, top = 8, izq = 30, ancho = W - izq - 44, max = 0.10;
+    const H = top + opciones.length * fila + 10, x = v => izq + Math.min(Math.max(v, 0) / max, 1) * ancho;
+    let s = '';
+    opciones.forEach((o, i) => {
+      const y = top + i * fila, v = o.netoDespuesIsr;
+      s += `<text x="${izq - 6}" y="${y + 15}" text-anchor="end" font-size="11" fill="#3a4257">#${o.rank}</text>`;
+      s += `<rect x="${izq}" y="${y + 3}" width="${Math.max(x(v) - izq, 2)}" height="16" rx="5" fill="${v >= cetesNeto ? '#1f9d55' : '#0f1f3d'}"/>`;
+      s += `<text x="${x(v) + 6}" y="${y + 15}" font-size="11" font-weight="700" fill="#1a1a1a">${pct(v)}</text>`;
+    });
+    const xr = x(cetesNeto);
+    s += `<line x1="${xr}" x2="${xr}" y1="${top - 2}" y2="${H - 6}" stroke="#d62828" stroke-width="2" stroke-dasharray="4 3"/><text x="${xr}" y="${top - 4}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d62828">CETES neto ${pct(cetesNeto)}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rendimiento neto por opción, comparado con CETES">${s}</svg>`;
+  }
+
+  function actualizar() {
+    const errBox = $('avisoError'); errBox.style.display = 'none';
+    const S = Object.assign({}, AM.SUPUESTOS_INVERSION);
+    const cetesN = AM.cetesNeto(S);
+    $('cetesChip').innerHTML = `📊 CETES hoy: <b>${pct(S.cetes)}</b> nominal → <b>${pct(cetesN)}</b> ya neto de ISR (tasa marginal 30%, ajústala con tu contador). Así comparamos parejo con el rendimiento neto de cada propiedad.`;
+    markersLayer.clearLayers();
+    if (!currentPolygon) { $('conteo').textContent = 'Dibuja tu zona para empezar'; $('lista').innerHTML = ''; $('graficaWrap').style.display = 'none'; $('secPreventas').style.display = 'none'; $('ctaFinal').style.display = 'none'; return; }
+    if (!TODAS.length) return;
+    const opts = { poligono: currentPolygon.getLatLngs()[0], tope: parseFloat($('fTope').value) || 0, tipo: $('fTipo').value, recMin: parseInt($('fRec').value) || 0, horizonte: parseInt($('fHorizonte').value),
+      banderas: { pagaSola: $('bPagaSola').checked, palancaAyuda: $('bPalanca').checked }, tasaHipoteca: parseFloat($('fTasaCred').value) };
+    let R;
+    try { R = AM.motorInversion(TODAS, opts); } catch (e) { console.error('inversion:', e); errBox.style.display = 'block'; errBox.textContent = 'No se pudo calcular con esos filtros. Intenta ajustar tu zona o presupuesto.'; return; }
+    const conBandera = opts.banderas.pagaSola || opts.banderas.palancaAyuda;
+    const evalTotal = conBandera ? R.opciones.length : R.inventario.evaluados;
+    $('conteo').innerHTML = `${R.inventario.candidatos.toLocaleString('es-MX')} propiedades en tu presupuesto y zona · <b>${evalTotal}</b> ${conBandera ? 'cumplen tus criterios' : 'evaluadas con suficientes comparables'}` +
+      (!conBandera && R.inventario.evaluados > R.opciones.length ? ` — te mostramos las mejores ${R.opciones.length}` : '') +
+      (R.opciones.length === 0 ? `<div class="aviso">Ninguna opción cumple todos tus filtros. Prueba ampliar la zona, subir el presupuesto o desactivar alguna bandera: a más filtros, menos oportunidades.</div>` :
+       R.opciones.length < 4 ? `<div class="aviso">Pocas opciones con estos filtros — considera ampliar tu zona o presupuesto para comparar más.</div>` : '');
+    $('lista').innerHTML = R.opciones.map(o => tarjeta(o, false)).join('');
+    if (R.preventas.length) {
+      $('secPreventas').style.display = 'block'; $('tituloPreventas').textContent = `Ver ${R.preventas.length} opción${R.preventas.length > 1 ? 'es' : ''} en preventa (no rentan aún)`;
+      $('listaPreventas').innerHTML = `<p class="hint" style="margin:0 0 8px">En preventa no hay renta hasta la entrega, así que no calculamos su rendimiento. Si te interesan, te recomendamos pedir <b>Acierta Verifica</b> antes de comprometer tu dinero.</p>` + R.preventas.map(o => tarjeta(o, true)).join('');
+    } else $('secPreventas').style.display = 'none';
+    $('graficaWrap').style.display = R.opciones.length ? 'block' : 'none';
+    if (R.opciones.length) $('svgBarras').outerHTML = graficaBarras(R.opciones, cetesN).replace('<svg', '<svg id="svgBarras"');
+    R.opciones.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
+    $('ctaFinal').style.display = R.opciones.length ? 'block' : 'none';
+    const folio = new URLSearchParams(location.search).get('folio');
+    $('ctaWa').href = 'https://wa.me/523333777337?text=' + encodeURIComponent(`Hola, hice un estudio de inversión en acierta.pro con ${R.opciones.length} opciones.${folio ? ' Mi folio es ' + folio + '.' : ''} Me gustaría platicarlo con un asesor.`);
+  }
+
+  (function precargar() {
+    const q = new URLSearchParams(location.search), tipo = q.get('tipo');
+    if (tipo && ['casa', 'departamento'].includes(tipo)) $('fTipo').value = tipo;
+    const tope = parseFloat(q.get('tope')); if (tope > 0) $('fTope').value = Math.round(tope);
+  })();
+
+fetch('data.json').then(r => r.json()).then(d => { TODAS = d; actualizar(); })
+  .catch(e => { console.error('inversion:', e); $('conteo').textContent = 'No se pudo cargar el inventario. Recarga la página.'; });
+</script>
+</body>
+</html>

@@ -59,6 +59,8 @@
   const opciones = (k, lista) => `<div class="cam-ops">${lista.map(([v, t, sub]) =>
     `<button type="button" class="cam-op ${S[k] === v ? 'sel' : ''}" data-set="${k}" data-val="${v}"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</button>`).join('')}</div>`;
   const esVender = () => S.operacion === 'vender';
+  const esInvertir = () => S.operacion === 'compra' && S.uso === 'invertir';
+  const TIPOS_CON_ESTUDIO_HTML = ['casa', 'departamento'];
   const PASOS = [
     { id: 'bienvenida', titulo: null,
       html: () => `<h1>Te acompaño durante este viaje</h1>
@@ -72,6 +74,13 @@
       html: () => opciones('tipo', [['casa', '🏡 Casa'], ['departamento', '🏢 Departamento'], ['terreno', '🌱 Terreno'], ['local', '🏬 Local, oficina o bodega'], ['nose', '🤔 Aún no lo sé', esVender() ? '' : 'Te ayudamos a definirlo']]), listo: () => !!S.tipo, auto: true },
     { id: 'uso', si: () => !esVender(), titulo: () => S.operacion === 'renta' ? '¿Para qué la quieres?' : '¿Para vivir o para invertir?',
       html: () => opciones('uso', S.operacion === 'renta' ? [['vivir', '🛋️ Para vivir'], ['negocio', '💼 Para mi negocio']] : [['vivir', '🛋️ Para vivir'], ['invertir', '📈 Para invertir']]), listo: () => !!S.uso, auto: true },
+    { id: 'invertir_puente', si: () => esInvertir(), titulo: 'Vamos a construir tu estudio de inversión',
+      html: () => `<p class="cam-sub">Como inversión, no basta con "vivir ahí": comparamos precio, renta esperada en la zona y plusvalía, contra dejar tu dinero en CETES.</p>
+        <div class="cam-porque"><b>Lo que vas a poder hacer:</b> dibujar tu zona exacta en el mapa, ajustar tu presupuesto y ver al momento tus mejores opciones, con su rendimiento comparado contra CETES ya neto de impuestos.</div>
+        ${TIPOS_CON_ESTUDIO_HTML.includes(S.tipo) ? '' : '<p class="muted">Nuestro estudio automático hoy cubre casas y departamentos; para ' + (nombreTipo[S.tipo] || 'lo que buscas') + ' tu asesor te ayuda con el análisis directamente.</p>'}
+        <button type="button" class="btn-solid btn-lg cam-big" data-ir="contacto">Primero, guardemos tu proceso →</button>
+        <p class="muted">Después de tus datos, te llevamos directo al estudio interactivo.</p>`,
+      nav: false },
     { id: 'cuando', titulo: '¿Para cuándo lo necesitas?',
       html: () => opciones('cuando', [['ya', '⚡ Lo antes posible', 'En menos de 30 días'], ['1a3', '📅 En 1 a 3 meses'], ['mas3', '🧭 Más adelante', 'Estoy explorando']]), listo: () => !!S.cuando, auto: true },
     { id: 'zona', titulo: () => esVender() ? '¿Dónde está tu propiedad?' : '¿En qué zona te gustaría?',
@@ -95,7 +104,7 @@
         <div class="cam-error" id="camError" style="display:${errorMsg ? 'block' : 'none'}">${AM.esc(errorMsg)}</div>`,
       listo: () => S.nombre.trim().length >= 2 && telValido(S.whatsapp) && (!S.email || emailValido(S.email)) && S.consent === true,
       sig: 'Guardar mi proceso y continuar →', enviar: true },
-    { id: 'presupuesto', si: () => !esVender(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
+    { id: 'presupuesto', si: () => !esVender() && !esInvertir(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
       html: () => presupuestoHTML(), listo: () => (parseFloat(S.presupuesto) || 0) > 0, after: () => pintarPresupuesto() },
     { id: 'credito', si: () => S.operacion === 'compra', titulo: '¿Cómo piensas pagarla?',
       html: () => opciones('credito', [['banco', '🏦 Crédito bancario', 'Un banco te presta'], ['infonavit', '🏠 Infonavit', 'Con tu crédito de vivienda'], ['cofinavit', '🤝 Cofinavit', 'Infonavit + banco, para llegar a más'], ['contado', '💵 De contado'], ['nose', '🤔 Aún no lo sé', 'Nuestro equipo de crédito te orienta']]) +
@@ -269,7 +278,15 @@
   function siguiente(salta) {
     const p = pasoActual(); if (!salta && p.listo && !p.listo()) return;
     if (p.enviar && !salta) { enviarContacto(); return; }
+    if (p.id === 'contacto' && esInvertir()) { irAInversion(); return; }
     const vis = visibles(), i = vis.indexOf(p); S.paso = (vis[i + 1] || p).id; pintar();
+  }
+  const TIPOS_CON_ESTUDIO = ['casa', 'departamento'];   // el estudio de inversión hoy solo cubre estos dos
+  function irAInversion() {
+    const q = new URLSearchParams({ desde: 'camino' });
+    q.set('tipo', TIPOS_CON_ESTUDIO.includes(S.tipo) ? S.tipo : 'departamento');
+    if (S.folio) q.set('folio', S.folio);
+    AM.ir('inversion.html?' + q.toString());
   }
   function atras() { const vis = visibles(), i = vis.indexOf(pasoActual()); if (i > 1) { S.paso = vis[i - 1].id; errorMsg = ''; pintar(); } }
 
@@ -280,7 +297,7 @@
     else if (b.dataset.metodo) { S.metodo = b.dataset.metodo; guardar(); pintar(); }
     else if (b.dataset.usar) { S.presupuesto = b.dataset.usar; guardar(); pintar(); }
     else if (b.id === 'btnSinGuardar') { errorMsg = ''; siguiente(true); }
-    else if (b.id === 'btnReiniciar') { try { localStorage.removeItem(CLAVE); } catch (er) {} location.href = 'camino.html'; }
+    else if (b.id === 'btnReiniciar') { try { localStorage.removeItem(CLAVE); } catch (er) {} AM.ir('camino.html'); }
   });
   $('btnSig').addEventListener('click', () => siguiente());
   $('btnAtras').addEventListener('click', atras);

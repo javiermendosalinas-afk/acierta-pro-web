@@ -3,6 +3,8 @@
   const AM = (window.AM = {});
 
   // ── Básicos ────────────────────────────────────────────
+  AM.ir = url => { location.href = url; };   // redirecciones (fácil de interceptar en pruebas)
+
   AM.esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   AM.money = n => '$' + Math.round(n).toLocaleString('es-MX');
@@ -170,6 +172,144 @@
       '<span>🤝 Contratos conforme a PROFECO</span><span>🎓 Asesores certificados por la SEP</span></div>' +
       '<p>Herramientas a tu favor: comparativo de propiedades, análisis de precio por m², simulador de crédito y MAX, ' +
       'nuestro asistente con IA por WhatsApp — siempre con un asesor real a tu lado.</p></div>';
+  };
+
+  // ── Geometría compartida (mapa por zona, motor de inversión) ──
+  AM.km = function (a, b) {
+    const R_ = 6371, la1 = a.lat * Math.PI / 180, lo1 = a.lon * Math.PI / 180, la2 = b.lat * Math.PI / 180, lo2 = b.lon * Math.PI / 180;
+    const h = Math.sin((la2 - la1) / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin((lo2 - lo1) / 2) ** 2;
+    return 2 * R_ * Math.asin(Math.sqrt(h));
+  };
+  AM.puntoEnPoligono = function (lat, lon, poligono) {
+    let dentro = false;
+    for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
+      const xi = poligono[i].lat, yi = poligono[i].lng, xj = poligono[j].lat, yj = poligono[j].lng;
+      const interseca = ((yi > lon) !== (yj > lon)) && (lat < (xj - xi) * (lon - yi) / (yj - yi) + xi);
+      if (interseca) dentro = !dentro;
+    }
+    return dentro;
+  };
+
+  // ── Motor de inversión (mismos supuestos y método que herramientas/reporte_inversion.py) ──
+  // Todo en JS para poder correr en el navegador del cliente, con SU zona dibujada y SUS filtros.
+  AM.SUPUESTOS_INVERSION = { compra: 0.06, venta: 0.05, mantenimiento: 0.010, predial: 0.0015, vacancia: 1 / 12, inpc: 0.0376, cetes: 0.065, isr_marginal: 0.30 };
+  AM.DESARROLLOS_PROPIOS = ['bella vittoria']; // los que Acierta Max comercializa directamente
+  const _med = arr => { if (!arr.length) return null; const v = arr.slice().sort((a, b) => a - b), n = v.length; return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2; };
+  function _tir(flujos) {
+    let lo = -0.9, hi = 1.0;
+    for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2, v = flujos.reduce((s, f, t) => s + f / Math.pow(1 + m, t), 0); if (v > 0) lo = m; else hi = m; }
+    return lo;
+  }
+  AM.pmt = function (monto, tasaAnual, anios) {
+    const n = anios * 12, r = tasaAnual / 100 / 12;
+    return r > 0 ? monto * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : monto / n;
+  };
+  AM.saldoCredito = function (monto, tasaAnual, anios, mesesPagados) {
+    const n = anios * 12, r = tasaAnual / 100 / 12, pago = AM.pmt(monto, tasaAnual, anios);
+    return r > 0 ? monto * Math.pow(1 + r, mesesPagados) - pago * (Math.pow(1 + r, mesesPagados) - 1) / r : monto - pago * mesesPagados;
+  };
+  AM.tirPropiedad = function (P, rentaAnual, g, n, S, credito) {
+    S = S || AM.SUPUESTOS_INVERSION;
+    const L = credito ? P * (credito.pct / 100) : 0, aporte = P - L + P * S.compra, pagoMensual = L > 0 ? AM.pmt(L, credito.tasa, credito.plazo) : 0;
+    const fl = [-aporte];
+    for (let a = 1; a <= n; a++) {
+      const val = P * Math.pow(1 + g, a - 1);
+      let r = rentaAnual * Math.pow(1 + S.inpc, a - 1) * (1 - S.vacancia) - val * (S.mantenimiento + S.predial) - pagoMensual * 12;
+      if (a === n) r += P * Math.pow(1 + g, n) * (1 - S.venta) - (L > 0 ? AM.saldoCredito(L, credito.tasa, credito.plazo, n * 12) : 0);
+      fl.push(r);
+    }
+    return _tir(fl);
+  };
+  AM.plusvaliaEquilibrio = function (P, rentaAnual, n, S) {
+    S = S || AM.SUPUESTOS_INVERSION; let lo = -0.05, hi = 0.30;
+    for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (AM.tirPropiedad(P, rentaAnual, m, n, S) < S.cetes) lo = m; else hi = m; }
+    return lo;
+  };
+  AM.rendimientoNeto = function (P, rentaAnual, S) {
+    S = S || AM.SUPUESTOS_INVERSION;
+    const cobrada = rentaAnual * (1 - S.vacancia), pred = P * S.predial;
+    const brutoAntes = (cobrada) / P - (S.mantenimiento + S.predial);
+    const isrRenta = S.isr_marginal * Math.max(0.65 * cobrada - pred, 0);
+    const netoDespuesIsr = (cobrada - P * S.mantenimiento - pred - isrRenta) / P;
+    return { bruto: (rentaAnual / P), neto: brutoAntes, netoDespuesIsr };
+  };
+  AM.cetesNeto = function (S) { S = S || AM.SUPUESTOS_INVERSION; return S.cetes - S.isr_marginal * Math.max(S.cetes - S.inpc, 0); };
+
+  // Genera el estudio: TODAS = inventario completo; opts = { poligono, tope, tipo, recMin, horizonte, banderas:{pagaSola,palancaAyuda}, tasaHipoteca, S }
+  AM.motorInversion = function (TODAS, opts) {
+    const S = Object.assign({}, AM.SUPUESTOS_INVERSION, opts.S || {});
+    const tipos = AM.GRUPOS_TIPO[opts.tipo] || [opts.tipo];
+    const ok = p => p.moneda === undefined || p.moneda === null || p.moneda === 'MXN';
+    const enZona = p => p.lat && p.lon && AM.puntoEnPoligono(p.lat, p.lon, opts.poligono);
+    const base = TODAS.filter(p => ok(p) && p.m2 >= 25 && p.m2 <= 600 && p.precio > 0 && enZona(p) && tipos.includes(p.tipo));
+    const V = base.filter(p => p.operacion === 'VENTA'), R = base.filter(p => p.operacion === 'RENTA');
+    let cand = V.filter(p => p.precio <= opts.tope);
+    if (opts.recMin) cand = cand.filter(p => p.recamaras && p.recamaras >= opts.recMin);
+
+    function rentEst(p) {
+      for (const radio of [1.0, 1.5, 2.0]) {
+        const c = R.filter(r => AM.km(p, r) <= radio && (!opts.recMin && !p.recamaras || (r.recamaras && Math.abs(r.recamaras - (p.recamaras || 0)) <= 1)) && r.m2 >= 0.65 * p.m2 && r.m2 <= 1.35 * p.m2);
+        let v = c.map(r => r.precio / r.m2).sort((a, b) => a - b);
+        if (v.length >= 5) { if (v.length >= 10) v = v.slice(Math.floor(v.length * .1), Math.floor(v.length * .9) + 1); return { renta: _med(v) * p.m2, n: c.length, radio }; }
+      }
+      return null;
+    }
+    function ventaMed(p) {
+      for (const radio of [1.0, 1.5, 2.0]) {
+        const c = V.filter(v => v !== p && AM.km(p, v) <= radio && (!p.recamaras || (v.recamaras && Math.abs(v.recamaras - p.recamaras) <= 1)));
+        if (c.length >= 8) return { pm2: _med(c.map(v => v.precio / v.m2)), n: c.length };
+      }
+      return null;
+    }
+    const esPreventa = p => /preventa|pre-venta|preconstrucci/i.test(p.titulo || '');
+    const esPropio = p => AM.DESARROLLOS_PROPIOS.some(d => AM.norm(p.titulo).includes(d) || AM.norm(p.liga).includes(d.replace(/ /g, '-')));
+
+    const filas = [];
+    for (const p of cand) {
+      const re = rentEst(p), vm = ventaMed(p); if (!re || !vm) continue;
+      const ra = re.renta * 12, bruto = ra / p.precio;
+      if (bruto > 0.12 || bruto < 0.02) continue;
+      const rend = AM.rendimientoNeto(p.precio, ra, S);
+      filas.push({ p, ra, nr: re.n, radio: re.radio, nv: vm.n, desc: 1 - (p.precio / p.m2) / vm.pm2, bruto, neto: rend.neto, netoDespuesIsr: rend.netoDespuesIsr, preventa: esPreventa(p), propio: esPropio(p) });
+    }
+    function rank(vals) { const o = vals.map((v, i) => i).sort((a, b) => vals[a] - vals[b]), r = new Array(vals.length); o.forEach((idx, k) => r[idx] = vals.length > 1 ? k / (vals.length - 1) : 0); return r; }
+    const evaluables = filas.filter(x => !x.preventa);
+    const rn = rank(evaluables.map(x => x.neto)), rd = rank(evaluables.map(x => x.desc));
+    evaluables.forEach((x, i) => { const conf = Math.min(x.nr / 8, 1) * (x.radio === 1.0 ? 1.0 : x.radio === 1.5 ? 0.8 : 0.6); x.score = 0.5 * rn[i] + 0.3 * rd[i] + 0.2 * conf; x.confianza = conf >= 0.75 ? 'alta' : conf >= 0.4 ? 'media' : 'baja'; });
+    evaluables.sort((a, b) => b.score - a.score || a.p.eb.localeCompare(b.p.eb));
+    const preventas = filas.filter(x => x.preventa).sort((a, b) => a.p.precio - b.p.precio);
+
+    const credito = (opts.banderas.pagaSola || opts.banderas.palancaAyuda) ? { pct: 50, tasa: opts.tasaHipoteca || 11, plazo: 20 } : null;
+    function empacar(x, rank) {
+      const p = x.p, n = opts.horizonte || 4;
+      const out = { rank, eb: p.eb, titulo: p.titulo, colonia: p.colonia, municipio: p.municipio, m2: p.m2, rec: p.recamaras, precio: p.precio,
+        pm2: Math.round(p.precio / p.m2), lat: p.lat, lon: p.lon, foto: p.foto, liga: p.liga, renta: Math.round(x.ra / 12), renta_anual: Math.round(x.ra),
+        bruto: x.bruto, neto: x.neto, netoDespuesIsr: x.netoDespuesIsr, desc: x.desc, n_venta: x.nv, n_renta: x.nr, confianza: x.confianza || 'media', propio: x.propio, preventa: x.preventa,
+        geq: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S), tir: {} };
+      [['inflacion', S.inpc], ['base', 0.06], ['alta', 0.10]].forEach(([k, g]) => out.tir[k] = AM.tirPropiedad(p.precio, x.ra, g, n, S));
+      if (credito) {
+        const mensual = AM.pmt(p.precio * credito.pct / 100, credito.tasa, credito.plazo), noiMensual = (x.ra * (1 - S.vacancia) - p.precio * (S.mantenimiento + S.predial)) / 12;
+        const tirCon = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, credito);
+        out.credito = { mensual, noiMensual, sePagaSola: noiMensual >= mensual, tirConCredito: tirCon, palancaAyuda: tirCon > out.tir.base };
+      }
+      return out;
+    }
+    let top = evaluables;
+    if (opts.banderas.pagaSola || opts.banderas.palancaAyuda) {
+      top = evaluables.filter(x => {
+        const p = x.p, n = opts.horizonte || 4, mensual = AM.pmt(p.precio * credito.pct / 100, credito.tasa, credito.plazo), noiMensual = (x.ra * (1 - S.vacancia) - p.precio * (S.mantenimiento + S.predial)) / 12;
+        const sePagaSola = noiMensual >= mensual, tirCon = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, credito), tirSin = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, null);
+        const palancaAyuda = tirCon > tirSin;
+        return (opts.banderas.pagaSola && sePagaSola) || (opts.banderas.palancaAyuda && palancaAyuda);
+      });
+    }
+    return {
+      inventario: { total: TODAS.length, en_zona_venta: V.length, candidatos: cand.length, evaluados: evaluables.length, sin_comparables: cand.length - filas.length, rentas_comparables: R.length, preventas: preventas.length },
+      mercado: { cetes: S.cetes, cetes_neto: AM.cetesNeto(S), inflacion: S.inpc, isr_marginal: S.isr_marginal },
+      supuestos: S, credito,
+      opciones: top.slice(0, 10).map((x, i) => empacar(x, i + 1)),
+      preventas: preventas.slice(0, 6).map((x, i) => empacar(x, i + 1)),
+    };
   };
 
   // ── Análisis de precio por m² ──────────────────────────
