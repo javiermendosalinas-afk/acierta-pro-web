@@ -5,53 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Busca por zona — Acierta Max</title>
 <link rel="stylesheet" href="styles.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/vendor/leaflet-draw/leaflet.draw.css">
 <style>
   html, body { height: 100%; margin: 0; font-family: var(--font-body); }
   .mapa-header {
     background: var(--navy); color: var(--white);
-    padding: 14px 24px; display: flex; align-items: center; gap: 16px;
-    flex-wrap: wrap;
+    padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   }
   .mapa-header a.back { color: #c7d1e6; font-size: 14px; font-weight: 600; text-decoration: none; }
   .mapa-header a.back:hover { color: var(--white); }
   .mapa-header h1 { font-family: var(--font-display); font-size: 20px; margin: 0; flex: 1; }
   .mapa-wrap { display: flex; height: calc(100vh - 60px); }
   #map { flex: 1; min-width: 0; }
-  .panel {
-    width: 380px; max-width: 40vw; background: var(--cream);
-    overflow-y: auto; padding: 18px; flex-shrink: 0;
-  }
+  .panel { width: 420px; max-width: 45vw; background: var(--cream); overflow-y: auto; padding: 16px; flex-shrink: 0; }
   @media (max-width: 800px) {
     .mapa-wrap { flex-direction: column; height: auto; }
-    #map { height: 55vh; }
-    .panel { width: 100%; max-width: 100%; max-height: 45vh; }
+    #map { height: 55vh; flex: none; }
+    .panel { width: 100%; max-width: 100%; max-height: none; }
   }
-  .panel-hint {
-    background: var(--white); border-radius: var(--radius); padding: 14px;
-    font-size: 13px; color: var(--gray); margin-bottom: 14px; line-height: 1.5;
+  .btn-dibujar {
+    width: 100%; background: var(--red); color: var(--white); border: 0; border-radius: 10px;
+    padding: 14px; font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 8px;
   }
-  .panel-hint b { color: var(--ink); }
-  .panel-toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-  .panel-toolbar select {
-    flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--gray-light);
-    font-size: 13px; min-width: 100px;
+  .btn-dibujar:hover { background: var(--red-dark); }
+  .btn-dibujar.activo { background: var(--navy); }
+  .hint { font-size: 12.5px; color: var(--gray); line-height: 1.5; margin-bottom: 12px; }
+  .fila-botones { display: flex; gap: 8px; margin-bottom: 14px; }
+  .btn-sec {
+    flex: 1; background: var(--white); border: 1px solid var(--gray-light); color: var(--gray);
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; font-weight: 600; cursor: pointer;
   }
-  .btn-clear {
-    background: var(--white); border: 1px solid var(--gray-light); color: var(--gray);
-    border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  .filtros { background: var(--white); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+  .filtros h3 { font-size: 13px; margin: 0 0 10px; color: var(--ink); text-transform: uppercase; letter-spacing: .06em; }
+  .grid-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-filtros .full { grid-column: 1 / -1; }
+  .filtros label { display: block; font-size: 11.5px; font-weight: 700; color: var(--gray); margin-bottom: 3px; }
+  .filtros select, .filtros input {
+    width: 100%; box-sizing: border-box; padding: 8px 9px; border-radius: 8px;
+    border: 1px solid var(--gray-light); font-size: 13.5px; background: var(--white);
   }
-  .panel-count { font-size: 14px; color: var(--ink); font-weight: 700; margin-bottom: 12px; }
-  .panel-grid { display: flex; flex-direction: column; gap: 12px; }
-  .panel-grid .card { display: flex; gap: 10px; }
-  .panel-grid .card-media { width: 90px; height: 70px; flex-shrink: 0; border-radius: 8px; overflow: hidden; position: relative; }
-  .panel-grid .card-media img { width: 100%; height: 100%; object-fit: cover; }
-  .panel-grid .card-body { padding: 0; flex: 1; min-width: 0; }
-  .panel-grid .card-title { font-size: 12.5px; }
-  .panel-grid .card-price { font-size: 14px; }
-  .panel-grid .card-cta { margin-top: 6px; }
-  .panel-grid .btn-outline, .panel-grid .btn-solid { padding: 6px 10px; font-size: 11px; }
+  .count { font-size: 14px; color: var(--ink); font-weight: 700; margin-bottom: 10px; }
+  .lista { display: flex; flex-direction: column; gap: 12px; }
+  .lista .card { display: flex; gap: 10px; }
+  .lista .card-media { width: 92px; height: 72px; flex-shrink: 0; border-radius: 8px; overflow: hidden; position: relative; }
+  .lista .card-media img { width: 100%; height: 100%; object-fit: cover; }
+  .lista .card-body { padding: 0; flex: 1; min-width: 0; }
+  .lista .card-title { font-size: 12.5px; }
+  .lista .card-price { font-size: 14px; }
+  .lista .card-tipo-txt { font-size: 11px; color: var(--gray); text-transform: capitalize; }
+  .lista .card-cta { margin-top: 6px; }
+  .lista .btn-outline, .lista .btn-solid { padding: 6px 10px; font-size: 11px; }
+  .btn-mas { width: 100%; margin-top: 12px; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-light); background: var(--white); font-weight: 700; cursor: pointer; }
+  .error-box { background: #fdecea; border: 1px solid #f5b5ae; color: #8a1f14; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -64,50 +70,176 @@
 <div class="mapa-wrap">
   <div id="map"></div>
   <div class="panel">
-    <div class="panel-hint">
-      <b>1.</b> Usa el ícono de polígono (⬠) en la esquina superior izquierda del mapa.<br>
-      <b>2.</b> Haz clic para marcar cada esquina de tu zona, y doble clic para cerrarla.<br>
-      <b>3.</b> Las propiedades dentro de esa zona aparecen aquí abajo.
+    <div id="avisoError" class="error-box" style="display:none"></div>
+
+    <button class="btn-dibujar" id="btnDibujar">✏️ Dibujar mi zona en el mapa</button>
+    <div class="hint" id="hintDibujo">
+      Toca <b>Dibujar mi zona</b>, luego haz clic en el mapa para marcar cada esquina.
+      Para cerrar la zona, haz clic de nuevo en el <b>primer punto</b>.
     </div>
-    <div class="panel-toolbar">
-      <select id="fOperacion">
-        <option value="">Venta y renta</option>
-        <option value="VENTA">Solo venta</option>
-        <option value="RENTA">Solo renta</option>
-      </select>
-      <button class="btn-clear" id="btnLimpiar">Borrar zona</button>
+    <div class="fila-botones">
+      <button class="btn-sec" id="btnLimpiar">Borrar zona</button>
+      <button class="btn-sec" id="btnReset">Limpiar filtros</button>
     </div>
-    <div class="panel-count" id="panelCount">Dibuja una zona para ver resultados</div>
-    <div class="panel-grid" id="panelGrid"></div>
+
+    <div class="filtros">
+      <h3>Filtros</h3>
+      <div class="grid-filtros">
+        <div>
+          <label for="fOperacion">Operación</label>
+          <select id="fOperacion">
+            <option value="">Venta y renta</option>
+            <option value="VENTA">Venta</option>
+            <option value="RENTA">Renta</option>
+          </select>
+        </div>
+        <div>
+          <label for="fTipo">Tipo de propiedad</label>
+          <select id="fTipo">
+            <option value="">Todos</option>
+            <option value="casa">Casa</option>
+            <option value="departamento">Departamento</option>
+            <option value="terreno">Terreno</option>
+            <option value="local">Local comercial</option>
+            <option value="oficina">Oficina</option>
+            <option value="bodega">Bodega / nave industrial</option>
+            <option value="edificio">Edificio</option>
+          </select>
+        </div>
+        <div class="full">
+          <label for="fMunicipio">Municipio</label>
+          <select id="fMunicipio">
+            <option value="">Toda la ZMG</option>
+            <option>Guadalajara</option>
+            <option>Zapopan</option>
+            <option>Tlajomulco de Zúñiga</option>
+            <option>Tlaquepaque</option>
+            <option>Tonalá</option>
+          </select>
+        </div>
+        <div>
+          <label for="fPrecioMin">Precio mínimo (MXN)</label>
+          <input type="number" id="fPrecioMin" min="0" step="1000" placeholder="Ej. 1000000">
+        </div>
+        <div>
+          <label for="fPrecioMax">Precio máximo (MXN)</label>
+          <input type="number" id="fPrecioMax" min="0" step="1000" placeholder="Ej. 5000000">
+        </div>
+        <div>
+          <label for="fRecamaras">Recámaras (mínimo)</label>
+          <select id="fRecamaras">
+            <option value="">Cualquiera</option>
+            <option value="1">1 o más</option>
+            <option value="2">2 o más</option>
+            <option value="3">3 o más</option>
+            <option value="4">4 o más</option>
+            <option value="5">5 o más</option>
+          </select>
+        </div>
+        <div>
+          <label for="fBanos">Baños (mínimo)</label>
+          <select id="fBanos">
+            <option value="">Cualquiera</option>
+            <option value="1">1 o más</option>
+            <option value="2">2 o más</option>
+            <option value="3">3 o más</option>
+            <option value="4">4 o más</option>
+          </select>
+        </div>
+        <div>
+          <label for="fM2Min">m² mínimo</label>
+          <input type="number" id="fM2Min" min="0" placeholder="Ej. 100">
+        </div>
+        <div>
+          <label for="fM2Max">m² máximo</label>
+          <input type="number" id="fM2Max" min="0" placeholder="Ej. 300">
+        </div>
+        <div class="full">
+          <label for="fOrden">Ordenar por</label>
+          <select id="fOrden">
+            <option value="precio-asc">Precio: menor a mayor</option>
+            <option value="precio-desc">Precio: mayor a menor</option>
+            <option value="m2-desc">Más m² primero</option>
+            <option value="recamaras-desc">Más recámaras primero</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="count" id="panelCount">Cargando inventario…</div>
+    <div class="lista" id="panelGrid"></div>
+    <button class="btn-mas" id="btnMas" style="display:none">Ver más</button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.min.js"></script>
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/vendor/leaflet-draw/leaflet.draw.js"></script>
 <script>
 let ALL_PROPS = [];
 let currentPolygon = null;
+let drawer = null;
+let resultados = [];
+let mostrados = 0;
+const PAGINA = 40;
 
-const map = L.map('map').setView([20.6767, -103.3475], 11); // Guadalajara
+const GRUPOS_TIPO = {
+  casa: ['casa', 'casa en condominio', 'casa con uso de suelo', 'quinta', 'rancho', 'villa'],
+  departamento: ['departamento'],
+  terreno: ['terreno', 'terreno industrial', 'terreno comercial'],
+  local: ['local comercial', 'local en centro comercial'],
+  oficina: ['oficina'],
+  bodega: ['bodega comercial', 'bodega industrial', 'nave industrial'],
+  edificio: ['edificio'],
+};
+
+function mostrarError(msg) {
+  const el = document.getElementById('avisoError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ── Mapa ─────────────────────────────────────────────────
+const map = L.map('map', { preferCanvas: true }).setView([20.6767, -103.3475], 11);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap',
-  maxZoom: 19,
+  attribution: '© OpenStreetMap', maxZoom: 19,
 }).addTo(map);
 
 const drawnItems = new L.FeatureGroup();
 map.addLayer(drawnItems);
-
-const drawControl = new L.Control.Draw({
-  draw: {
-    polygon: { shapeOptions: { color: '#d62828', weight: 3, fillOpacity: 0.12 } },
-    polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false,
-  },
-  edit: { featureGroup: drawnItems, remove: false },
-});
-map.addControl(drawControl);
-
 const markersLayer = L.layerGroup().addTo(map);
 
+// Textos en español para la herramienta de dibujo
+if (L.drawLocal) {
+  const dl = L.drawLocal;
+  dl.draw.toolbar.actions = { title: 'Cancelar dibujo', text: 'Cancelar' };
+  dl.draw.toolbar.finish = { title: 'Terminar zona', text: 'Terminar' };
+  dl.draw.toolbar.undo = { title: 'Borrar el último punto', text: 'Borrar último punto' };
+  dl.draw.toolbar.buttons.polygon = 'Dibujar zona';
+  dl.draw.handlers.polygon.tooltip = {
+    start: 'Haz clic para empezar tu zona',
+    cont: 'Haz clic para seguir marcando la zona',
+    end: 'Haz clic en el primer punto para cerrar la zona',
+  };
+  dl.edit.toolbar.actions.save = { title: 'Guardar cambios', text: 'Guardar' };
+  dl.edit.toolbar.actions.cancel = { title: 'Cancelar cambios', text: 'Cancelar' };
+  dl.edit.toolbar.buttons.edit = 'Ajustar zona';
+  dl.edit.toolbar.buttons.editDisabled = 'No hay zona para ajustar';
+  dl.edit.handlers.edit.tooltip = { text: 'Arrastra los puntos para ajustar la zona', subtext: 'Clic en Cancelar para deshacer' };
+}
+
+const shapeOpts = { shapeOptions: { color: '#d62828', weight: 3, fillOpacity: 0.12 }, allowIntersection: false,
+  showArea: false, metric: true };
+
+if (typeof L.Control.Draw === 'function') {
+  map.addControl(new L.Control.Draw({
+    draw: { polygon: shapeOpts, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false },
+    edit: { featureGroup: drawnItems, remove: false },
+  }));
+} else {
+  mostrarError('No se pudo cargar la herramienta de dibujo. Recarga la página (Ctrl+F5).');
+}
+
+// ── Utilidades ───────────────────────────────────────────
 function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
 
 function iconHouse() {
@@ -122,15 +254,16 @@ function cardHTML(p) {
   const unidad = p.operacion === 'RENTA' ? '/mes' : '';
   const waTexto = encodeURIComponent(`Hola, me interesa esta propiedad: ${p.titulo} (${p.eb || 'sin código'}) — ${p.liga}`);
   const mediaContent = p.foto
-    ? `<img src="${p.foto}" alt="${p.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
+    ? `<img src="${p.foto}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='${iconHouse().replace(/'/g, "\\'")}'">`
     : iconHouse();
   return `
   <div class="card">
     <div class="card-media" ${p.foto ? 'style="background:#0f1f3d"' : ''}>${mediaContent}</div>
     <div class="card-body">
       <div class="card-price">${money(p.precio)}<span> ${unidad}</span></div>
+      <div class="card-tipo-txt">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${p.tipo} · ${p.municipio}</div>
       <div class="card-title">${p.titulo}</div>
-      <div class="card-meta">${metaBits.map(b => `<span>${b}</span>`).join(' · ')}</div>
+      <div class="card-meta">${metaBits.join(' · ')}</div>
       <div class="card-cta">
         <a class="btn-outline" href="${p.liga}" target="_blank" rel="noopener">Ver ficha</a>
         <a class="btn-solid" href="https://wa.me/523333777337?text=${waTexto}" target="_blank" rel="noopener">WhatsApp</a>
@@ -139,7 +272,7 @@ function cardHTML(p) {
   </div>`;
 }
 
-// Ray-casting: punto dentro de polígono
+// Ray-casting: ¿el punto está dentro del polígono?
 function puntoEnPoligono(lat, lon, poligono) {
   let dentro = false;
   for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
@@ -152,59 +285,147 @@ function puntoEnPoligono(lat, lon, poligono) {
   return dentro;
 }
 
+function valNum(id) {
+  const v = document.getElementById(id).value;
+  return v === '' ? null : parseFloat(v);
+}
+
+function pasaFiltros(p, f) {
+  if (f.operacion && p.operacion !== f.operacion) return false;
+  if (f.tipo && !GRUPOS_TIPO[f.tipo].includes(p.tipo)) return false;
+  if (f.municipio && p.municipio !== f.municipio) return false;
+  if (f.precioMin !== null && !(p.precio >= f.precioMin)) return false;
+  if (f.precioMax !== null && !(p.precio <= f.precioMax)) return false;
+  if (f.recamaras !== null && !(p.recamaras && p.recamaras >= f.recamaras)) return false;
+  if (f.banos !== null && !(p.banos && p.banos >= f.banos)) return false;
+  if (f.m2Min !== null && !(p.m2 && p.m2 >= f.m2Min)) return false;
+  if (f.m2Max !== null && !(p.m2 && p.m2 <= f.m2Max)) return false;
+  return true;
+}
+
+function leerFiltros() {
+  return {
+    operacion: document.getElementById('fOperacion').value,
+    tipo: document.getElementById('fTipo').value,
+    municipio: document.getElementById('fMunicipio').value,
+    precioMin: valNum('fPrecioMin'), precioMax: valNum('fPrecioMax'),
+    recamaras: valNum('fRecamaras'), banos: valNum('fBanos'),
+    m2Min: valNum('fM2Min'), m2Max: valNum('fM2Max'),
+    orden: document.getElementById('fOrden').value,
+  };
+}
+
+function ordenar(lista, orden) {
+  const [campo, dir] = orden.split('-');
+  const sign = dir === 'asc' ? 1 : -1;
+  return lista.sort((a, b) => ((a[campo] || 0) - (b[campo] || 0)) * sign);
+}
+
+function pintarPagina() {
+  const grid = document.getElementById('panelGrid');
+  const siguiente = resultados.slice(mostrados, mostrados + PAGINA);
+  grid.insertAdjacentHTML('beforeend', siguiente.map(cardHTML).join(''));
+  mostrados += siguiente.length;
+  document.getElementById('btnMas').style.display = mostrados < resultados.length ? 'block' : 'none';
+}
+
 function actualizarResultados() {
   const panelCount = document.getElementById('panelCount');
-  const panelGrid = document.getElementById('panelGrid');
+  const grid = document.getElementById('panelGrid');
   markersLayer.clearLayers();
+  grid.innerHTML = '';
+  mostrados = 0;
 
-  if (!currentPolygon) {
-    panelCount.textContent = 'Dibuja una zona para ver resultados';
-    panelGrid.innerHTML = '';
+  if (!ALL_PROPS.length) return;
+
+  const f = leerFiltros();
+  const poligono = currentPolygon ? currentPolygon.getLatLngs()[0] : null;
+
+  resultados = ALL_PROPS.filter(p => {
+    if (!pasaFiltros(p, f)) return false;
+    if (poligono) return p.lat && p.lon && puntoEnPoligono(p.lat, p.lon, poligono);
+    return true;
+  });
+  ordenar(resultados, f.orden);
+
+  const n = resultados.length.toLocaleString('es-MX');
+  const plural = resultados.length !== 1 ? 'es' : '';
+  panelCount.textContent = poligono
+    ? `${n} propiedad${plural} en tu zona`
+    : `${n} propiedad${plural} en toda la ZMG — dibuja una zona para acotar`;
+
+  pintarPagina();
+
+  if (poligono) {
+    resultados.slice(0, 400).forEach(p => {
+      if (!p.lat || !p.lon) return;
+      L.circleMarker([p.lat, p.lon], {
+        radius: 5, color: p.operacion === 'RENTA' ? '#0f1f3d' : '#d62828', fillOpacity: 0.8,
+      }).bindPopup(`<b>${money(p.precio)}</b><br>${p.titulo}`).addTo(markersLayer);
+    });
+  }
+}
+
+// ── Eventos ──────────────────────────────────────────────
+const btnDibujar = document.getElementById('btnDibujar');
+
+function iniciarDibujo() {
+  if (typeof L.Draw === 'undefined' || !L.Draw.Polygon) {
+    mostrarError('No se pudo cargar la herramienta de dibujo. Recarga la página (Ctrl+F5).');
     return;
   }
-
-  const poligono = currentPolygon.getLatLngs()[0];
-  const operacion = document.getElementById('fOperacion').value;
-
-  const dentro = ALL_PROPS.filter(p => {
-    if (!p.lat || !p.lon) return false;
-    if (operacion && p.operacion !== operacion) return false;
-    return puntoEnPoligono(p.lat, p.lon, poligono);
-  });
-
-  panelCount.textContent = `${dentro.length.toLocaleString('es-MX')} propiedad${dentro.length !== 1 ? 'es' : ''} en esta zona`;
-  panelGrid.innerHTML = dentro.slice(0, 60).map(cardHTML).join('');
-
-  dentro.slice(0, 300).forEach(p => {
-    L.circleMarker([p.lat, p.lon], {
-      radius: 5, color: p.operacion === 'RENTA' ? '#0f1f3d' : '#d62828',
-      fillOpacity: 0.8,
-    }).bindPopup(`<b>${money(p.precio)}</b><br>${p.titulo}`).addTo(markersLayer);
-  });
+  if (drawer) drawer.disable();
+  drawer = new L.Draw.Polygon(map, shapeOpts);
+  drawer.enable();
+  btnDibujar.classList.add('activo');
+  btnDibujar.textContent = '✏️ Dibujando… haz clic en el mapa';
+  document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
+
+function terminarDibujoUI() {
+  btnDibujar.classList.remove('activo');
+  btnDibujar.textContent = currentPolygon ? '✏️ Dibujar otra zona' : '✏️ Dibujar mi zona en el mapa';
+}
+
+btnDibujar.addEventListener('click', iniciarDibujo);
 
 map.on(L.Draw.Event.CREATED, function (e) {
   drawnItems.clearLayers();
   drawnItems.addLayer(e.layer);
   currentPolygon = e.layer;
+  terminarDibujoUI();
   actualizarResultados();
 });
-
-map.on(L.Draw.Event.EDITED, function () {
-  actualizarResultados();
-});
+map.on(L.Draw.Event.DRAWSTOP, terminarDibujoUI);
+map.on(L.Draw.Event.EDITED, actualizarResultados);
 
 document.getElementById('btnLimpiar').addEventListener('click', () => {
   drawnItems.clearLayers();
   currentPolygon = null;
+  terminarDibujoUI();
   actualizarResultados();
 });
 
-document.getElementById('fOperacion').addEventListener('change', actualizarResultados);
+document.getElementById('btnReset').addEventListener('click', () => {
+  document.querySelectorAll('.filtros select').forEach(s => { s.selectedIndex = 0; });
+  document.querySelectorAll('.filtros input').forEach(i => { i.value = ''; });
+  actualizarResultados();
+});
+
+document.querySelectorAll('.filtros select, .filtros input').forEach(el => {
+  el.addEventListener('input', actualizarResultados);
+  el.addEventListener('change', actualizarResultados);
+});
+
+document.getElementById('btnMas').addEventListener('click', pintarPagina);
 
 fetch('data.json')
   .then(r => r.json())
-  .then(data => { ALL_PROPS = data; });
+  .then(data => { ALL_PROPS = data; actualizarResultados(); })
+  .catch(() => {
+    document.getElementById('panelCount').textContent = 'No se pudo cargar el inventario.';
+    mostrarError('No se pudo cargar el inventario. Recarga la página.');
+  });
 </script>
 </body>
 </html>
