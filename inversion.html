@@ -82,15 +82,25 @@
     <div class="filtros">
       <h3>¿Con crédito? (opcional)</h3>
       <label class="band"><input type="checkbox" id="bPagaSola"> <b>Solo mostrar las que "se pagan solas"</b><small>La renta neta cubre la mensualidad del crédito</small></label>
-      <label class="band"><input type="checkbox" id="bPalanca"> <b>Solo mostrar donde la palanca ayuda</b><small>El crédito mejora tu rendimiento sobre lo que pones tú</small></label>
-      <div class="tasa-cred" id="tasaCredBox"><label for="fTasaCred">Supuesto: 50% de enganche, a 20 años, tasa anual</label>
-        <div class="val"><span id="lblTasaCred">11.0</span>%</div><input type="range" id="fTasaCred" min="8" max="16" step="0.1" value="11"></div>
+      <label class="band"><input type="checkbox" id="bPalanca"> <b>Solo mostrar donde el crédito conviene</b><small>Tu patrimonio total (propiedad + lo que sobra en CETES) supera comprar de contado</small></label>
+      <div class="tasa-cred" id="tasaCredBox">
+        <label for="fEnganche">Enganche: <span id="lblEnganche">30</span>% del precio</label>
+        <input type="range" id="fEnganche" min="10" max="80" step="5" value="30">
+        <label for="fTasaCred" style="margin-top:10px">A 20 años, tasa anual</label>
+        <div class="val"><span id="lblTasaCred">11.0</span>%</div><input type="range" id="fTasaCred" min="3" max="16" step="0.1" value="11">
+        <div class="limite">💡 Un banco casi siempre pide más enganche para una propiedad de <b>inversión</b> que para tu propia casa (aquí el enganche lo decides tú, para ver el efecto). Infonavit y Cofinavit son para tu vivienda, no aplican aquí. Confírmalo con nuestro equipo de crédito.</div>
+      </div>
     </div>
     <div class="cetes-chip" id="cetesChip"></div>
 
     <div class="conteo" id="conteo">Dibuja tu zona para empezar</div>
     <div class="grafica-wrap" id="graficaWrap" style="display:none"><svg id="svgBarras"></svg></div>
     <div class="lista" id="lista"></div>
+    <div class="filtros" id="panelPatrimonio" style="display:none">
+      <h3>¿Te conviene el crédito? Compara tu patrimonio total</h3>
+      <div class="fila"><div style="grid-column:1/-1"><label for="fSelPatrimonio">Elige una opción</label><select id="fSelPatrimonio"></select></div></div>
+      <div id="tablaPatrimonio"></div>
+    </div>
     <details class="preventas" id="secPreventas" style="display:none"><summary id="tituloPreventas"></summary><div class="lista" id="listaPreventas" style="margin-top:10px"></div></details>
     <div class="cta-final" id="ctaFinal" style="display:none">
       <div>¿Quieres que revisemos esto juntos?</div>
@@ -130,6 +140,31 @@ let TODAS = [], currentPolygon = null, drawer = null;
   ['fTipo', 'fHorizonte', 'fTope', 'fRec'].forEach(id => $(id).addEventListener('change', actualizar));
   ['bPagaSola', 'bPalanca'].forEach(id => $(id).addEventListener('change', () => { $('tasaCredBox').style.display = ($('bPagaSola').checked || $('bPalanca').checked) ? 'block' : 'none'; actualizar(); }));
   $('fTasaCred').addEventListener('input', () => { $('lblTasaCred').textContent = Number($('fTasaCred').value).toFixed(1); actualizar(); });
+  $('fEnganche').addEventListener('input', () => { $('lblEnganche').textContent = $('fEnganche').value; actualizar(); });
+  let ultimoR = null;
+  function pintarPatrimonio() {
+    const box = $('panelPatrimonio');
+    if (!ultimoR || !ultimoR.opciones.length || !($('bPagaSola').checked || $('bPalanca').checked) || !ultimoR.credito) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    const sel = $('fSelPatrimonio'), previo = sel.value;
+    sel.innerHTML = ultimoR.opciones.map(o => `<option value="${o.rank}">#${o.rank} · ${AM.esc(o.colonia)} · ${money(o.precio)}${o.credito.sePagaSola || o.credito.patrimonio.conCredito > o.credito.patrimonio.contado ? ' ✓' : ''}</option>`).join('');
+    if ([...sel.options].some(o => o.value === previo)) sel.value = previo;
+    dibujarFilaPatrimonio();
+  }
+  function dibujarFilaPatrimonio() {
+    const o = ultimoR.opciones.find(x => x.rank === Number($('fSelPatrimonio').value)); if (!o || !o.credito) return;
+    const c = o.credito.patrimonio, mejor = Math.max(c.soloCetes, c.contado, c.conCredito);
+    const fila = (et, v) => `<tr><td>${et}</td><td class="${v === mejor ? 'gan' : ''}">${money(v)}</td></tr>`;
+    $('tablaPatrimonio').innerHTML = `<p class="hint">Partiendo del mismo capital (${money(c.capitalTotal)}, lo que costaría comprar de contado), a ${$('fHorizonte').value} años, con plusvalía supuesta de ${(S0.plusvalia_base * 100).toFixed(0)}%:</p>
+      <table style="width:100%;border-collapse:collapse;font-size:13.5px"><tbody>
+        ${fila('Todo en CETES', c.soloCetes)}
+        ${fila('Comprar de contado', c.contado)}
+        ${fila(`Con crédito (${o.credito.enganchePct}% enganche) + ${money(c.sobrante)} de sobrante en CETES`, c.conCredito)}
+      </tbody></table>
+      <p class="hint" style="margin-top:8px">Mensualidad del crédito: ${money(o.credito.mensual)}. ${c.conCredito > c.contado ? '✅ En este caso, el crédito sí mejora tu patrimonio total.' : '⚠️ En este caso, comprar de contado te deja mejor que usar este crédito.'}</p>`;
+  }
+  const S0 = AM.SUPUESTOS_INVERSION;
+  $('fSelPatrimonio').addEventListener('change', dibujarFilaPatrimonio);
 
   function iconHouse() { return AM.iconHouse(); }
   function tarjeta(o, esPreventa) {
@@ -172,26 +207,34 @@ let TODAS = [], currentPolygon = null, drawer = null;
     if (!currentPolygon) { $('conteo').textContent = 'Dibuja tu zona para empezar'; $('lista').innerHTML = ''; $('graficaWrap').style.display = 'none'; $('secPreventas').style.display = 'none'; $('ctaFinal').style.display = 'none'; return; }
     if (!TODAS.length) return;
     const opts = { poligono: currentPolygon.getLatLngs()[0], tope: parseFloat($('fTope').value) || 0, tipo: $('fTipo').value, recMin: parseInt($('fRec').value) || 0, horizonte: parseInt($('fHorizonte').value),
-      banderas: { pagaSola: $('bPagaSola').checked, palancaAyuda: $('bPalanca').checked }, tasaHipoteca: parseFloat($('fTasaCred').value) };
+      banderas: { pagaSola: $('bPagaSola').checked, palancaAyuda: $('bPalanca').checked }, tasaHipoteca: parseFloat($('fTasaCred').value), enganchePct: parseInt($('fEnganche').value) };
     let R;
     try { R = AM.motorInversion(TODAS, opts); } catch (e) { console.error('inversion:', e); errBox.style.display = 'block'; errBox.textContent = 'No se pudo calcular con esos filtros. Intenta ajustar tu zona o presupuesto.'; return; }
+    ultimoR = R;
     const conBandera = opts.banderas.pagaSola || opts.banderas.palancaAyuda;
-    const evalTotal = conBandera ? R.opciones.length : R.inventario.evaluados;
+    // La bandera decide qué tarjetas se MUESTRAN, pero el panel de patrimonio compara
+    // las mismas 10 evaluadas aunque ninguna "cumpla" — así el cliente ve por qué, en vez de una pantalla vacía.
+    const mostrar = conBandera
+      ? R.opciones.filter(o => (opts.banderas.pagaSola && o.credito.sePagaSola) || (opts.banderas.palancaAyuda && o.credito.patrimonio.conCredito > o.credito.patrimonio.contado))
+      : R.opciones;
+    const evalTotal = conBandera ? mostrar.length : R.inventario.evaluados;
     $('conteo').innerHTML = `${R.inventario.candidatos.toLocaleString('es-MX')} propiedades en tu presupuesto y zona · <b>${evalTotal}</b> ${conBandera ? 'cumplen tus criterios' : 'evaluadas con suficientes comparables'}` +
       (!conBandera && R.inventario.evaluados > R.opciones.length ? ` — te mostramos las mejores ${R.opciones.length}` : '') +
-      (R.opciones.length === 0 ? `<div class="aviso">Ninguna opción cumple todos tus filtros. Prueba ampliar la zona, subir el presupuesto o desactivar alguna bandera: a más filtros, menos oportunidades.</div>` :
-       R.opciones.length < 4 ? `<div class="aviso">Pocas opciones con estos filtros — considera ampliar tu zona o presupuesto para comparar más.</div>` : '');
-    $('lista').innerHTML = R.opciones.map(o => tarjeta(o, false)).join('');
+      (mostrar.length === 0 && conBandera && R.opciones.length > 0 ? `<div class="aviso">Ninguna de las ${R.opciones.length} mejores opciones cumple esa condición con esta tasa y enganche. Abajo puedes comparar su patrimonio total de todas formas, o prueba ampliar la zona, subir el presupuesto, o ajustar la tasa/enganche.</div>` :
+       mostrar.length === 0 ? `<div class="aviso">Ninguna opción cumple todos tus filtros. Prueba ampliar la zona, subir el presupuesto o desactivar alguna bandera: a más filtros, menos oportunidades.</div>` :
+       mostrar.length < 4 ? `<div class="aviso">Pocas opciones con estos filtros — considera ampliar tu zona o presupuesto para comparar más.</div>` : '');
+    $('lista').innerHTML = mostrar.map(o => tarjeta(o, false)).join('');
     if (R.preventas.length) {
       $('secPreventas').style.display = 'block'; $('tituloPreventas').textContent = `Ver ${R.preventas.length} opción${R.preventas.length > 1 ? 'es' : ''} en preventa (no rentan aún)`;
       $('listaPreventas').innerHTML = `<p class="hint" style="margin:0 0 8px">En preventa no hay renta hasta la entrega, así que no calculamos su rendimiento. Si te interesan, te recomendamos pedir <b>Acierta Verifica</b> antes de comprometer tu dinero.</p>` + R.preventas.map(o => tarjeta(o, true)).join('');
     } else $('secPreventas').style.display = 'none';
-    $('graficaWrap').style.display = R.opciones.length ? 'block' : 'none';
-    if (R.opciones.length) $('svgBarras').outerHTML = graficaBarras(R.opciones, cetesN).replace('<svg', '<svg id="svgBarras"');
-    R.opciones.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
-    $('ctaFinal').style.display = R.opciones.length ? 'block' : 'none';
+    $('graficaWrap').style.display = mostrar.length ? 'block' : 'none';
+    if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN).replace('<svg', '<svg id="svgBarras"');
+    mostrar.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
+    $('ctaFinal').style.display = mostrar.length ? 'block' : 'none';
     const folio = new URLSearchParams(location.search).get('folio');
-    $('ctaWa').href = 'https://wa.me/523333777337?text=' + encodeURIComponent(`Hola, hice un estudio de inversión en acierta.pro con ${R.opciones.length} opciones.${folio ? ' Mi folio es ' + folio + '.' : ''} Me gustaría platicarlo con un asesor.`);
+    $('ctaWa').href = 'https://wa.me/523333777337?text=' + encodeURIComponent(`Hola, hice un estudio de inversión en acierta.pro con ${mostrar.length} opciones.${folio ? ' Mi folio es ' + folio + '.' : ''} Me gustaría platicarlo con un asesor.`);
+    pintarPatrimonio();
   }
 
   (function precargar() {

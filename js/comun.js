@@ -192,7 +192,7 @@
 
   // ── Motor de inversión (mismos supuestos y método que herramientas/reporte_inversion.py) ──
   // Todo en JS para poder correr en el navegador del cliente, con SU zona dibujada y SUS filtros.
-  AM.SUPUESTOS_INVERSION = { compra: 0.06, venta: 0.05, mantenimiento: 0.010, predial: 0.0015, vacancia: 1 / 12, inpc: 0.0376, cetes: 0.065, isr_marginal: 0.30 };
+  AM.SUPUESTOS_INVERSION = { compra: 0.06, venta: 0.05, mantenimiento: 0.010, predial: 0.0015, vacancia: 1 / 12, inpc: 0.0376, cetes: 0.065, isr_marginal: 0.30, plusvalia_base: 0.06, plusvalia_alta: 0.10 };
   AM.DESARROLLOS_PROPIOS = ['bella vittoria']; // los que Acierta Max comercializa directamente
   const _med = arr => { if (!arr.length) return null; const v = arr.slice().sort((a, b) => a - b), n = v.length; return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2; };
   function _tir(flujos) {
@@ -208,32 +208,73 @@
     const n = anios * 12, r = tasaAnual / 100 / 12, pago = AM.pmt(monto, tasaAnual, anios);
     return r > 0 ? monto * Math.pow(1 + r, mesesPagados) - pago * (Math.pow(1 + r, mesesPagados) - 1) / r : monto - pago * mesesPagados;
   };
-  AM.tirPropiedad = function (P, rentaAnual, g, n, S, credito) {
-    S = S || AM.SUPUESTOS_INVERSION;
-    const L = credito ? P * (credito.pct / 100) : 0, aporte = P - L + P * S.compra, pagoMensual = L > 0 ? AM.pmt(L, credito.tasa, credito.plazo) : 0;
+  AM.interesAnioCredito = function (L, tasaAnual, plazoAnios, anio) {
+    const pagoAnual = AM.pmt(L, tasaAnual, plazoAnios) * 12;
+    const saldoIni = anio === 1 ? L : AM.saldoCredito(L, tasaAnual, plazoAnios, (anio - 1) * 12);
+    const saldoFin = AM.saldoCredito(L, tasaAnual, plazoAnios, anio * 12);
+    return pagoAnual - (saldoIni - saldoFin);
+  };
+  // El contribuyente elige, cada año, la deducción que más le convenga: la "ciega" (35% de lo
+  // cobrado, sin comprobantes, más el predial) o la real (predial + mantenimiento + intereses
+  // reales del crédito, si lo hay). Simplificación: no incluye depreciación ni otros gastos.
+  AM.isrRentaAnual = function (cobrada, predial, mantenimiento, interesPagado, S) {
+    const ciega = 0.35 * cobrada + predial;
+    const real = predial + mantenimiento + (interesPagado || 0);
+    const base = Math.max(cobrada - Math.max(ciega, real), 0);
+    return { isr: S.isr_marginal * base, deduccionUsada: real > ciega ? 'real' : 'ciega' };
+  };
+  AM.flujosPropiedad = function (P, rentaAnual, g, n, S, credito) {
+    const L = credito ? P * (credito.pct / 100) : 0;
+    const aporte = P - L + P * S.compra, pagoMensual = L > 0 ? AM.pmt(L, credito.tasa, credito.plazo) : 0;
     const fl = [-aporte];
     for (let a = 1; a <= n; a++) {
-      const val = P * Math.pow(1 + g, a - 1);
-      let r = rentaAnual * Math.pow(1 + S.inpc, a - 1) * (1 - S.vacancia) - val * (S.mantenimiento + S.predial) - pagoMensual * 12;
+      const val = P * Math.pow(1 + g, a - 1), cobrada = rentaAnual * Math.pow(1 + S.inpc, a - 1) * (1 - S.vacancia);
+      const interesA = L > 0 ? AM.interesAnioCredito(L, credito.tasa, credito.plazo, a) : 0;
+      const { isr } = AM.isrRentaAnual(cobrada, val * S.predial, val * S.mantenimiento, interesA, S);
+      let r = cobrada - val * (S.mantenimiento + S.predial) - isr - pagoMensual * 12;
       if (a === n) r += P * Math.pow(1 + g, n) * (1 - S.venta) - (L > 0 ? AM.saldoCredito(L, credito.tasa, credito.plazo, n * 12) : 0);
       fl.push(r);
     }
-    return _tir(fl);
+    return fl;
   };
-  AM.plusvaliaEquilibrio = function (P, rentaAnual, n, S) {
+  AM.tirPropiedad = function (P, rentaAnual, g, n, S, credito) {
+    S = S || AM.SUPUESTOS_INVERSION;
+    return _tir(AM.flujosPropiedad(P, rentaAnual, g, n, S, credito));
+  };
+  AM.plusvaliaEquilibrio = function (P, rentaAnual, n, S, credito) {
     S = S || AM.SUPUESTOS_INVERSION; let lo = -0.05, hi = 0.30;
-    for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (AM.tirPropiedad(P, rentaAnual, m, n, S) < S.cetes) lo = m; else hi = m; }
+    for (let i = 0; i < 60; i++) { const m = (lo + hi) / 2; if (AM.tirPropiedad(P, rentaAnual, m, n, S, credito) < S.cetes) lo = m; else hi = m; }
     return lo;
   };
   AM.rendimientoNeto = function (P, rentaAnual, S) {
     S = S || AM.SUPUESTOS_INVERSION;
-    const cobrada = rentaAnual * (1 - S.vacancia), pred = P * S.predial;
-    const brutoAntes = (cobrada) / P - (S.mantenimiento + S.predial);
-    const isrRenta = S.isr_marginal * Math.max(0.65 * cobrada - pred, 0);
-    const netoDespuesIsr = (cobrada - P * S.mantenimiento - pred - isrRenta) / P;
-    return { bruto: (rentaAnual / P), neto: brutoAntes, netoDespuesIsr };
+    const cobrada = rentaAnual * (1 - S.vacancia), pred = P * S.predial, mant = P * S.mantenimiento;
+    const brutoAntes = cobrada / P - (S.mantenimiento + S.predial);
+    const { isr } = AM.isrRentaAnual(cobrada, pred, mant, 0, S);
+    const netoDespuesIsr = (cobrada - mant - pred - isr) / P;
+    return { bruto: rentaAnual / P, neto: brutoAntes, netoDespuesIsr };
   };
   AM.cetesNeto = function (S) { S = S || AM.SUPUESTOS_INVERSION; return S.cetes - S.isr_marginal * Math.max(S.cetes - S.inpc, 0); };
+
+  // Compara el PATRIMONIO TOTAL a n años entre tres caminos, partiendo del mismo capital
+  // (lo que costaría comprar de contado): (1) dejarlo todo en CETES, (2) comprar de contado,
+  // (3) comprar con crédito y dejar el resto del capital trabajando en CETES.
+  // Los flujos de la propiedad que sobran (o faltan) cada año se reinvierten (o se financian)
+  // al mismo CETES neto, para que la comparación sea consistente en toda la línea de tiempo.
+  AM.compararEstrategias = function (P, rentaAnual, n, S, enganchePct, tasaHipoteca, plazo) {
+    S = S || AM.SUPUESTOS_INVERSION;
+    const cetesN = AM.cetesNeto(S), capitalTotal = P * (1 + S.compra);
+    const acumular = flujos => { let acc = 0; for (let a = 1; a < flujos.length - 1; a++) acc = acc * (1 + cetesN) + flujos[a]; return acc * (1 + cetesN) + flujos[flujos.length - 1]; };
+    const soloCetes = capitalTotal * Math.pow(1 + cetesN, n);
+    const flContado = AM.flujosPropiedad(P, rentaAnual, S.plusvalia_base, n, S, null);
+    const contado = acumular(flContado);
+    const credito = { pct: 100 - enganchePct, tasa: tasaHipoteca, plazo: plazo || 20 };
+    const flCredito = AM.flujosPropiedad(P, rentaAnual, S.plusvalia_base, n, S, credito);
+    const aporteCredito = -flCredito[0], sobrante = capitalTotal - aporteCredito;
+    const conCredito = acumular(flCredito) + sobrante * Math.pow(1 + cetesN, n);
+    return { capitalTotal, soloCetes, contado, conCredito, sobrante, cetesNeto: cetesN,
+      mensualCredito: AM.pmt(P * credito.pct / 100, tasaHipoteca, credito.plazo) };
+  };
 
   // Genera el estudio: TODAS = inventario completo; opts = { poligono, tope, tipo, recMin, horizonte, banderas:{pagaSola,palancaAyuda}, tasaHipoteca, S }
   AM.motorInversion = function (TODAS, opts) {
@@ -279,30 +320,23 @@
     evaluables.sort((a, b) => b.score - a.score || a.p.eb.localeCompare(b.p.eb));
     const preventas = filas.filter(x => x.preventa).sort((a, b) => a.p.precio - b.p.precio);
 
-    const credito = (opts.banderas.pagaSola || opts.banderas.palancaAyuda) ? { pct: 50, tasa: opts.tasaHipoteca || 11, plazo: 20 } : null;
+    const enganchePct = (opts.enganchePct != null) ? opts.enganchePct : 30;
+    const credito = (opts.banderas.pagaSola || opts.banderas.palancaAyuda) ? { pct: 100 - enganchePct, tasa: opts.tasaHipoteca || 11, plazo: 20, enganchePct } : null;
     function empacar(x, rank) {
       const p = x.p, n = opts.horizonte || 4;
       const out = { rank, eb: p.eb, titulo: p.titulo, colonia: p.colonia, municipio: p.municipio, m2: p.m2, rec: p.recamaras, precio: p.precio,
         pm2: Math.round(p.precio / p.m2), lat: p.lat, lon: p.lon, foto: p.foto, liga: p.liga, renta: Math.round(x.ra / 12), renta_anual: Math.round(x.ra),
         bruto: x.bruto, neto: x.neto, netoDespuesIsr: x.netoDespuesIsr, desc: x.desc, n_venta: x.nv, n_renta: x.nr, confianza: x.confianza || 'media', propio: x.propio, preventa: x.preventa,
-        geq: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S), tir: {} };
-      [['inflacion', S.inpc], ['base', 0.06], ['alta', 0.10]].forEach(([k, g]) => out.tir[k] = AM.tirPropiedad(p.precio, x.ra, g, n, S));
+        geq: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S, null), tir: {} };
+      [['inflacion', S.inpc], ['base', S.plusvalia_base], ['alta', S.plusvalia_alta]].forEach(([k, g]) => out.tir[k] = AM.tirPropiedad(p.precio, x.ra, g, n, S, null));
       if (credito) {
         const mensual = AM.pmt(p.precio * credito.pct / 100, credito.tasa, credito.plazo), noiMensual = (x.ra * (1 - S.vacancia) - p.precio * (S.mantenimiento + S.predial)) / 12;
-        const tirCon = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, credito);
-        out.credito = { mensual, noiMensual, sePagaSola: noiMensual >= mensual, tirConCredito: tirCon, palancaAyuda: tirCon > out.tir.base };
+        const cmp = AM.compararEstrategias(p.precio, x.ra, n, S, enganchePct, credito.tasa, credito.plazo);
+        out.credito = { mensual, noiMensual, sePagaSola: noiMensual >= mensual, enganchePct, patrimonio: cmp, palancaAyuda: cmp.conCredito > cmp.contado, geqConCredito: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S, credito) };
       }
       return out;
     }
     let top = evaluables;
-    if (opts.banderas.pagaSola || opts.banderas.palancaAyuda) {
-      top = evaluables.filter(x => {
-        const p = x.p, n = opts.horizonte || 4, mensual = AM.pmt(p.precio * credito.pct / 100, credito.tasa, credito.plazo), noiMensual = (x.ra * (1 - S.vacancia) - p.precio * (S.mantenimiento + S.predial)) / 12;
-        const sePagaSola = noiMensual >= mensual, tirCon = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, credito), tirSin = AM.tirPropiedad(p.precio, x.ra, 0.06, n, S, null);
-        const palancaAyuda = tirCon > tirSin;
-        return (opts.banderas.pagaSola && sePagaSola) || (opts.banderas.palancaAyuda && palancaAyuda);
-      });
-    }
     return {
       inventario: { total: TODAS.length, en_zona_venta: V.length, candidatos: cand.length, evaluados: evaluables.length, sin_comparables: cand.length - filas.length, rentas_comparables: R.length, preventas: preventas.length },
       mercado: { cetes: S.cetes, cetes_neto: AM.cetesNeto(S), inflacion: S.inpc, isr_marginal: S.isr_marginal },
