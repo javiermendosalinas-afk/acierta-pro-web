@@ -163,6 +163,15 @@
   </div>`;
   };
 
+  // ── Sellos de confianza (texto; el redactado exacto lo confirma Acierta Max) ──
+  AM.confianzaHTML = function () {
+    return '<div class="confianza"><div class="confianza-sellos">' +
+      '<span>🏛️ Socio AMPI</span><span>📜 Cumple la NOM-247-SE-2021</span>' +
+      '<span>🤝 Contratos conforme a PROFECO</span><span>🎓 Asesores certificados por la SEP</span></div>' +
+      '<p>Herramientas a tu favor: comparativo de propiedades, análisis de precio por m², simulador de crédito y MAX, ' +
+      'nuestro asistente con IA por WhatsApp — siempre con un asesor real a tu lado.</p></div>';
+  };
+
   // ── Análisis de precio por m² ──────────────────────────
   const MIN_MUESTRA = 8;
   function percentil(orden, q) {

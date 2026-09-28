@@ -51,6 +51,12 @@
     text-align: center; font-size: 12.5px; color: var(--gray); margin-top: 14px;
   }
   .sim-condusef a { color: var(--red); font-weight: 600; }
+  .modo-cred { display: flex; gap: 8px; margin-bottom: 14px; }
+  .modo-cred button { flex: 1; border: 2px solid var(--gray-light); background: #fff; border-radius: 10px; padding: 10px; font: 700 14px var(--font-body); color: var(--navy); cursor: pointer; }
+  .modo-cred button.activo { border-color: var(--red); background: #fff3f1; }
+  .cofi-info { background: #eef3fb; border-radius: 8px; padding: 12px 14px; font-size: 13px; line-height: 1.5; margin-bottom: 16px; color: var(--ink); }
+  .cofi-info a { color: var(--red); font-weight: 700; }
+  .cofi-aviso { background: #fff7e6; border: 1px solid #f0d896; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #6b5a1e; margin: 10px 0 0; display: none; }
 </style>
 </head>
 <body>
@@ -63,6 +69,15 @@
 <div class="sim-wrap">
   <div class="sim-card">
     <h2>Datos de tu crédito</h2>
+    <div class="modo-cred" id="modoCred">
+      <button type="button" data-m="banco" class="activo">🏦 Crédito bancario</button>
+      <button type="button" data-m="cofinavit">🤝 Cofinavit</button>
+    </div>
+    <div class="cofi-info" id="cofiInfo" style="display:none">
+      <b>Cofinavit</b> combina <b>dos créditos hipotecarios</b> —uno del Infonavit y otro de un banco— sobre la misma propiedad, formalizados en una sola escritura, para llegar a una propiedad de mayor valor.
+      Cada institución tiene sus propios requisitos. Consulta tu monto autorizado y tus puntos en
+      <a href="https://micuenta.infonavit.org.mx" target="_blank" rel="noopener">Mi Cuenta Infonavit</a>. Los montos y tasas de abajo son <b>supuestos: cámbialos por los reales</b>.
+    </div>
     <div class="campo">
       <label for="precio">Precio de la propiedad (MXN)</label>
       <input type="number" id="precio" value="2500000" step="50000" min="0">
@@ -87,7 +102,7 @@
       </select>
     </div>
     <div class="campo">
-      <label for="tasa">Tasa de interés anual — ajústala según la oferta que te den</label>
+      <label for="tasa" id="lblTasa">Tasa de interés anual — ajústala según la oferta que te den</label>
       <div class="valor-tasa"><span id="tasaTexto">12.0</span>%</div>
       <input type="range" id="tasa" min="8" max="16" value="12" step="0.1">
       <div class="disclaimer">
@@ -96,10 +111,32 @@
         real que te den. Para tasas oficiales vigentes, usa el simulador de CONDUSEF (liga abajo).
       </div>
     </div>
+    <div id="cofi" style="display:none">
+      <div class="campo">
+        <label for="infCredito">Crédito que te autoriza el Infonavit (MXN)</label>
+        <input type="number" id="infCredito" value="1000000" step="50000" min="0">
+      </div>
+      <div class="campo">
+        <label for="infTasa">Tasa anual del crédito Infonavit</label>
+        <div class="valor-tasa"><span id="infTasaTexto">10.45</span>%</div>
+        <input type="range" id="infTasa" min="1" max="12" value="10.45" step="0.05">
+      </div>
+      <div class="campo">
+        <label for="infPlazo">Plazo del crédito Infonavit</label>
+        <select id="infPlazo" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--gray-light);font-size:15px;">
+          <option value="10">10 años</option><option value="15">15 años</option><option value="20" selected>20 años</option><option value="25">25 años</option><option value="30">30 años</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label for="subcuenta">Saldo de tu Subcuenta de Vivienda que aplicarías como enganche (MXN) <span style="font-weight:400;color:var(--gray)">(opcional)</span></label>
+        <input type="number" id="subcuenta" value="0" step="10000" min="0">
+      </div>
+    </div>
   </div>
 
   <div class="sim-card">
     <h2>Resultado estimado</h2>
+    <div id="resBanco">
     <div class="resultado-item">
       <span class="label">Monto del crédito</span>
       <span class="valor" id="rMonto">—</span>
@@ -116,6 +153,18 @@
       <span class="label">Costo total del crédito</span>
       <span class="valor" id="rTotal">—</span>
     </div>
+    </div>
+    <div id="resCofi" style="display:none">
+      <div class="resultado-item"><span class="label">Tu aportación (enganche + subcuenta)</span><span class="valor" id="cAporte">—</span></div>
+      <div class="resultado-item"><span class="label">Crédito Infonavit</span><span class="valor" id="cInf">—</span></div>
+      <div class="resultado-item"><span class="label">Crédito bancario (lo que falta)</span><span class="valor" id="cBanco">—</span></div>
+      <div class="resultado-item"><span class="label">Pago mensual del crédito Infonavit</span><span class="valor" id="cPagoInf">—</span></div>
+      <div class="resultado-item"><span class="label">Pago mensual del crédito bancario</span><span class="valor" id="cPagoBanco">—</span></div>
+      <div class="resultado-item resultado-destacado"><span class="label">Pago mensual total</span><span class="valor" id="cPagoTotal">—</span></div>
+      <div class="resultado-item"><span class="label">Total de intereses (ambos créditos)</span><span class="valor" id="cIntereses">—</span></div>
+      <div class="resultado-item"><span class="label">Costo total de los dos créditos</span><span class="valor" id="cTotal">—</span></div>
+      <div class="cofi-aviso" id="cofiAviso"></div>
+    </div>
     <a class="sim-cta" href="https://wa.me/523333777337?text=Hola%2C%20quiero%20que%20me%20ayuden%20a%20precalificar%20un%20cr%C3%A9dito%20hipotecario" target="_blank" rel="noopener">
       Que Acierta Max me ayude a precalificar →
     </a>
@@ -130,6 +179,47 @@
 <script>
 function money(n) { return '$' + Math.round(n).toLocaleString('es-MX'); }
 
+let modo = 'banco';
+function pmt(monto, tasaAnual, anios) {
+  const n = anios * 12, r = tasaAnual / 100 / 12;
+  return r > 0 ? monto * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : monto / n;
+}
+function ponerModo(m) {
+  modo = m;
+  document.querySelectorAll('#modoCred button').forEach(b => b.classList.toggle('activo', b.dataset.m === m));
+  document.getElementById('cofi').style.display = m === 'cofinavit' ? 'block' : 'none';
+  document.getElementById('cofiInfo').style.display = m === 'cofinavit' ? 'block' : 'none';
+  document.getElementById('resBanco').style.display = m === 'banco' ? '' : 'none';
+  document.getElementById('resCofi').style.display = m === 'cofinavit' ? '' : 'none';
+  document.getElementById('lblTasa').textContent = m === 'cofinavit' ? 'Tasa anual del crédito bancario' : 'Tasa de interés anual — ajústala según la oferta que te den';
+  calcular();
+}
+
+function calcularCofinavit(precio, enganchePct, plazoBanco, tasaBanco) {
+  const infCred = parseFloat(document.getElementById('infCredito').value) || 0;
+  const infTasa = parseFloat(document.getElementById('infTasa').value);
+  const infPlazo = parseInt(document.getElementById('infPlazo').value);
+  const sub = parseFloat(document.getElementById('subcuenta').value) || 0;
+  document.getElementById('infTasaTexto').textContent = infTasa.toFixed(2);
+  const propio = precio * enganchePct / 100;
+  const faltaTrasAporte = Math.max(precio - propio - sub, 0);
+  const inf = Math.min(infCred, faltaTrasAporte);
+  const banco = Math.max(faltaTrasAporte - inf, 0);
+  const pagoInf = inf > 0 ? pmt(inf, infTasa, infPlazo) : 0;
+  const pagoBanco = banco > 0 ? pmt(banco, tasaBanco, plazoBanco) : 0;
+  const intereses = (pagoInf * infPlazo * 12 - inf) + (pagoBanco * plazoBanco * 12 - banco);
+  const total = pagoInf * infPlazo * 12 + pagoBanco * plazoBanco * 12;
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  set('cAporte', money(propio + sub)); set('cInf', money(inf)); set('cBanco', money(banco));
+  set('cPagoInf', money(pagoInf) + '/mes'); set('cPagoBanco', money(pagoBanco) + '/mes'); set('cPagoTotal', money(pagoInf + pagoBanco) + '/mes');
+  set('cIntereses', money(intereses)); set('cTotal', money(total));
+  const av = document.getElementById('cofiAviso'), msgs = [];
+  if (infCred > faltaTrasAporte) msgs.push('El crédito Infonavit que capturaste es mayor a lo que falta por financiar; lo ajustamos a ' + money(inf) + '.');
+  if (banco === 0 && inf > 0) msgs.push('Con esos montos no necesitarías crédito bancario: el Infonavit cubriría lo que falta.');
+  if (propio + sub + infCred === 0) msgs.push('Captura el monto que te autoriza el Infonavit para ver el Cofinavit.');
+  av.style.display = msgs.length ? 'block' : 'none'; av.textContent = msgs.join(' ');
+}
+
 function calcular() {
   const precio = parseFloat(document.getElementById('precio').value) || 0;
   const enganchePct = parseFloat(document.getElementById('enganche').value);
@@ -141,6 +231,8 @@ function calcular() {
 
   const engancheMonto = precio * (enganchePct / 100);
   document.getElementById('engancheMonto').textContent = money(engancheMonto);
+
+  if (modo === 'cofinavit') { calcularCofinavit(precio, enganchePct, plazoAnios, tasaAnual); return; }
 
   const monto = precio - engancheMonto;
   const n = plazoAnios * 12;
@@ -166,10 +258,12 @@ function calcular() {
 const precioUrl = parseFloat(new URLSearchParams(location.search).get('precio'));
 if (precioUrl > 0) document.getElementById('precio').value = Math.round(precioUrl);
 
+['infCredito', 'infTasa', 'infPlazo', 'subcuenta'].forEach(id => document.getElementById(id).addEventListener('input', calcular));
+document.getElementById('modoCred').addEventListener('click', e => { const b = e.target.closest('button'); if (b) ponerModo(b.dataset.m); });
 ['precio', 'enganche', 'plazo', 'tasa'].forEach(id => {
   document.getElementById(id).addEventListener('input', calcular);
 });
-calcular();
+if (new URLSearchParams(location.search).get('modo') === 'cofinavit') ponerModo('cofinavit'); else calcular();
 </script>
 </body>
 </html>

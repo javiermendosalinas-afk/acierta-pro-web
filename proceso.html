@@ -25,6 +25,8 @@
     </div>
   </section>
 
+  <div id="confianza"></div>
+
   <div class="proc-grid">
     <aside class="proc-lado">
       <section class="ficha-card vars" id="vars"></section>
@@ -80,6 +82,7 @@
     if (num('precio')) S.precio = Math.round(num('precio'));
     if (num('renta')) S.renta = Math.round(num('renta'));
     if (num('m2')) { S.m2 = Math.round(num('m2')); }
+    if (num('ingresos')) S.ingresos = String(Math.round(num('ingresos')));
     if (q.get('mun')) S.municipio = q.get('mun');
     if (q.get('tipo')) S.tipo = q.get('tipo');
     if (num('rec')) S.recamaras = String(Math.round(num('rec')));
@@ -309,6 +312,7 @@
   });
   $('btnImprimir').addEventListener('click', () => window.print());
 
+  $('confianza').innerHTML = AM.confianzaHTML();
   Promise.all([fetch('proceso-datos.json').then(r => r.json()), fetch('data.json').then(r => r.json())])
     .then(([datos, todas]) => { D = datos; TODAS = todas; cargarEstado(); $('nombre').value = S.nombre || ''; repintarTodo(); })
     .catch(e => { console.error('proceso:', e); document.querySelector('.proc-main').innerHTML = '<div class="ficha-card"><h2>No se pudo cargar esta página</h2><p>Recarga; si sigue igual, avísanos por WhatsApp.</p></div>'; });

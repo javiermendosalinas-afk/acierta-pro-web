@@ -644,3 +644,41 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
   .ficha-card, .paso-cuerpo { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
   .pasos::before { display: none; }
 }
+
+/* ── CAMINO (asistente guiado) y sellos de confianza ───── */
+.camino { max-width: 680px; margin: 0 auto; padding: 22px 18px 70px; }
+.cam-prog { margin-bottom: 14px; } .cam-prog-txt { font-size: 13px; font-weight: 700; color: var(--gray); margin-bottom: 6px; }
+.cam-card { background: var(--white); border-radius: var(--radius); padding: 28px 26px; box-shadow: 0 2px 16px rgba(0,0,0,.07); }
+.cam-card h1 { font-family: var(--font-display); font-size: 26px; line-height: 1.25; color: var(--ink); margin: 0 0 14px; }
+.cam-sub { color: var(--gray); font-size: 15.5px; line-height: 1.55; margin: 0 0 18px; }
+.cam-ops { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.cam-ops.dos { grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
+@media (max-width: 520px) { .cam-ops.dos { grid-template-columns: 1fr; } }
+.cam-op { text-align: left; background: var(--cream); border: 2px solid transparent; border-radius: 12px; padding: 15px 16px; cursor: pointer; font: 500 15px var(--font-body); color: var(--ink); }
+.cam-op b { display: block; font-size: 16.5px; } .cam-op small { display: block; margin-top: 3px; color: var(--gray); font-size: 13px; }
+.cam-op:hover { border-color: #9aa6bd; } .cam-op.sel { border-color: var(--red); background: #fff3f1; }
+.cam-campos label { display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin: 14px 0 5px; }
+.cam-campos input[type=text], .cam-campos input[type=tel], .cam-campos input[type=email], .cam-campos input[type=number], .cam-campos select, .cam-card textarea {
+  width: 100%; box-sizing: border-box; padding: 12px 13px; border: 1px solid var(--gray-light); border-radius: 10px; font: 16px var(--font-body); background: #fff; }
+.cam-card textarea { resize: vertical; }
+.cam-consent { display: flex !important; gap: 10px; align-items: flex-start; font-weight: 500 !important; font-size: 13.5px !important; line-height: 1.45; margin-top: 18px !important; }
+.cam-consent input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--red); flex: 0 0 auto; }
+.cam-consent a { color: var(--red); font-weight: 700; }
+.cam-porque { background: #eef3fb; border-radius: 10px; padding: 12px 14px; font-size: 14px; line-height: 1.5; margin-bottom: 4px; }
+.cam-dato { background: var(--cream); border-radius: 10px; padding: 11px 13px; font-size: 14px; line-height: 1.5; margin-top: 14px; }
+.cam-dato:empty { display: none; }
+.cam-usar { margin-left: 6px; background: var(--navy); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; font: 700 12.5px var(--font-body); cursor: pointer; }
+.cam-error { background: #fdecea; color: #8a1f14; border: 1px solid #f5b5ae; border-radius: 10px; padding: 11px 13px; font-size: 14px; margin-top: 14px; }
+.cam-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+.cam-atras { background: none; border: 0; color: var(--gray); font: 600 14px var(--font-body); cursor: pointer; }
+#btnSig:disabled { opacity: .45; cursor: not-allowed; }
+.cam-big { width: 100%; margin: 6px 0 12px; }
+.cam-video { margin: 0 0 18px; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
+.cam-video video, .cam-video iframe { width: 100%; height: 100%; border: 0; display: block; }
+.cam-ok { font-size: 44px; margin-bottom: 4px; }
+.cam-final { margin: 18px 0 10px; }
+.cam-reiniciar { background: none; border: 0; color: var(--gray); text-decoration: underline; cursor: pointer; font: 600 13px var(--font-body); padding: 0; }
+.confianza { background: var(--cream); border-radius: 12px; padding: 14px 16px; margin: 18px 0; }
+.confianza-sellos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.confianza-sellos span { background: #fff; border: 1px solid var(--gray-light); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-weight: 700; color: var(--navy); }
+.confianza p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--gray); }

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Te acompaño en tu camino — Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="pg cam">
+
+<div class="pg-header">
+  <a href="index.html" class="back">← Acierta Max</a>
+  <span class="pg-titulo">Tu camino con Acierta Max</span>
+</div>
+
+<main class="camino">
+  <div class="cam-prog" id="camProg" style="display:none"><div class="cam-prog-txt" id="camProgTxt"></div><div class="avance-barra"><i id="camProgBarra"></i></div></div>
+  <section class="cam-card" id="camCard"><p class="pg-cargando">Cargando…</p></section>
+  <div class="cam-nav" id="camNav" style="display:none">
+    <button type="button" class="cam-atras" id="btnAtras">← Atrás</button>
+    <button type="button" class="btn-solid btn-lg" id="btnSig">Continuar</button>
+  </div>
+</main>
+
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  AM.sinBarra = true;
+  const $ = id => document.getElementById(id);
+  const money = AM.money;
+  const CLAVE = 'aciertaCamino';
+  let CFG = null, TAR = null, TODAS = [];
+  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '',
+            consent: false, metodo: 'sabe', presupuesto: '', ingresos: '', enganche: '', credito: '', verifica: '', notas: '',
+            folio: '', token: '', vendedor: '', completado: false };
+  let enviando = false, errorMsg = '';
+
+  const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} };
+  const cargar = () => { try { const o = JSON.parse(localStorage.getItem(CLAVE) || 'null'); if (o && typeof o === 'object') S = Object.assign(S, o); } catch (e) {} };
+
+  // ── Cálculos (mismos supuestos que el simulador; el cliente puede cambiarlos allá) ──
+  const TASA_SUP = 11, PLAZO_SUP = 20;
+  function pagoMaxAMonto(pago, t, a) { const n = a * 12, r = t / 100 / 12; return pago * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n)); }
+  const grupoTipos = () => {
+    const G = AM.GRUPOS_TIPO;
+    if (S.tipo === 'local') return [].concat(G.local, G.oficina, G.bodega);
+    return G[S.tipo] || null;
+  };
+  function contar() {
+    const op = S.operacion === 'renta' ? 'RENTA' : 'VENTA', tipos = grupoTipos();
+    const seg = TODAS.filter(p => AM.esMXN(p) && p.operacion === op && (!S.municipio || S.municipio === 'cualquiera' || p.municipio === S.municipio) && (!tipos || tipos.includes(p.tipo)));
+    const tope = parseFloat(S.presupuesto) || 0;
+    return { total: seg.length, dentro: tope ? seg.filter(p => p.precio <= tope).length : null, minimo: seg.length ? Math.min(...seg.map(p => p.precio)) : null };
+  }
+  const nombreTipo = { casa: 'casa', departamento: 'departamento', terreno: 'terreno', local: 'local, oficina o bodega', nose: 'propiedad', otro: 'propiedad' };
+  const opTxt = () => ({ compra: 'comprar', renta: 'rentar', vender: 'poner mi propiedad en venta o renta' })[S.operacion] || '';
+
+  // ── Definición de pasos ──────────────────────────────────
+  const opciones = (k, lista) => `<div class="cam-ops">${lista.map(([v, t, sub]) =>
+    `<button type="button" class="cam-op ${S[k] === v ? 'sel' : ''}" data-set="${k}" data-val="${v}"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</button>`).join('')}</div>`;
+  const esVender = () => S.operacion === 'vender';
+  const PASOS = [
+    { id: 'bienvenida', titulo: null,
+      html: () => `<h1>Te acompaño durante este viaje</h1>
+        <p class="cam-sub">Vas a tener muchas dudas y decisiones que tomar. Vamos a caminarlo juntos, con las preguntas correctas, para que compres, rentes o vendas con certeza.</p>
+        ${videoHTML()}${AM.confianzaHTML()}
+        <button type="button" class="btn-solid btn-lg cam-big" data-ir="operacion">Comenzar mi camino →</button>
+        <p class="muted">Toma unos 3 minutos. Puedes cerrar y retomarlo después: tu avance se guarda en este navegador.</p>`,
+      nav: false },
+    { id: 'operacion', titulo: '¿Qué quieres hacer?', html: () => opciones('operacion', [['compra', '🏠 Comprar', 'Quiero encontrar mi propiedad'], ['renta', '🔑 Rentar', 'Busco dónde vivir o poner mi negocio'], ['vender', '📣 Vender o rentar la mía', 'Quiero poner mi propiedad en el mercado']]), listo: () => !!S.operacion, auto: true },
+    { id: 'tipo', titulo: () => esVender() ? '¿Qué propiedad quieres poner en el mercado?' : '¿Qué tipo de propiedad buscas?',
+      html: () => opciones('tipo', [['casa', '🏡 Casa'], ['departamento', '🏢 Departamento'], ['terreno', '🌱 Terreno'], ['local', '🏬 Local, oficina o bodega'], ['nose', '🤔 Aún no lo sé', esVender() ? '' : 'Te ayudamos a definirlo']]), listo: () => !!S.tipo, auto: true },
+    { id: 'uso', si: () => !esVender(), titulo: () => S.operacion === 'renta' ? '¿Para qué la quieres?' : '¿Para vivir o para invertir?',
+      html: () => opciones('uso', S.operacion === 'renta' ? [['vivir', '🛋️ Para vivir'], ['negocio', '💼 Para mi negocio']] : [['vivir', '🛋️ Para vivir'], ['invertir', '📈 Para invertir']]), listo: () => !!S.uso, auto: true },
+    { id: 'cuando', titulo: '¿Para cuándo lo necesitas?',
+      html: () => opciones('cuando', [['ya', '⚡ Lo antes posible', 'En menos de 30 días'], ['1a3', '📅 En 1 a 3 meses'], ['mas3', '🧭 Más adelante', 'Estoy explorando']]), listo: () => !!S.cuando, auto: true },
+    { id: 'zona', titulo: () => esVender() ? '¿Dónde está tu propiedad?' : '¿En qué zona te gustaría?',
+      html: () => `<div class="cam-campos"><label for="c_municipio">Municipio</label>
+        <select id="c_municipio" data-k="municipio"><option value="">Elige uno</option>${['Guadalajara', 'Zapopan', 'Tlajomulco de Zúñiga', 'Tlaquepaque', 'Tonalá'].map(m => `<option ${S.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}<option value="cualquiera" ${S.municipio === 'cualquiera' ? 'selected' : ''}>Aún no lo sé / cualquiera</option></select>
+        <label for="c_colonia">Colonia o referencia <span class="muted">(opcional)</span></label>
+        <input type="text" id="c_colonia" data-k="colonia" maxlength="60" placeholder="Ej. Providencia, cerca del Andares…" value="${AM.esc(S.colonia)}"></div>
+        <div class="cam-dato" id="cuentaZona"></div>
+        ${esVender() ? '' : '<p class="muted">Más adelante podrás dibujar tu zona exacta en el mapa.</p>'}`,
+      listo: () => !!S.municipio, after: () => pintarCuenta() },
+    { id: 'contacto', titulo: 'Te acompaño en este viaje — ¿a dónde te escribo?',
+      html: () => `<p class="cam-sub">Durante el camino te iré enviando información que te será muy valiosa. Para eso necesito tus datos.</p>
+        <div class="cam-porque"><b>¿Por qué te los pedimos?</b> Para <b>guardar tu proceso</b> —que no pierdas nada— y para que un asesor de Acierta Max te acompañe en cada etapa. Solo usamos tus datos para eso.</div>
+        <div class="cam-campos">
+          <label for="c_nombre">Tu nombre</label><input type="text" id="c_nombre" data-k="nombre" maxlength="80" autocomplete="name" value="${AM.esc(S.nombre)}">
+          <label for="c_wa">Tu WhatsApp <span class="muted">(10 dígitos)</span></label><input type="tel" id="c_wa" data-k="whatsapp" inputmode="numeric" maxlength="20" autocomplete="tel" placeholder="33 1234 5678" value="${AM.esc(S.whatsapp)}">
+          <label for="c_email">Tu correo <span class="muted">(opcional)</span></label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
+          <input type="text" id="c_empresa" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
+          <label class="cam-consent"><input type="checkbox" id="c_consent" data-k="consent" ${S.consent ? 'checked' : ''}> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp y correo para acompañarme en mi proceso, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
+        </div>
+        <div class="cam-error" id="camError" style="display:${errorMsg ? 'block' : 'none'}">${AM.esc(errorMsg)}</div>`,
+      listo: () => S.nombre.trim().length >= 2 && telValido(S.whatsapp) && (!S.email || emailValido(S.email)) && S.consent === true,
+      sig: 'Guardar mi proceso y continuar →', enviar: true },
+    { id: 'presupuesto', si: () => !esVender(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
+      html: () => presupuestoHTML(), listo: () => (parseFloat(S.presupuesto) || 0) > 0, after: () => pintarPresupuesto() },
+    { id: 'credito', si: () => S.operacion === 'compra', titulo: '¿Cómo piensas pagarla?',
+      html: () => opciones('credito', [['banco', '🏦 Crédito bancario', 'Un banco te presta'], ['infonavit', '🏠 Infonavit', 'Con tu crédito de vivienda'], ['cofinavit', '🤝 Cofinavit', 'Infonavit + banco, para llegar a más'], ['contado', '💵 De contado'], ['nose', '🤔 Aún no lo sé', 'Nuestro equipo de crédito te orienta']]) +
+        '<p class="cam-sub" style="margin-top:14px">Si necesitas crédito, <b>nuestro equipo de crédito te ayuda a gestionarlo</b> de principio a fin.</p>',
+      listo: () => !!S.credito, auto: true },
+    { id: 'verifica', si: () => !esVender(), titulo: 'Antes de firmar, verifica',
+      html: () => { const v = TAR ? TAR.verifica : { por_m2: 45, minimo: 3500 };
+        return `<p class="cam-sub"><b>Acierta Verifica</b> revisa la propiedad antes de que firmes: agua, luz, humedades, gas, drenaje y un análisis documental preventivo. Desde <b>$${v.por_m2}/m²</b> (mínimo ${money(v.minimo)}).</p>` +
+          opciones('verifica', [['si', '✅ Sí, quiero cotizarlo'], ['luego', '🕒 Lo veo más adelante'], ['no', 'No, gracias']]); },
+      listo: () => !!S.verifica, auto: true },
+    { id: 'notas', titulo: '¿Algo más que debamos saber?',
+      html: () => `<p class="cam-sub">Cuéntanos lo que quieras que tu asesor tenga presente <span class="muted">(opcional)</span>.</p>
+        <textarea id="c_notas" data-k="notas" maxlength="200" rows="4" placeholder="Ej. Necesito cochera para 2 autos; tengo mascotas…">${AM.esc(S.notas)}</textarea>`,
+      listo: () => true, sig: 'Ver mi resumen →' },
+    { id: 'resumen', titulo: null, html: () => resumenHTML(), nav: false, after: () => completar() },
+  ];
+  const visibles = () => PASOS.filter(p => !p.si || p.si());
+  const pasoActual = () => visibles().find(p => p.id === S.paso) || visibles()[0];
+
+  // ── Utilidades ───────────────────────────────────────────
+  const telValido = t => { let d = String(t || '').replace(/\D/g, ''); if (d.startsWith('521') && d.length === 13) d = d.slice(3); else if (d.startsWith('52') && d.length === 12) d = d.slice(2); return d.length === 10; };
+  const emailValido = e => /^[^@\s]{1,64}@[^@\s]{1,100}\.[^@\s]{2,}$/.test(e);
+  function videoHTML() {
+    const u = CFG && CFG.videoUrl;
+    if (!u || !/^https:\/\//.test(u)) return '';
+    if (/\.(mp4|webm)(\?|$)/i.test(u)) return `<div class="cam-video"><video controls playsinline preload="metadata" src="${AM.esc(u)}"></video></div>`;
+    if (/^https:\/\/(www\.)?(youtube\.com|youtube-nocookie\.com|player\.vimeo\.com)\//.test(u)) return `<div class="cam-video"><iframe src="${AM.esc(u)}" allowfullscreen loading="lazy" title="Video de bienvenida"></iframe></div>`;
+    return '';
+  }
+  function pintarCuenta() {
+    const el = $('cuentaZona'); if (!el || !TODAS.length || esVender()) return;
+    if (!S.municipio) { el.textContent = ''; return; }
+    const n = contar(), nom = nombreTipo[S.tipo] || 'propiedad';
+    el.innerHTML = `📍 Hoy tenemos <b>${n.total.toLocaleString('es-MX')}</b> ${S.operacion === 'renta' ? 'en renta' : 'en venta'}${S.tipo && S.tipo !== 'nose' ? ' (' + AM.esc(nom) + ')' : ''} en ${S.municipio === 'cualquiera' ? 'la ZMG' : AM.esc(S.municipio)}.`;
+  }
+
+  // Presupuesto: o ya lo sabe, o lo calculamos con sus ingresos
+  function presupuestoHTML() {
+    const renta = S.operacion === 'renta';
+    return `<div class="cam-ops dos">
+        <button type="button" class="cam-op ${S.metodo === 'sabe' ? 'sel' : ''}" data-metodo="sabe"><b>Ya sé mi ${renta ? 'renta' : 'presupuesto'}</b></button>
+        <button type="button" class="cam-op ${S.metodo === 'calcula' ? 'sel' : ''}" data-metodo="calcula"><b>Ayúdame a calcularlo</b><small>Con mis ingresos</small></button></div>
+      <div class="cam-campos" id="presCampos">${S.metodo === 'calcula' ? `
+        <label for="c_ing">Ingresos mensuales del hogar (MXN)</label><input type="number" id="c_ing" data-k="ingresos" min="0" step="1000" placeholder="Ej. 60000" value="${AM.esc(S.ingresos)}">
+        ${renta ? '' : `<label for="c_eng">Enganche que tienes ahorrado (MXN) <span class="muted">(opcional)</span></label><input type="number" id="c_eng" data-k="enganche" min="0" step="10000" placeholder="Ej. 500000" value="${AM.esc(S.enganche)}">`}
+        <div class="cam-calculo" id="calculo"></div>` : ''}
+        <label for="c_pres">${renta ? 'Renta mensual que buscas (MXN)' : 'Precio de la propiedad que buscas (MXN)'}</label>
+        <input type="number" id="c_pres" data-k="presupuesto" min="0" step="${renta ? 500 : 50000}" placeholder="${renta ? 'Ej. 15000' : 'Ej. 2500000'}" value="${AM.esc(S.presupuesto)}"></div>
+      <div class="cam-dato" id="cuentaPres"></div>`;
+  }
+  function calculoIngresos() {
+    const ing = parseFloat(S.ingresos) || 0; if (ing <= 0) return null;
+    if (S.operacion === 'renta') return { valor: Math.round(ing / 3 / 500) * 500, texto: `Una regla práctica es que la renta no pase de un tercio de tus ingresos: unos <b>${money(Math.round(ing / 3 / 500) * 500)}</b> al mes.` };
+    const eng = parseFloat(S.enganche) || 0;
+    const credito = pagoMaxAMonto(0.30 * ing, TASA_SUP, PLAZO_SUP), precio = Math.round((credito + eng) / 50000) * 50000;
+    return { valor: precio, texto: `Con una mensualidad de hasta 30% de tus ingresos (supuesto: ${TASA_SUP}% a ${PLAZO_SUP} años), podrías acceder a un crédito de <b>${money(credito)}</b>${eng ? ' + tu enganche de ' + money(eng) : ''}: una propiedad de unos <b>${money(precio)}</b>. Con Infonavit o Cofinavit puede ser más.` };
+  }
+  function pintarPresupuesto() {
+    const c = calculoIngresos(), el = $('calculo');
+    if (el) el.innerHTML = c ? `<div class="cam-dato">${c.texto} <button type="button" class="cam-usar" data-usar="${c.valor}">Usar este monto</button></div>` : '';
+    pintarCuentaPres();
+  }
+  // Cuando no hay opciones, no basta decir "0": se dice cuál es la más económica y qué se puede hacer.
+  function mensajeDentro(n) {
+    const u = S.operacion === 'renta' ? ' al mes' : '';
+    if (!n.total) return '🔎 Con esos criterios hoy no tenemos propiedades. Tu asesor te ayuda a ampliar la búsqueda.';
+    if (n.dentro === 0) return `🔎 Con ese ${S.operacion === 'renta' ? 'monto' : 'presupuesto'} no hay opciones de este tipo en esa zona: la más económica es de <b>${money(n.minimo)}${u}</b>. Podemos ver otra zona, otro tipo de propiedad o ajustar el ${S.operacion === 'renta' ? 'monto' : 'presupuesto'} — tu asesor te acompaña en eso.`;
+    return `🔎 Dentro de ese ${S.operacion === 'renta' ? 'monto' : 'presupuesto'} hay <b>${n.dentro.toLocaleString('es-MX')}</b> propiedades de las ${n.total.toLocaleString('es-MX')} que tenemos con tus criterios.`;
+  }
+  function pintarCuentaPres() {
+    const el = $('cuentaPres'); if (!el || !TODAS.length) return;
+    const t = parseFloat(S.presupuesto) || 0; if (t <= 0) { el.textContent = ''; return; }
+    const n = contar();
+    el.innerHTML = mensajeDentro(n);
+  }
+
+  // ── Resumen final ────────────────────────────────────────
+  const credTxt = { banco: 'crédito bancario', infonavit: 'Infonavit', cofinavit: 'Cofinavit (Infonavit + banco)', contado: 'de contado', nose: 'aún por definir' };
+  function urlMapa() {
+    const q = new URLSearchParams({ op: S.operacion === 'renta' ? 'RENTA' : 'VENTA' });
+    if (S.municipio && S.municipio !== 'cualquiera') q.set('municipio', S.municipio);
+    const g = { casa: 'casa', departamento: 'departamento', terreno: 'terreno', local: 'local' }[S.tipo]; if (g) q.set('tipo', g);
+    if (parseFloat(S.presupuesto) > 0) q.set('precioMax', String(Math.round(parseFloat(S.presupuesto))));
+    return 'mapa.html?' + q.toString();
+  }
+  function urlProceso() {
+    const q = new URLSearchParams({ modo: S.operacion === 'renta' ? 'renta' : 'compra' });
+    const p = Math.round(parseFloat(S.presupuesto) || 0); if (p) q.set(S.operacion === 'renta' ? 'renta' : 'precio', String(p));
+    if (S.municipio && S.municipio !== 'cualquiera') q.set('mun', S.municipio);
+    if (['casa', 'departamento', 'terreno', 'local'].includes(S.tipo)) q.set('tipo', S.tipo === 'local' ? 'local' : S.tipo);
+    if (S.ingresos) q.set('ingresos', S.ingresos);
+    return 'proceso.html?' + q.toString();
+  }
+  function textoWA() {
+    const l = [`Hola, soy ${S.nombre.trim()}. Ya recorrí mi camino en acierta.pro${S.folio ? ' (folio ' + S.folio + ')' : ''}.`];
+    const ART = { casa: 'una', departamento: 'un', terreno: 'un', local: 'un' };
+    const tipoTxt = S.tipo && S.tipo !== 'nose' ? (S.operacion === 'vender' ? ' (' + nombreTipo[S.tipo] + ')' : ' ' + (ART[S.tipo] || 'una') + ' ' + nombreTipo[S.tipo]) : '';
+    l.push(`Quiero ${opTxt()}${tipoTxt}${S.municipio && S.municipio !== 'cualquiera' ? ' en ' + S.municipio : ''}.`);
+    if (parseFloat(S.presupuesto) > 0) l.push(`${S.operacion === 'renta' ? 'Renta' : 'Presupuesto'}: ${money(parseFloat(S.presupuesto))}${S.operacion === 'renta' ? ' al mes' : ''}.`);
+    if (S.credito) l.push(`Forma de pago: ${credTxt[S.credito]}.`);
+    if (S.verifica === 'si') l.push('Me interesa cotizar Acierta Verifica.');
+    if (S.notas) l.push(`Nota: ${S.notas}`);
+    if (!S.folio) l.push(`Mi WhatsApp: ${S.whatsapp}.${S.email ? ' Correo: ' + S.email + '.' : ''}`);
+    return l.join('\n');
+  }
+  function resumenHTML() {
+    const filas = [['Quiero', opTxt()], S.tipo && S.tipo !== 'nose' ? ['Tipo', nombreTipo[S.tipo]] : null, ['Zona', (S.municipio === 'cualquiera' ? 'Cualquier zona de la ZMG' : S.municipio) + (S.colonia ? ' — ' + S.colonia : '')],
+      parseFloat(S.presupuesto) > 0 ? [S.operacion === 'renta' ? 'Renta mensual' : 'Presupuesto', money(parseFloat(S.presupuesto))] : null,
+      S.credito ? ['Forma de pago', credTxt[S.credito]] : null, S.verifica ? ['Acierta Verifica', S.verifica === 'si' ? 'Quiero cotizarlo' : S.verifica === 'luego' ? 'Más adelante' : 'Por ahora no'] : null].filter(Boolean);
+    const n = esVender() ? null : contar();
+    return `<div class="cam-ok">✅</div><h1>${AM.esc(S.nombre.trim().split(' ')[0])}, ya diste el primer paso</h1>
+      <p class="cam-sub">${S.folio ? `Guardamos tu proceso${S.vendedor ? ` y <b>${AM.esc(S.vendedor)}</b>, de nuestro equipo, te acompañará` : ' y un asesor te acompañará'}. Folio <b>${AM.esc(S.folio)}</b>.` : 'Aún no pudimos guardar tus datos en línea, pero no pierdas tu proceso: envíanos tu resumen por WhatsApp y un asesor te atiende.'}</p>
+      <table class="est">${filas.map(f => `<tr><td>${AM.esc(f[0])}</td><td>${AM.esc(f[1])}</td></tr>`).join('')}</table>
+      ${n && n.dentro !== null ? `<div class="cam-dato">${mensajeDentro(n)}</div>` : ''}
+      <div class="ficha-cta cam-final">
+        <a class="btn-solid btn-lg" id="btnWaFinal" target="_blank" rel="noopener" href="https://wa.me/${CFG.whatsapp}?text=${encodeURIComponent(textoWA())}">Abrir WhatsApp con Acierta Max</a>
+        ${esVender() ? '' : `<a class="btn-outline btn-lg" href="${urlMapa()}">Ver propiedades para mí</a>
+        <a class="btn-outline btn-lg" href="${urlProceso()}">Ver mi proceso paso a paso</a>`}
+      </div>
+      <p class="muted" id="camSync"></p>${AM.confianzaHTML()}
+      <p class="muted"><button type="button" class="cam-reiniciar" id="btnReiniciar">Empezar de nuevo</button></p>`;
+  }
+
+  // ── Red ──────────────────────────────────────────────────
+  async function post(ruta, cuerpo) {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 30000);
+    try {
+      const r = await fetch(CFG.endpoint + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo), signal: ctl.signal });
+      let j = {}; try { j = await r.json(); } catch (e) {}
+      return { ok: r.ok && j.ok, status: r.status, j };
+    } catch (e) { return { ok: false, status: 0, j: {} }; } finally { clearTimeout(t); }
+  }
+  async function enviarContacto() {
+    if (enviando) return; enviando = true; errorMsg = ''; setNavCargando(true);
+    const r = await post('', { nombre: S.nombre.trim(), whatsapp: S.whatsapp, email: S.email.trim(), consentimiento: S.consent === true, aviso_version: CFG.avisoVersion,
+      operacion: S.operacion, tipo: S.tipo, uso: S.uso, cuando: S.cuando, municipio: S.municipio, colonia: S.colonia.trim(), empresa: ($('c_empresa') || {}).value || '' });
+    enviando = false; setNavCargando(false);
+    if (r.ok) { S.folio = r.j.folio || ''; S.token = r.j.token || ''; S.vendedor = r.j.vendedor || ''; guardar(); siguiente(true); return; }
+    errorMsg = (r.j && r.j.error) || 'No pudimos conectar. Revisa tu internet e intenta de nuevo.';
+    pintar();
+    const e = $('camError'); if (e) e.insertAdjacentHTML('afterend', `<p class="muted"><button type="button" class="cam-reiniciar" id="btnSinGuardar">Continuar sin guardar en línea</button> (al final podrás enviarnos tu resumen por WhatsApp).</p>`);
+  }
+  async function completar() {
+    if (S.completado || !S.folio || !S.token) return;
+    const r = await post('/completar', { folio: S.folio, whatsapp: S.whatsapp, token: S.token, operacion: S.operacion, presupuesto: parseFloat(S.presupuesto) || 0,
+      credito: S.credito, ingresos: parseFloat(S.ingresos) || 0, verifica: S.verifica === 'si', notas: S.notas });
+    const el = $('camSync');
+    if (r.ok) { S.completado = true; guardar(); if (el) el.textContent = 'Tu asesor ya recibió tu perfil completo.'; }
+    else if (el) el.textContent = 'No pudimos actualizar tu perfil en línea; tu mensaje de WhatsApp lleva todo el resumen.';
+  }
+  function setNavCargando(v) { const b = $('btnSig'); if (!b) return; const p = pasoActual(); b.disabled = v || (p.listo ? !p.listo() : false); b.textContent = v ? 'Guardando…' : (p.sig || 'Continuar'); }
+
+  // ── Navegación y render ──────────────────────────────────
+  function pintar() {
+    const p = pasoActual(), vis = visibles(), i = vis.indexOf(p);
+    S.paso = p.id; guardar();
+    const tit = typeof p.titulo === 'function' ? p.titulo() : p.titulo;
+    $('camCard').innerHTML = (tit ? `<h1>${tit}</h1>` : '') + p.html();
+    const conNav = p.nav !== false;
+    $('camNav').style.display = conNav ? 'flex' : 'none';
+    $('btnAtras').style.visibility = i > 1 ? 'visible' : 'hidden';
+    $('btnSig').style.display = p.auto ? 'none' : '';
+    const prog = $('camProg'); prog.style.display = (p.id === 'bienvenida' || p.id === 'resumen') ? 'none' : 'block';
+    const hasta = vis.length - 2;   // sin bienvenida ni resumen
+    $('camProgTxt').textContent = 'Paso ' + Math.max(1, i) + ' de ' + hasta;
+    $('camProgBarra').style.width = (Math.max(1, i) / hasta * 100) + '%';
+    setNavCargando(false);
+    if (p.after) p.after();
+    window.scrollTo && window.scrollTo(0, 0);
+  }
+  function siguiente(salta) {
+    const p = pasoActual(); if (!salta && p.listo && !p.listo()) return;
+    if (p.enviar && !salta) { enviarContacto(); return; }
+    const vis = visibles(), i = vis.indexOf(p); S.paso = (vis[i + 1] || p).id; pintar();
+  }
+  function atras() { const vis = visibles(), i = vis.indexOf(pasoActual()); if (i > 1) { S.paso = vis[i - 1].id; errorMsg = ''; pintar(); } }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.set) { S[b.dataset.set] = b.dataset.val; guardar(); if (pasoActual().auto) siguiente(); else pintar(); }
+    else if (b.dataset.ir) { S.paso = b.dataset.ir; pintar(); }
+    else if (b.dataset.metodo) { S.metodo = b.dataset.metodo; guardar(); pintar(); }
+    else if (b.dataset.usar) { S.presupuesto = b.dataset.usar; guardar(); pintar(); }
+    else if (b.id === 'btnSinGuardar') { errorMsg = ''; siguiente(true); }
+    else if (b.id === 'btnReiniciar') { try { localStorage.removeItem(CLAVE); } catch (er) {} location.href = 'camino.html'; }
+  });
+  $('btnSig').addEventListener('click', () => siguiente());
+  $('btnAtras').addEventListener('click', atras);
+  document.addEventListener('input', e => {
+    const el = e.target, k = el.dataset && el.dataset.k; if (!k) return;
+    S[k] = el.type === 'checkbox' ? el.checked : el.value; guardar(); errorMsg = '';
+    const ee = $('camError'); if (ee) ee.style.display = 'none';
+    setNavCargando(false);
+    if (k === 'municipio') pintarCuenta();
+    if (k === 'ingresos' || k === 'enganche') pintarPresupuesto();
+    if (k === 'presupuesto') pintarCuentaPres();
+  });
+  document.addEventListener('change', e => { const el = e.target; if (el.dataset && el.dataset.k === 'municipio') { S.municipio = el.value; guardar(); pintarCuenta(); setNavCargando(false); } });
+
+  Promise.all([fetch('camino-datos.json').then(r => r.json()), fetch('proceso-datos.json').then(r => r.json()).then(d => d.tarifas), fetch('data.json').then(r => r.json())])
+    .then(([cfg, tar, todas]) => { CFG = cfg; TAR = tar; TODAS = todas; cargar(); if (!visibles().some(p => p.id === S.paso)) S.paso = 'bienvenida'; pintar(); })
+    .catch(e => { console.error('camino:', e); $('camCard').innerHTML = '<h1>No se pudo cargar</h1><p>Recarga la página; si sigue igual, escríbenos por WhatsApp.</p>'; });
+})();
+</script>
+</body>
+</html>
