@@ -682,3 +682,21 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .confianza-sellos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .confianza-sellos span { background: #fff; border: 1px solid var(--gray-light); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-weight: 700; color: var(--navy); }
 .confianza p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--gray); }
+
+/* ── COMPARTIR FICHA Y CAPTURA DE CONTACTO (modal reutilizable) ── */
+.compartir { display: inline-block; position: relative; }
+.btn-compartir { background: #fff; border: 1.5px solid var(--navy); color: var(--navy); border-radius: 999px; padding: 11px 18px; font: 700 14px var(--font-body); cursor: pointer; }
+.compartir-ops { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.compartir-ops a, .compartir-ops button { background: var(--cream); border: 1px solid var(--gray-light); border-radius: 999px; padding: 8px 14px; font: 700 12.5px var(--font-body); text-decoration: none; color: var(--ink); cursor: pointer; }
+.am-modal-fondo { position: fixed; inset: 0; background: rgba(15,31,61,.55); z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.am-modal { background: #fff; border-radius: 18px; padding: 26px; max-width: 400px; width: 100%; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+.am-modal h3 { margin: 0 0 6px; font-family: var(--font-display); font-size: 20px; color: var(--ink); }
+.am-modal .muted { margin: 0 0 16px; font-size: 13.5px; }
+.am-modal label { display: block; font-size: 12.5px; font-weight: 700; color: var(--ink); margin: 12px 0 5px; }
+.am-modal input[type=text], .am-modal input[type=tel] { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid var(--gray-light); border-radius: 10px; font: 16px var(--font-body); }
+.am-modal-cerrar { position: absolute; top: 14px; right: 14px; background: none; border: 0; font-size: 18px; color: var(--gray); cursor: pointer; }
+.am-consent { display: flex !important; gap: 8px; align-items: flex-start; font-weight: 500 !important; font-size: 12.5px !important; margin-top: 14px !important; }
+.am-consent input { margin-top: 3px; width: 17px; height: 17px; accent-color: var(--red); flex: 0 0 auto; }
+.am-consent a { color: var(--red); font-weight: 700; }
+.am-modal-error { background: #fdecea; color: #8a1f14; border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-top: 10px; }
+.am-modal-saltar { display: block; width: 100%; text-align: center; background: none; border: 0; color: var(--gray); text-decoration: underline; font: 600 12.5px var(--font-body); cursor: pointer; margin-top: 10px; }

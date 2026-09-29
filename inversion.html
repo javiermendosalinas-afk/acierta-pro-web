@@ -178,7 +178,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
         <div class="cuerpo"><h4>${AM.esc(o.titulo)}</h4><div class="loc">${AM.esc(o.colonia)}, ${AM.esc(o.municipio)} · ${Math.round(o.m2)} m²${o.rec ? ' · ' + o.rec + ' rec' : ''}</div>
           <div class="precio">${money(o.precio)}</div></div></div>
       <div class="fila2">${esPreventa ? '' : `<span class="chip c-med">Neto ${pct(o.netoDespuesIsr)}</span><span class="chip c-med">Plusv. mín. ${pct(o.geq)}</span>`}${o.credito ? `<span class="chip ${o.credito.sePagaSola ? 'c-ok' : 'c-baja'}">${o.credito.sePagaSola ? 'Se paga sola' : 'No se paga sola'}</span>` : ''}${chips.join('')}</div>
-      <div class="acc"><a class="ficha" href="${url}">Ver ficha</a><a class="visita" target="_blank" rel="noopener" href="https://wa.me/523333777337?text=${wa}">Agendar visita</a></div>
+      <div class="acc"><a class="ficha" href="${url}">Ver ficha</a><a class="visita" href="#" data-agendar-op="${o.rank}" data-wa-base="${wa}">Agendar visita</a></div>
     </div>`;
   }
 
@@ -242,6 +242,29 @@ let TODAS = [], currentPolygon = null, drawer = null;
     if (tipo && ['casa', 'departamento'].includes(tipo)) $('fTipo').value = tipo;
     const tope = parseFloat(q.get('tope')); if (tope > 0) $('fTope').value = Math.round(tope);
   })();
+
+// "Agendar visita": la primera vez pide nombre y WhatsApp para asignarle un asesor real.
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-agendar-op]'); if (!a) return;
+  e.preventDefault();
+  const o = (ultimoR ? ultimoR.opciones : []).find(x => x.rank === Number(a.dataset.agendarOp)); if (!o) return;
+  const base = a.dataset.waBase, conCredito = $('bPagaSola').checked || $('bPalanca').checked;
+  const lanzar = lead => {
+    const nota = lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : '';
+    const credNota = conCredito ? encodeURIComponent(' Podría necesitar crédito para esta compra.') : '';
+    window.open('https://wa.me/523333777337?text=' + base + nota + credNota, '_blank', 'noopener');
+  };
+  if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
+  AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con esta propiedad.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir', municipio: '', notas: o.colonia })
+    .then(lanzar);
+});
+document.getElementById('ctaWa').addEventListener('click', function (e) {
+  if (AM.leadGuardado()) return;
+  e.preventDefault();
+  const href = this.href;
+  AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con tu estudio de inversión.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' })
+    .then(() => window.open(href, '_blank', 'noopener'));
+});
 
 fetch('data.json').then(r => r.json()).then(d => { TODAS = d; actualizar(); })
   .catch(e => { console.error('inversion:', e); $('conteo').textContent = 'No se pudo cargar el inventario. Recarga la página.'; });

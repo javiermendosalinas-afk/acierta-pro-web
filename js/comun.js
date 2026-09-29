@@ -346,6 +346,91 @@
     };
   };
 
+  // ── Compartir una ficha (WhatsApp a un tercero / correo) ──────
+  AM.compartirHTML = function (titulo, url) {
+    const id = 'sh' + Math.random().toString(36).slice(2, 8);
+    const texto = `Mira esta propiedad que encontré en Acierta Max: ${titulo} — ${url}`;
+    return `<div class="compartir" id="${id}">
+      <button type="button" class="btn-compartir" data-compartir="${id}">📤 Compartir esta ficha</button>
+      <div class="compartir-ops" id="${id}-ops" style="display:none">
+        <a target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(texto)}">Por WhatsApp</a>
+        <a href="mailto:?subject=${encodeURIComponent('Propiedad: ' + titulo)}&body=${encodeURIComponent(texto)}">Por correo</a>
+        <button type="button" data-copiar-liga="${AM.esc(url)}">Copiar enlace</button>
+      </div></div>`;
+  };
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-compartir]');
+    if (b) {
+      const ops = document.getElementById(b.dataset.compartir + '-ops'); if (!ops) return;
+      if (navigator.share) { navigator.share({ title: 'Acierta Max', text: b.closest('.compartir').dataset.texto || '', url: location.href }).catch(() => {}); }
+      else ops.style.display = ops.style.display === 'none' ? 'flex' : 'none';
+      return;
+    }
+    const c = e.target.closest('[data-copiar-liga]');
+    if (c) {
+      const url = c.dataset.copiarLiga, listo = () => AM.toast('Enlace copiado.');
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(listo, () => prompt('Copia este enlace:', url));
+      else prompt('Copia este enlace:', url);
+    }
+  });
+
+  // ── Captura de contacto reutilizable (agendar visita, pedir info) ──
+  // Un solo lead por navegador para TODO el sitio (compra, renta, inversión…):
+  // una vez registrado, no se le vuelve a pedir nombre y WhatsApp cada vez.
+  const CLAVE_LEAD = 'aciertaLead';
+  AM.leadGuardado = function () { try { return JSON.parse(localStorage.getItem(CLAVE_LEAD) || 'null'); } catch (e) { return null; } };
+  function guardarLead(l) { try { localStorage.setItem(CLAVE_LEAD, JSON.stringify(l)); } catch (e) {} }
+  let _caminoCfg = null;
+  function caminoCfg() { return _caminoCfg || (_caminoCfg = fetch('camino-datos.json').then(r => r.json())); }
+
+  function modalContactoHTML(motivo) {
+    return `<div class="am-modal-fondo" id="amModalFondo"><div class="am-modal">
+      <button type="button" class="am-modal-cerrar" id="amModalCerrar" aria-label="Cerrar">✕</button>
+      <h3>Un momento antes de continuar</h3>
+      <p class="muted">${AM.esc(motivo || 'Para que un asesor de Acierta Max te dé seguimiento, compártenos tus datos.')}</p>
+      <label>Tu nombre</label><input type="text" id="amNombre" maxlength="80">
+      <label>Tu WhatsApp (10 dígitos)</label><input type="tel" id="amWa" inputmode="numeric" maxlength="20">
+      <label class="am-consent"><input type="checkbox" id="amConsent"> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
+      <div class="am-modal-error" id="amModalError" style="display:none"></div>
+      <button type="button" class="btn-solid" id="amModalEnviar" style="width:100%;padding:12px;border:0;border-radius:999px;font-weight:800;cursor:pointer">Continuar</button>
+      <button type="button" class="am-modal-saltar" id="amModalSaltar">Continuar sin registrar mis datos</button>
+    </div></div>`;
+  }
+  const telOk = t => { let d = String(t || '').replace(/\D/g, ''); if (d.startsWith('521') && d.length === 13) d = d.slice(3); else if (d.startsWith('52') && d.length === 12) d = d.slice(2); return d.length === 10; };
+
+  // opts: { motivo, operacion, tipo, municipio, presupuesto, notas } -> Promise<lead|null>
+  AM.asegurarLead = function (opts) {
+    opts = opts || {};
+    const existente = AM.leadGuardado();
+    if (existente && existente.folio) return Promise.resolve(existente);
+    return new Promise(resolve => {
+      const host = document.createElement('div'); host.innerHTML = modalContactoHTML(opts.motivo); document.body.appendChild(host);
+      const cerrar = lead => { host.remove(); resolve(lead); };
+      document.getElementById('amModalCerrar').addEventListener('click', () => cerrar(null));
+      document.getElementById('amModalSaltar').addEventListener('click', () => cerrar(null));
+      document.getElementById('amModalFondo').addEventListener('click', e => { if (e.target.id === 'amModalFondo') cerrar(null); });
+      document.getElementById('amModalEnviar').addEventListener('click', async () => {
+        const nombre = document.getElementById('amNombre').value.trim(), wa = document.getElementById('amWa').value.trim();
+        const err = document.getElementById('amModalError'), btn = document.getElementById('amModalEnviar');
+        const consent = document.getElementById('amConsent').checked;
+        if (nombre.length < 2) { err.textContent = 'Escribe tu nombre.'; err.style.display = 'block'; return; }
+        if (!telOk(wa)) { err.textContent = 'Escribe tu WhatsApp a 10 dígitos.'; err.style.display = 'block'; return; }
+        if (!consent) { err.textContent = 'Necesitamos tu consentimiento para guardar tus datos y contactarte.'; err.style.display = 'block'; return; }
+        err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Guardando…';
+        try {
+          const cfg = await caminoCfg();
+          const r = await fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+            nombre, whatsapp: wa, email: '', consentimiento: true, aviso_version: cfg.avisoVersion,
+            operacion: opts.operacion || 'compra', tipo: opts.tipo || 'nose', uso: opts.uso || '', cuando: opts.cuando || '',
+            municipio: opts.municipio || 'cualquiera', colonia: opts.notas || '' }) });
+          const j = await r.json().catch(() => ({}));
+          if (r.ok && j.ok) { const lead = { folio: j.folio, vendedor: j.vendedor, token: j.token, nombre, whatsapp: wa }; guardarLead(lead); cerrar(lead); return; }
+          err.textContent = (j && j.error) || 'No pudimos guardar tus datos.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Continuar';
+        } catch (e) { err.textContent = 'No pudimos conectar. Revisa tu internet.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Continuar'; }
+      });
+    });
+  };
+
   // ── Análisis de precio por m² ──────────────────────────
   const MIN_MUESTRA = 8;
   function percentil(orden, q) {

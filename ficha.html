@@ -108,11 +108,12 @@
         <div class="chips">${chips.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>
         ${otraHTML}
         <div class="ficha-cta">
-          <a class="btn-solid btn-lg" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener">Hablar con un asesor por WhatsApp</a>
+          <a class="btn-solid btn-lg" id="btnHablarAsesor" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener" data-wa-base="${wa}">Hablar con un asesor por WhatsApp</a>
           <button class="btn-cmp btn-lg" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false">＋ Comparar</button>
           ${sim}
           <a class="btn-outline btn-lg" href="${procUrl}">Iniciar mi proceso con esta propiedad</a>
         </div>
+        ${AM.compartirHTML(p.titulo, location.origin + '/' + url)}
       </div>
     </div>
 
@@ -131,6 +132,16 @@
 
     <p class="ficha-original">¿Quieres ver la publicación original con más fotos y descripción?
       <a href="${AM.esc(p.liga)}" target="_blank" rel="noopener">Abrir en aciertamax.com ↗</a></p>`;
+
+    // "Hablar con un asesor": la primera vez pide nombre y WhatsApp para asignar un asesor real
+    document.getElementById('btnHablarAsesor').addEventListener('click', function (e) {
+      if (AM.leadGuardado()) return;   // ya tiene lead: deja pasar directo al WhatsApp
+      e.preventDefault();
+      const base = this.dataset.waBase, href = this.href;
+      AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te dé seguimiento sobre esta propiedad.',
+        operacion: p.operacion === 'RENTA' ? 'renta' : 'compra', municipio: p.municipio, notas: p.colonia })
+        .then(lead => { window.open(lead && lead.vendedor ? href.replace(base, base + encodeURIComponent(' (folio ' + lead.folio + ')')) : href, '_blank', 'noopener'); });
+    });
 
     if (p.lat && p.lon && window.L) {
       try {   // si el mapa falla, la ficha se queda funcionando sin él
