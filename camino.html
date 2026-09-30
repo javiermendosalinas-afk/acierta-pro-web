@@ -14,7 +14,7 @@
 </div>
 
 <main class="camino">
-  <div class="cam-prog" id="camProg" style="display:none"><div class="cam-prog-txt" id="camProgTxt"></div><div class="avance-barra"><i id="camProgBarra"></i></div></div>
+  <div class="cam-prog" id="camProg" style="display:none"><div class="cam-migas" id="camMigas"></div><div class="cam-prog-txt" id="camProgTxt"></div><div class="avance-barra"><i id="camProgBarra"></i></div></div>
   <section class="cam-card" id="camCard"><p class="pg-cargando">Cargando…</p></section>
   <div class="cam-nav" id="camNav" style="display:none">
     <button type="button" class="cam-atras" id="btnAtras">← Atrás</button>
@@ -30,7 +30,7 @@
   const money = AM.money;
   const CLAVE = 'aciertaCamino';
   let CFG = null, TAR = null, TODAS = [];
-  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '',
+  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', rentaUso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '',
             consent: false, metodo: 'sabe', presupuesto: '', ingresos: '', enganche: '', credito: '', verifica: '', notas: '',
             folio: '', token: '', vendedor: '', completado: false };
   let enviando = false, errorMsg = '';
@@ -53,27 +53,35 @@
     return { total: seg.length, dentro: tope ? seg.filter(p => p.precio <= tope).length : null, minimo: seg.length ? Math.min(...seg.map(p => p.precio)) : null };
   }
   const nombreTipo = { casa: 'casa', departamento: 'departamento', terreno: 'terreno', local: 'local, oficina o bodega', nose: 'propiedad', otro: 'propiedad' };
-  const opTxt = () => ({ compra: 'comprar', renta: 'rentar', vender: 'poner mi propiedad en venta o renta' })[S.operacion] || '';
+  const opTxt = () => ({ compra: 'comprar', renta: 'rentar' })[S.operacion] || '';
 
   // ── Definición de pasos ──────────────────────────────────
   const opciones = (k, lista) => `<div class="cam-ops">${lista.map(([v, t, sub]) =>
     `<button type="button" class="cam-op ${S[k] === v ? 'sel' : ''}" data-set="${k}" data-val="${v}"><b>${t}</b>${sub ? `<small>${sub}</small>` : ''}</button>`).join('')}</div>`;
-  const esVender = () => S.operacion === 'vender';
-  const esInvertir = () => S.operacion === 'compra' && S.uso === 'invertir';
+  const esVender = () => false;   // "vender/rentar mi propiedad" se movió fuera de este camino (va en la página principal)
+  const usoEfectivo = () => (S.operacion === 'renta' && S.uso === 'vivir') ? S.rentaUso : S.uso;
+  const esInvertir = () => S.uso === 'invertir';
   const TIPOS_CON_ESTUDIO_HTML = ['casa', 'departamento'];
   const PASOS = [
     { id: 'bienvenida', titulo: null,
       html: () => `<h1>Te acompaño durante este viaje</h1>
-        <p class="cam-sub">Vas a tener muchas dudas y decisiones que tomar. Vamos a caminarlo juntos, con las preguntas correctas, para que compres, rentes o vendas con certeza.</p>
+        <p class="cam-sub">Vas a tener muchas dudas y decisiones que tomar. Vamos a caminarlo juntos, con las preguntas correctas, para que compres o rentes con certeza.</p>
         ${videoHTML()}${AM.confianzaHTML()}
-        <button type="button" class="btn-solid btn-lg cam-big" data-ir="operacion">Comenzar mi camino →</button>
+        <button type="button" class="btn-solid btn-lg cam-big" data-ir="intencion">Comenzar mi camino →</button>
         <p class="muted">Toma unos 3 minutos. Puedes cerrar y retomarlo después: tu avance se guarda en este navegador.</p>`,
       nav: false },
-    { id: 'operacion', titulo: '¿Qué quieres hacer?', html: () => opciones('operacion', [['compra', '🏠 Comprar', 'Quiero encontrar mi propiedad'], ['renta', '🔑 Rentar', 'Busco dónde vivir o poner mi negocio'], ['vender', '📣 Vender o rentar la mía', 'Quiero poner mi propiedad en el mercado']]), listo: () => !!S.operacion, auto: true },
-    { id: 'tipo', titulo: () => esVender() ? '¿Qué propiedad quieres poner en el mercado?' : '¿Qué tipo de propiedad buscas?',
-      html: () => opciones('tipo', [['casa', '🏡 Casa'], ['departamento', '🏢 Departamento'], ['terreno', '🌱 Terreno'], ['local', '🏬 Local, oficina o bodega'], ['nose', '🤔 Aún no lo sé', esVender() ? '' : 'Te ayudamos a definirlo']]), listo: () => !!S.tipo, auto: true },
-    { id: 'uso', si: () => !esVender(), titulo: () => S.operacion === 'renta' ? '¿Para qué la quieres?' : '¿Para vivir o para invertir?',
-      html: () => opciones('uso', S.operacion === 'renta' ? [['vivir', '🛋️ Para vivir'], ['negocio', '💼 Para mi negocio']] : [['vivir', '🛋️ Para vivir'], ['invertir', '📈 Para invertir']]), listo: () => !!S.uso, auto: true },
+    { id: 'intencion', titulo: '¿Qué buscas?',
+      html: () => opciones('uso', [['invertir', '📈 Invertir', 'Comprar para rentarla o venderla después'], ['vivir', '🏠 Un lugar para mí', 'Para vivir ahí, o para mi negocio']]),
+      listo: () => !!S.uso, auto: true, migaja: () => S.uso === 'invertir' ? 'Invertir' : S.uso === 'vivir' ? 'Para mí' : '' },
+    { id: 'operacion', si: () => S.uso === 'vivir', titulo: '¿Comprar o rentar?',
+      html: () => opciones('operacion', [['compra', '🏠 Comprar'], ['renta', '🔑 Rentar']]), listo: () => !!S.operacion, auto: true,
+      migaja: () => S.operacion === 'compra' ? 'Comprar' : S.operacion === 'renta' ? 'Rentar' : '' },
+    { id: 'renta_uso', si: () => S.uso === 'vivir' && S.operacion === 'renta', titulo: '¿Para qué la quieres?',
+      html: () => opciones('rentaUso', [['vivir', '🛋️ Para vivir'], ['negocio', '💼 Para mi negocio']]), listo: () => !!S.rentaUso, auto: true,
+      migaja: () => S.rentaUso === 'negocio' ? 'Para mi negocio' : S.rentaUso === 'vivir' ? 'Para vivir' : '' },
+    { id: 'tipo', titulo: '¿Qué tipo de propiedad buscas?',
+      html: () => opciones('tipo', [['casa', '🏡 Casa'], ['departamento', '🏢 Departamento'], ['terreno', '🌱 Terreno'], ['local', '🏬 Local, oficina o bodega'], ['nose', '🤔 Aún no lo sé', 'Te ayudamos a definirlo']]),
+      listo: () => !!S.tipo, auto: true, migaja: () => nombreTipo[S.tipo] ? nombreTipo[S.tipo][0].toUpperCase() + nombreTipo[S.tipo].slice(1) : '' },
     { id: 'invertir_puente', si: () => esInvertir(), titulo: 'Vamos a construir tu estudio de inversión',
       html: () => `<p class="cam-sub">Como inversión, no basta con "vivir ahí": comparamos precio, renta esperada en la zona y plusvalía, contra dejar tu dinero en CETES.</p>
         <div class="cam-porque"><b>Lo que vas a poder hacer:</b> dibujar tu zona exacta en el mapa, ajustar tu presupuesto y ver al momento tus mejores opciones, con su rendimiento comparado contra CETES ya neto de impuestos.</div>
@@ -82,35 +90,36 @@
         <p class="muted">Después de tus datos, te llevamos directo al estudio interactivo.</p>`,
       nav: false },
     { id: 'cuando', titulo: '¿Para cuándo lo necesitas?',
-      html: () => opciones('cuando', [['ya', '⚡ Lo antes posible', 'En menos de 30 días'], ['1a3', '📅 En 1 a 3 meses'], ['mas3', '🧭 Más adelante', 'Estoy explorando']]), listo: () => !!S.cuando, auto: true },
-    { id: 'zona', titulo: () => esVender() ? '¿Dónde está tu propiedad?' : '¿En qué zona te gustaría?',
+      html: () => opciones('cuando', [['ya', '⚡ Lo antes posible', 'En menos de 30 días'], ['1a3', '📅 En 1 a 3 meses'], ['mas3', '🧭 Más adelante', 'Estoy explorando']]),
+      listo: () => !!S.cuando, auto: true, migaja: () => ({ ya: 'Lo antes posible', '1a3': '1 a 3 meses', mas3: 'Más adelante' }[S.cuando] || '') },
+    { id: 'zona', titulo: '¿En qué zona te gustaría?',
       html: () => `<div class="cam-campos"><label for="c_municipio">Municipio</label>
         <select id="c_municipio" data-k="municipio"><option value="">Elige uno</option>${['Guadalajara', 'Zapopan', 'Tlajomulco de Zúñiga', 'Tlaquepaque', 'Tonalá'].map(m => `<option ${S.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}<option value="cualquiera" ${S.municipio === 'cualquiera' ? 'selected' : ''}>Aún no lo sé / cualquiera</option></select>
         <label for="c_colonia">Colonia o referencia <span class="muted">(opcional)</span></label>
         <input type="text" id="c_colonia" data-k="colonia" maxlength="60" placeholder="Ej. Providencia, cerca del Andares…" value="${AM.esc(S.colonia)}"></div>
         <div class="cam-dato" id="cuentaZona"></div>
-        ${esVender() ? '' : '<p class="muted">Más adelante podrás dibujar tu zona exacta en el mapa.</p>'}`,
-      listo: () => !!S.municipio, after: () => pintarCuenta() },
+        <p class="muted">Más adelante podrás dibujar tu zona exacta en el mapa.</p>`,
+      listo: () => !!S.municipio, after: () => pintarCuenta(), migaja: () => S.municipio === 'cualquiera' ? 'Cualquier zona' : (S.municipio || '') },
     { id: 'contacto', titulo: 'Te acompaño en este viaje — ¿a dónde te escribo?',
       html: () => `<p class="cam-sub">Durante el camino te iré enviando información que te será muy valiosa. Para eso necesito tus datos.</p>
-        <div class="cam-porque"><b>¿Por qué te los pedimos?</b> Para <b>guardar tu proceso</b> —que no pierdas nada— y para que un asesor de Acierta Max te acompañe en cada etapa. Solo usamos tus datos para eso.</div>
+        <div class="cam-porque"><b>¿Por qué te los pedimos?</b> Te voy a enviar información valiosa a tu <b>correo</b> y <b>WhatsApp</b>, y un <b>coach certificado de Acierta Max</b> te contactará en horario hábil para acompañarte en tu proceso — que no pierdas nada.</div>
         <div class="cam-campos">
           <label for="c_nombre">Tu nombre</label><input type="text" id="c_nombre" data-k="nombre" maxlength="80" autocomplete="name" value="${AM.esc(S.nombre)}">
           <label for="c_wa">Tu WhatsApp <span class="muted">(10 dígitos)</span></label><input type="tel" id="c_wa" data-k="whatsapp" inputmode="numeric" maxlength="20" autocomplete="tel" placeholder="33 1234 5678" value="${AM.esc(S.whatsapp)}">
-          <label for="c_email">Tu correo <span class="muted">(opcional)</span></label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
+          <label for="c_email">Tu correo</label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
           <input type="text" id="c_empresa" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
           <label class="cam-consent"><input type="checkbox" id="c_consent" data-k="consent" ${S.consent ? 'checked' : ''}> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp y correo para acompañarme en mi proceso, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
         </div>
         <div class="cam-error" id="camError" style="display:${errorMsg ? 'block' : 'none'}">${AM.esc(errorMsg)}</div>`,
-      listo: () => S.nombre.trim().length >= 2 && telValido(S.whatsapp) && (!S.email || emailValido(S.email)) && S.consent === true,
+      listo: () => S.nombre.trim().length >= 2 && telValido(S.whatsapp) && emailValido(S.email.trim()) && S.consent === true,
       sig: 'Guardar mi proceso y continuar →', enviar: true },
-    { id: 'presupuesto', si: () => !esVender() && !esInvertir(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
+    { id: 'presupuesto', si: () => !esInvertir(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
       html: () => presupuestoHTML(), listo: () => (parseFloat(S.presupuesto) || 0) > 0, after: () => pintarPresupuesto() },
     { id: 'credito', si: () => S.operacion === 'compra', titulo: '¿Cómo piensas pagarla?',
       html: () => opciones('credito', [['banco', '🏦 Crédito bancario', 'Un banco te presta'], ['infonavit', '🏠 Infonavit', 'Con tu crédito de vivienda'], ['cofinavit', '🤝 Cofinavit', 'Infonavit + banco, para llegar a más'], ['contado', '💵 De contado'], ['nose', '🤔 Aún no lo sé', 'Nuestro equipo de crédito te orienta']]) +
         '<p class="cam-sub" style="margin-top:14px">Si necesitas crédito, <b>nuestro equipo de crédito te ayuda a gestionarlo</b> de principio a fin.</p>',
       listo: () => !!S.credito, auto: true },
-    { id: 'verifica', si: () => !esVender(), titulo: 'Antes de firmar, verifica',
+    { id: 'verifica', titulo: 'Antes de firmar, verifica',
       html: () => { const v = TAR ? TAR.verifica : { por_m2: 45, minimo: 3500 };
         return `<p class="cam-sub"><b>Acierta Verifica</b> revisa la propiedad antes de que firmes: agua, luz, humedades, gas, drenaje y un análisis documental preventivo. Desde <b>$${v.por_m2}/m²</b> (mínimo ${money(v.minimo)}).</p>` +
           opciones('verifica', [['si', '✅ Sí, quiero cotizarlo'], ['luego', '🕒 Lo veo más adelante'], ['no', 'No, gracias']]); },
@@ -201,7 +210,7 @@
   function textoWA() {
     const l = [`Hola, soy ${S.nombre.trim()}. Ya recorrí mi camino en acierta.pro${S.folio ? ' (folio ' + S.folio + ')' : ''}.`];
     const ART = { casa: 'una', departamento: 'un', terreno: 'un', local: 'un' };
-    const tipoTxt = S.tipo && S.tipo !== 'nose' ? (S.operacion === 'vender' ? ' (' + nombreTipo[S.tipo] + ')' : ' ' + (ART[S.tipo] || 'una') + ' ' + nombreTipo[S.tipo]) : '';
+    const tipoTxt = S.tipo && S.tipo !== 'nose' ? ' ' + (ART[S.tipo] || 'una') + ' ' + nombreTipo[S.tipo] : '';
     l.push(`Quiero ${opTxt()}${tipoTxt}${S.municipio && S.municipio !== 'cualquiera' ? ' en ' + S.municipio : ''}.`);
     if (parseFloat(S.presupuesto) > 0) l.push(`${S.operacion === 'renta' ? 'Renta' : 'Presupuesto'}: ${money(parseFloat(S.presupuesto))}${S.operacion === 'renta' ? ' al mes' : ''}.`);
     if (S.credito) l.push(`Forma de pago: ${credTxt[S.credito]}.`);
@@ -240,7 +249,7 @@
   async function enviarContacto() {
     if (enviando) return; enviando = true; errorMsg = ''; setNavCargando(true);
     const r = await post('', { nombre: S.nombre.trim(), whatsapp: S.whatsapp, email: S.email.trim(), consentimiento: S.consent === true, aviso_version: CFG.avisoVersion,
-      operacion: S.operacion, tipo: S.tipo, uso: S.uso, cuando: S.cuando, municipio: S.municipio, colonia: S.colonia.trim(), empresa: ($('c_empresa') || {}).value || '' });
+      operacion: S.operacion, tipo: S.tipo, uso: usoEfectivo(), cuando: S.cuando, municipio: S.municipio, colonia: S.colonia.trim(), empresa: ($('c_empresa') || {}).value || '' });
     enviando = false; setNavCargando(false);
     if (r.ok) { S.folio = r.j.folio || ''; S.token = r.j.token || ''; S.vendedor = r.j.vendedor || ''; guardar(); siguiente(true); return; }
     errorMsg = (r.j && r.j.error) || 'No pudimos conectar. Revisa tu internet e intenta de nuevo.';
@@ -271,6 +280,8 @@
     const hasta = vis.length - 2;   // sin bienvenida ni resumen
     $('camProgTxt').textContent = 'Paso ' + Math.max(1, i) + ' de ' + hasta;
     $('camProgBarra').style.width = (Math.max(1, i) / hasta * 100) + '%';
+    $('camMigas').innerHTML = vis.slice(1, i).filter(pp => pp.migaja && pp.migaja())
+      .map(pp => `<button type="button" class="cam-miga" data-ir="${pp.id}">${AM.esc(pp.migaja())}</button>`).join('<span class="cam-miga-sep">›</span>');
     setNavCargando(false);
     if (p.after) p.after();
     window.scrollTo && window.scrollTo(0, 0);
@@ -292,7 +303,12 @@
 
   document.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.set) { S[b.dataset.set] = b.dataset.val; guardar(); if (pasoActual().auto) siguiente(); else pintar(); }
+    if (b.dataset.set) {
+      S[b.dataset.set] = b.dataset.val; guardar();
+      if (b.dataset.set === 'uso' && b.dataset.val === 'invertir') { S.operacion = 'compra'; S.rentaUso = ''; guardar(); }
+      if (b.dataset.set === 'operacion' && b.dataset.val === 'compra') { S.rentaUso = ''; guardar(); }
+      if (pasoActual().auto) siguiente(); else pintar();
+    }
     else if (b.dataset.ir) { S.paso = b.dataset.ir; pintar(); }
     else if (b.dataset.metodo) { S.metodo = b.dataset.metodo; guardar(); pintar(); }
     else if (b.dataset.usar) { S.presupuesto = b.dataset.usar; guardar(); pintar(); }

@@ -19,6 +19,7 @@
       <a href="simulador.html">Simulador de crédito 💰</a>
       <a href="proceso.html">Tu proceso paso a paso 🧭</a>
       <a href="inversion.html">Estudio de inversión 📊</a>
+      <a href="#" id="navVenderRentar">Vender o rentar mi propiedad 📣</a>
       <a href="#verifica">Acierta Verifica</a>
       <a href="/blog/">Blog</a>
     </nav>
@@ -190,5 +191,14 @@
 
 <script src="js/comun.js"></script>
 <script src="app.js"></script>
+<script>
+document.getElementById('navVenderRentar').addEventListener('click', function (e) {
+  e.preventDefault();
+  const texto = 'Hola, quiero información para vender o rentar mi propiedad con Acierta Max.';
+  const lanzar = lead => window.open('https://wa.me/523333777337?text=' + encodeURIComponent(texto) + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener');
+  if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
+  AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te contacte sobre tu propiedad.' }).then(lanzar);
+});
+</script>
 </body>
 </html>
