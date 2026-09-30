@@ -192,7 +192,56 @@
 
   // ── Motor de inversión (mismos supuestos y método que herramientas/reporte_inversion.py) ──
   // Todo en JS para poder correr en el navegador del cliente, con SU zona dibujada y SUS filtros.
-  AM.SUPUESTOS_INVERSION = { compra: 0.06, venta: 0.05, mantenimiento: 0.010, predial: 0.0015, vacancia: 1 / 12, inpc: 0.0376, cetes: 0.065, isr_marginal: 0.30, plusvalia_base: 0.06, plusvalia_alta: 0.10 };
+  AM.SUPUESTOS_INVERSION = { compra: 0.06, venta: 0.05, mantenimiento: 0.010, predial: 0.0015, vacancia: 1 / 12, inpc: 0.0376, cetes: 0.065, isr_marginal: 0.30, plusvalia_base: 0.0999, plusvalia_alta: 0.10 };
+  // Fuente: SHF, Índice de Precios de la Vivienda, Zona Metropolitana de Guadalajara, 2T 2026 (9.99% anual, publicado por el IIEG de Jalisco).
+  AM.SHF_FUENTE_URL = 'https://iieg.gob.mx/ns/?p=27454';
+  AM.SHF_TRIMESTRE = '2T 2026';
+
+  // ── Lugares de referencia para el bono de ubicación de la plusvalía ──
+  // Lista CURADA (no exhaustiva) de centros comerciales, hospitales y
+  // universidades conocidos de la ZMG, con coordenadas verificadas
+  // (Google Places). No representa todos los lugares que existen -- es
+  // una muestra razonable para orientar, no un análisis GIS completo.
+  AM.LANDMARKS = {
+    centros_comerciales: [
+      { n: 'Andares', lat: 20.7101781, lon: -103.4127403 }, { n: 'Plaza del Sol', lat: 20.6505195, lon: -103.4013333 },
+      { n: 'Galerías Guadalajara', lat: 20.6767971, lon: -103.4318360 }, { n: 'La Gran Plaza', lat: 20.6739898, lon: -103.4045833 },
+      { n: 'Plaza Patria', lat: 20.7125399, lon: -103.3785850 }, { n: 'Forum Tlaquepaque', lat: 20.6482099, lon: -103.3214954 },
+      { n: 'South Center (Periférico Sur)', lat: 20.6031288, lon: -103.4016469 }, { n: 'Plaza Tlaquepaque Río Nilo', lat: 20.6447851, lon: -103.3123162 },
+    ],
+    hospitales: [
+      { n: 'Hospital San Javier', lat: 20.6879462, lon: -103.3896287 }, { n: 'Puerta de Hierro Medical Center', lat: 20.7086893, lon: -103.4144338 },
+      { n: 'Hospital Country 2000', lat: 20.7036781, lon: -103.3646804 }, { n: 'Hospital Civil (Fray Antonio Alcalde)', lat: 20.6857262, lon: -103.3440966 },
+      { n: 'Hospital Real San José', lat: 20.6728373, lon: -103.4095175 }, { n: 'Hospital Real San José Valle Real', lat: 20.7218921, lon: -103.4296447 },
+    ],
+    escuelas: [
+      { n: 'ITESO', lat: 20.6083796, lon: -103.4146601 }, { n: 'CUCEI (UDG)', lat: 20.6548611, lon: -103.3254497 },
+      { n: 'Universidad Panamericana', lat: 20.6826300, lon: -103.4419702 }, { n: 'Tec de Monterrey GDL', lat: 20.7343578, lon: -103.4543886 },
+    ],
+  };
+  // Distancia (km) del punto al más cercano de una lista de lugares.
+  AM.distMinKm = function (p, lista) { return Math.min(...lista.map(l => AM.km(p, { lat: l.lat, lon: l.lon }))); };
+  // Bono de plusvalía por ubicación: +0.5 puntos si a <1.5 km de AL MENOS
+  // uno de cada categoría (mall, hospital y escuela); +0.25 si a <4 km;
+  // 0 si más lejos. Nunca resta -- no se castiga a zonas nuevas o alejadas
+  // de estos puntos de referencia, solo se premia a las mejor ubicadas.
+  AM.bonoUbicacion = function (p) {
+    if (!p.lat || !p.lon) return 0;
+    const bonoUno = d => d < 1.5 ? 0.005 : d < 4 ? 0.0025 : 0;
+    return Object.values(AM.LANDMARKS).map(lista => bonoUno(AM.distMinKm(p, lista))).reduce((a, b) => a + b, 0);
+  };
+  // La plusvalía "base" de una propiedad concreta = la de la SHF para la
+  // zona (S.plusvalia_base) + su bono de ubicación. No incluye antigüedad:
+  // el inventario no trae año de construcción, así que ese ajuste no se aplica.
+  AM.plusvaliaPropiedad = function (p, S) { S = S || AM.SUPUESTOS_INVERSION; return S.plusvalia_base + AM.bonoUbicacion(p); };
+  AM.metodologiaPlusvaliaHTML = function () {
+    return `<b>Cómo se calcula esta plusvalía:</b><br>
+      Parte de la última estimación de la SHF para la Zona Metropolitana de Guadalajara (<b>${(AM.SUPUESTOS_INVERSION.plusvalia_base * 100).toFixed(2)}% anual, ${AM.esc(AM.SHF_TRIMESTRE)}</b>,
+      <a href="${AM.SHF_FUENTE_URL}" target="_blank" rel="noopener">fuente</a>), y le suma un bono si la propiedad está cerca de centros comerciales,
+      hospitales y escuelas conocidos de la ZMG (lista curada, no exhaustiva: hasta +0.5 puntos si está a menos de 1.5 km de cada uno, +0.25 si está a menos de 4 km).
+      Las vías principales no se miden aparte: varios de estos centros y hospitales ya están sobre avenidas importantes (López Mateos, Vallarta, Periférico), así que la cercanía a ellos ya lo refleja en parte.<br><br>
+      <b>No incluye antigüedad de la construcción</b> — el inventario no trae ese dato hoy.`;
+  };
   AM.DESARROLLOS_PROPIOS = ['bella vittoria']; // los que Acierta Max comercializa directamente
   const _med = arr => { if (!arr.length) return null; const v = arr.slice().sort((a, b) => a - b), n = v.length; return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2; };
   function _tir(flujos) {
@@ -261,18 +310,19 @@
   // (3) comprar con crédito y dejar el resto del capital trabajando en CETES.
   // Los flujos de la propiedad que sobran (o faltan) cada año se reinvierten (o se financian)
   // al mismo CETES neto, para que la comparación sea consistente en toda la línea de tiempo.
-  AM.compararEstrategias = function (P, rentaAnual, n, S, enganchePct, tasaHipoteca, plazo) {
+  AM.compararEstrategias = function (P, rentaAnual, n, S, enganchePct, tasaHipoteca, plazo, plusvaliaUsada) {
     S = S || AM.SUPUESTOS_INVERSION;
+    const g = plusvaliaUsada != null ? plusvaliaUsada : S.plusvalia_base;
     const cetesN = AM.cetesNeto(S), capitalTotal = P * (1 + S.compra);
     const acumular = flujos => { let acc = 0; for (let a = 1; a < flujos.length - 1; a++) acc = acc * (1 + cetesN) + flujos[a]; return acc * (1 + cetesN) + flujos[flujos.length - 1]; };
     const soloCetes = capitalTotal * Math.pow(1 + cetesN, n);
-    const flContado = AM.flujosPropiedad(P, rentaAnual, S.plusvalia_base, n, S, null);
+    const flContado = AM.flujosPropiedad(P, rentaAnual, g, n, S, null);
     const contado = acumular(flContado);
     const credito = { pct: 100 - enganchePct, tasa: tasaHipoteca, plazo: plazo || 20 };
-    const flCredito = AM.flujosPropiedad(P, rentaAnual, S.plusvalia_base, n, S, credito);
+    const flCredito = AM.flujosPropiedad(P, rentaAnual, g, n, S, credito);
     const aporteCredito = -flCredito[0], sobrante = capitalTotal - aporteCredito;
     const conCredito = acumular(flCredito) + sobrante * Math.pow(1 + cetesN, n);
-    return { capitalTotal, soloCetes, contado, conCredito, sobrante, cetesNeto: cetesN,
+    return { capitalTotal, soloCetes, contado, conCredito, sobrante, cetesNeto: cetesN, plusvaliaUsada: g,
       mensualCredito: AM.pmt(P * credito.pct / 100, tasaHipoteca, credito.plazo) };
   };
 
@@ -324,14 +374,16 @@
     const credito = (opts.banderas.pagaSola || opts.banderas.palancaAyuda) ? { pct: 100 - enganchePct, tasa: opts.tasaHipoteca || 11, plazo: 20, enganchePct } : null;
     function empacar(x, rank) {
       const p = x.p, n = opts.horizonte || 4;
+      const plusvaliaProp = AM.plusvaliaPropiedad(p, S);
       const out = { rank, eb: p.eb, titulo: p.titulo, colonia: p.colonia, municipio: p.municipio, m2: p.m2, rec: p.recamaras, precio: p.precio,
         pm2: Math.round(p.precio / p.m2), lat: p.lat, lon: p.lon, foto: p.foto, liga: p.liga, renta: Math.round(x.ra / 12), renta_anual: Math.round(x.ra),
         bruto: x.bruto, neto: x.neto, netoDespuesIsr: x.netoDespuesIsr, desc: x.desc, n_venta: x.nv, n_renta: x.nr, confianza: x.confianza || 'media', propio: x.propio, preventa: x.preventa,
+        plusvaliaUsada: plusvaliaProp, bonoUbicacion: plusvaliaProp - S.plusvalia_base,
         geq: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S, null), tir: {} };
-      [['inflacion', S.inpc], ['base', S.plusvalia_base], ['alta', S.plusvalia_alta]].forEach(([k, g]) => out.tir[k] = AM.tirPropiedad(p.precio, x.ra, g, n, S, null));
+      [['inflacion', S.inpc], ['base', plusvaliaProp], ['alta', S.plusvalia_alta]].forEach(([k, g]) => out.tir[k] = AM.tirPropiedad(p.precio, x.ra, g, n, S, null));
       if (credito) {
         const mensual = AM.pmt(p.precio * credito.pct / 100, credito.tasa, credito.plazo), noiMensual = (x.ra * (1 - S.vacancia) - p.precio * (S.mantenimiento + S.predial)) / 12;
-        const cmp = AM.compararEstrategias(p.precio, x.ra, n, S, enganchePct, credito.tasa, credito.plazo);
+        const cmp = AM.compararEstrategias(p.precio, x.ra, n, S, enganchePct, credito.tasa, credito.plazo, plusvaliaProp);
         out.credito = { mensual, noiMensual, sePagaSola: noiMensual >= mensual, enganchePct, patrimonio: cmp, palancaAyuda: cmp.conCredito > cmp.contado, geqConCredito: AM.plusvaliaEquilibrio(p.precio, x.ra, n, S, credito) };
       }
       return out;

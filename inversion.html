@@ -108,7 +108,9 @@
 
     <div class="conteo" id="conteo">Dibuja tu zona para empezar</div>
     <div class="grafica-wrap" id="graficaWrap" style="display:none"><svg id="svgBarras"></svg>
-      <p class="ayuda-txt abierta" style="margin-top:8px">La barra suma renta neta + la plusvalía que estás asumiendo (una resta simple, para comparar de un vistazo). El cálculo completo, año por año, está en "Simula tu inversión" más abajo.</p></div>
+      <p class="ayuda-txt abierta" style="margin-top:8px">La barra suma renta neta + la plusvalía de cada propiedad (una suma simple, para comparar de un vistazo). El cálculo completo, año por año, está en "Simula tu inversión" más abajo.
+      <button type="button" class="ayuda-btn" data-ayuda="ayPlusvalia" style="margin-left:2px">?</button></p>
+      <div class="ayuda-txt" id="ayPlusvalia"></div></div>
     <p class="ayuda-txt abierta" id="notaOrden" style="display:none">📊 El orden <b>no es solo por rentabilidad</b>: pondera 50% rendimiento neto, 30% qué tan buen precio es frente a sus vecinos, y 20% qué tan confiable es el dato. Por eso el % de arriba no siempre baja en línea recta.</p>
     <div class="lista" id="lista"></div>
     <div class="filtros" id="panelPatrimonio" style="display:none">
@@ -170,7 +172,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     const o = ultimoR.opciones.find(x => x.rank === Number($('fSelPatrimonio').value)); if (!o || !o.credito) return;
     const c = o.credito.patrimonio, mejor = Math.max(c.soloCetes, c.contado, c.conCredito);
     const fila = (et, v) => `<tr><td>${et}</td><td class="${v === mejor ? 'gan' : ''}">${money(v)}</td></tr>`;
-    $('tablaPatrimonio').innerHTML = `<p class="hint">Partiendo del mismo capital (${money(c.capitalTotal)}, lo que costaría comprar de contado), a ${$('fHorizonte').value} años, con plusvalía supuesta de ${(S0.plusvalia_base * 100).toFixed(0)}%:</p>
+    $('tablaPatrimonio').innerHTML = `<p class="hint">Partiendo del mismo capital (${money(c.capitalTotal)}, lo que costaría comprar de contado), a ${$('fHorizonte').value} años, con la plusvalía de esta propiedad (${(c.plusvaliaUsada * 100).toFixed(2)}%, SHF + ubicación):</p>
       <table style="width:100%;border-collapse:collapse;font-size:13.5px"><tbody>
         ${fila('Todo en CETES', c.soloCetes)}
         ${fila('Comprar de contado', c.contado)}
@@ -197,13 +199,13 @@ let TODAS = [], currentPolygon = null, drawer = null;
     </div>`;
   }
 
-  function graficaBarras(opciones, cetesNeto, plusvaliaBase) {
+  function graficaBarras(opciones, cetesNeto) {
     if (!opciones.length) return '';
     const W = 380, fila = 28, top = 8, izq = 30, ancho = W - izq - 44, max = 0.16;
     const H = top + opciones.length * fila + 26, x = v => izq + Math.min(Math.max(v, 0) / max, 1) * ancho;
     let s = '';
     opciones.forEach((o, i) => {
-      const y = top + i * fila, renta = o.netoDespuesIsr, total = renta + plusvaliaBase;
+      const y = top + i * fila, renta = o.netoDespuesIsr, total = renta + o.plusvaliaUsada;
       s += `<text x="${izq - 6}" y="${y + 15}" text-anchor="end" font-size="11" fill="#3a4257">#${o.rank}</text>`;
       s += `<rect x="${izq}" y="${y + 3}" width="${Math.max(x(renta) - izq, 2)}" height="16" rx="5" fill="#0f1f3d"/>`;
       s += `<rect x="${x(renta)}" y="${y + 3}" width="${Math.max(x(total) - x(renta), 2)}" height="16" rx="5" fill="#e0a100"/>`;
@@ -212,7 +214,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     const xr = x(cetesNeto), yLeyenda = top + opciones.length * fila + 8;
     s += `<line x1="${xr}" x2="${xr}" y1="${top - 2}" y2="${yLeyenda - 4}" stroke="#d62828" stroke-width="2" stroke-dasharray="4 3"/><text x="${xr}" y="${top - 4}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d62828">CETES neto ${pct(cetesNeto)}</text>`;
     s += `<rect x="${izq}" y="${yLeyenda}" width="10" height="10" rx="2" fill="#0f1f3d"/><text x="${izq + 14}" y="${yLeyenda + 9}" font-size="10" fill="#3a4257">Renta neta</text>`;
-    s += `<rect x="${izq + 90}" y="${yLeyenda}" width="10" height="10" rx="2" fill="#e0a100"/><text x="${izq + 104}" y="${yLeyenda + 9}" font-size="10" fill="#3a4257">+ Plusvalía supuesta (${pct(plusvaliaBase, 0)})</text>`;
+    s += `<rect x="${izq + 90}" y="${yLeyenda}" width="10" height="10" rx="2" fill="#e0a100"/><text x="${izq + 104}" y="${yLeyenda + 9}" font-size="10" fill="#3a4257">+ Plusvalía (SHF + ubicación)</text>`;
     return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Renta más plusvalía por opción, comparado con CETES">${s}</svg>`;
   }
 
@@ -248,7 +250,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     } else $('secPreventas').style.display = 'none';
     $('graficaWrap').style.display = mostrar.length ? 'block' : 'none';
     $('notaOrden').style.display = mostrar.length ? 'block' : 'none';
-    if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN, S.plusvalia_base).replace('<svg', '<svg id="svgBarras"');
+    if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN).replace('<svg', '<svg id="svgBarras"');
     mostrar.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
     $('ctaFinal').style.display = mostrar.length ? 'block' : 'none';
     const folio = new URLSearchParams(location.search).get('folio');
@@ -287,6 +289,7 @@ document.getElementById('ctaWa').addEventListener('click', function (e) {
     .then(() => window.open(href, '_blank', 'noopener'));
 });
 
+document.getElementById('ayPlusvalia').innerHTML = AM.metodologiaPlusvaliaHTML();
 fetch('data.json').then(r => r.json()).then(d => { TODAS = d; actualizar(); })
   .catch(e => { console.error('inversion:', e); $('conteo').textContent = 'No se pudo cargar el inventario. Recarga la página.'; });
 </script>
