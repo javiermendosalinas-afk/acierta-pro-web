@@ -55,6 +55,13 @@
   .cta-final a { display: inline-block; margin-top: 10px; background: var(--red); color: #fff; padding: 11px 20px; border-radius: 999px; font-weight: 800; text-decoration: none; }
   .btn-clear { background: #fff; border: 1px solid var(--gray-light); color: var(--gray); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 12px; }
   .limite { background: #fff7e6; border: 1px solid #f0d896; color: #6b5a1e; border-radius: 8px; padding: 10px; font-size: 12px; line-height: 1.5; margin-top: 10px; }
+  .ayuda-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
+    border-radius: 50%; background: #d6dceb; color: var(--navy); font: 800 11px var(--font-body);
+    cursor: pointer; margin-left: 4px; vertical-align: 1px; border: 0; flex: 0 0 auto; }
+  .ayuda-txt { display: none; background: #eef3fb; border-radius: 8px; padding: 8px 10px; font-size: 12px;
+    color: var(--ink); line-height: 1.45; margin: 6px 0 2px; }
+  .ayuda-txt.abierta { display: block; }
+
 </style>
 </head>
 <body>
@@ -70,19 +77,25 @@
     <div class="filtros">
       <h3>¿Qué buscas?</h3>
       <div class="fila">
-        <div><label for="fTipo">Tipo</label><select id="fTipo"><option value="departamento">Departamento</option><option value="casa">Casa</option></select></div>
-        <div><label for="fHorizonte">Horizonte</label><select id="fHorizonte"><option value="3">3 años</option><option value="4" selected>4 años</option><option value="5">5 años</option></select></div>
+        <div><label for="fTipo">Tipo <button type="button" class="ayuda-btn" data-ayuda="ayTipo">?</button></label><select id="fTipo"><option value="departamento">Departamento</option><option value="casa">Casa</option></select>
+          <div class="ayuda-txt" id="ayTipo">Hoy el estudio solo compara casas y departamentos — terrenos y locales aún no están cubiertos.</div></div>
+        <div><label for="fHorizonte">Horizonte <button type="button" class="ayuda-btn" data-ayuda="ayHorizonte">?</button></label><select id="fHorizonte"><option value="3">3 años</option><option value="4" selected>4 años</option><option value="5">5 años</option></select>
+          <div class="ayuda-txt" id="ayHorizonte">Cuántos años planeas quedarte con la propiedad antes de venderla. A más años, los gastos de comprar y vender pesan menos sobre el rendimiento total.</div></div>
       </div>
       <div class="fila">
-        <div><label for="fTope">Presupuesto máx.</label><input type="number" id="fTope" value="3500000" step="50000" min="0"></div>
-        <div><label for="fRec">Recámaras mín.</label><select id="fRec"><option value="0">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option></select></div>
+        <div><label for="fTope">Presupuesto máx. <button type="button" class="ayuda-btn" data-ayuda="ayTope">?</button></label><input type="number" id="fTope" value="3500000" step="50000" min="0">
+          <div class="ayuda-txt" id="ayTope">El precio máximo de compra que estás considerando. No incluye enganche ni gastos de escrituración.</div></div>
+        <div><label for="fRec">Recámaras mín. <button type="button" class="ayuda-btn" data-ayuda="ayRec">?</button></label><select id="fRec"><option value="0">Cualquiera</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option></select>
+          <div class="ayuda-txt" id="ayRec">Solo se muestran propiedades con, al menos, este número de recámaras.</div></div>
       </div>
     </div>
 
     <div class="filtros">
       <h3>¿Con crédito? (opcional)</h3>
-      <label class="band"><input type="checkbox" id="bPagaSola"> <b>Solo mostrar las que "se pagan solas"</b><small>La renta neta cubre la mensualidad del crédito</small></label>
-      <label class="band"><input type="checkbox" id="bPalanca"> <b>Solo mostrar donde el crédito conviene</b><small>Tu patrimonio total (propiedad + lo que sobra en CETES) supera comprar de contado</small></label>
+      <label class="band"><input type="checkbox" id="bPagaSola"> <b>Solo mostrar las que "se pagan solas"</b> <button type="button" class="ayuda-btn" data-ayuda="ayPagaSola">?</button><small>La renta neta cubre la mensualidad del crédito</small></label>
+      <div class="ayuda-txt" id="ayPagaSola">Compara la renta que cobrarías, ya sin gastos de mantenimiento ni predial, contra la mensualidad del crédito (con el enganche y la tasa que ajustes abajo). Si alcanza, la propiedad se "paga sola" cada mes.</div>
+      <label class="band"><input type="checkbox" id="bPalanca"> <b>Solo mostrar donde el crédito conviene</b> <button type="button" class="ayuda-btn" data-ayuda="ayPalanca">?</button><small>Tu patrimonio total (propiedad + lo que sobra en CETES) supera comprar de contado</small></label>
+      <div class="ayuda-txt" id="ayPalanca">Si usas crédito, parte de tu dinero queda libre y lo dejamos ganando en CETES. Esta opción solo muestra las propiedades donde, sumando todo (propiedad + ese dinero libre), terminas mejor que si hubieras pagado de contado.</div>
       <div class="tasa-cred" id="tasaCredBox">
         <label for="fEnganche">Enganche: <span id="lblEnganche">30</span>% del precio</label>
         <input type="range" id="fEnganche" min="10" max="80" step="5" value="30">
@@ -94,7 +107,9 @@
     <div class="cetes-chip" id="cetesChip"></div>
 
     <div class="conteo" id="conteo">Dibuja tu zona para empezar</div>
-    <div class="grafica-wrap" id="graficaWrap" style="display:none"><svg id="svgBarras"></svg></div>
+    <div class="grafica-wrap" id="graficaWrap" style="display:none"><svg id="svgBarras"></svg>
+      <p class="ayuda-txt abierta" style="margin-top:8px">La barra suma renta neta + la plusvalía que estás asumiendo (una resta simple, para comparar de un vistazo). El cálculo completo, año por año, está en "Simula tu inversión" más abajo.</p></div>
+    <p class="ayuda-txt abierta" id="notaOrden" style="display:none">📊 El orden <b>no es solo por rentabilidad</b>: pondera 50% rendimiento neto, 30% qué tan buen precio es frente a sus vecinos, y 20% qué tan confiable es el dato. Por eso el % de arriba no siempre baja en línea recta.</p>
     <div class="lista" id="lista"></div>
     <div class="filtros" id="panelPatrimonio" style="display:none">
       <h3>¿Te conviene el crédito? Compara tu patrimonio total</h3>
@@ -182,20 +197,23 @@ let TODAS = [], currentPolygon = null, drawer = null;
     </div>`;
   }
 
-  function graficaBarras(opciones, cetesNeto) {
+  function graficaBarras(opciones, cetesNeto, plusvaliaBase) {
     if (!opciones.length) return '';
-    const W = 380, fila = 26, top = 8, izq = 30, ancho = W - izq - 44, max = 0.10;
-    const H = top + opciones.length * fila + 10, x = v => izq + Math.min(Math.max(v, 0) / max, 1) * ancho;
+    const W = 380, fila = 28, top = 8, izq = 30, ancho = W - izq - 44, max = 0.16;
+    const H = top + opciones.length * fila + 26, x = v => izq + Math.min(Math.max(v, 0) / max, 1) * ancho;
     let s = '';
     opciones.forEach((o, i) => {
-      const y = top + i * fila, v = o.netoDespuesIsr;
+      const y = top + i * fila, renta = o.netoDespuesIsr, total = renta + plusvaliaBase;
       s += `<text x="${izq - 6}" y="${y + 15}" text-anchor="end" font-size="11" fill="#3a4257">#${o.rank}</text>`;
-      s += `<rect x="${izq}" y="${y + 3}" width="${Math.max(x(v) - izq, 2)}" height="16" rx="5" fill="${v >= cetesNeto ? '#1f9d55' : '#0f1f3d'}"/>`;
-      s += `<text x="${x(v) + 6}" y="${y + 15}" font-size="11" font-weight="700" fill="#1a1a1a">${pct(v)}</text>`;
+      s += `<rect x="${izq}" y="${y + 3}" width="${Math.max(x(renta) - izq, 2)}" height="16" rx="5" fill="#0f1f3d"/>`;
+      s += `<rect x="${x(renta)}" y="${y + 3}" width="${Math.max(x(total) - x(renta), 2)}" height="16" rx="5" fill="#e0a100"/>`;
+      s += `<text x="${x(total) + 6}" y="${y + 15}" font-size="11" font-weight="700" fill="#1a1a1a">${pct(total)}</text>`;
     });
-    const xr = x(cetesNeto);
-    s += `<line x1="${xr}" x2="${xr}" y1="${top - 2}" y2="${H - 6}" stroke="#d62828" stroke-width="2" stroke-dasharray="4 3"/><text x="${xr}" y="${top - 4}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d62828">CETES neto ${pct(cetesNeto)}</text>`;
-    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rendimiento neto por opción, comparado con CETES">${s}</svg>`;
+    const xr = x(cetesNeto), yLeyenda = top + opciones.length * fila + 8;
+    s += `<line x1="${xr}" x2="${xr}" y1="${top - 2}" y2="${yLeyenda - 4}" stroke="#d62828" stroke-width="2" stroke-dasharray="4 3"/><text x="${xr}" y="${top - 4}" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d62828">CETES neto ${pct(cetesNeto)}</text>`;
+    s += `<rect x="${izq}" y="${yLeyenda}" width="10" height="10" rx="2" fill="#0f1f3d"/><text x="${izq + 14}" y="${yLeyenda + 9}" font-size="10" fill="#3a4257">Renta neta</text>`;
+    s += `<rect x="${izq + 90}" y="${yLeyenda}" width="10" height="10" rx="2" fill="#e0a100"/><text x="${izq + 104}" y="${yLeyenda + 9}" font-size="10" fill="#3a4257">+ Plusvalía supuesta (${pct(plusvaliaBase, 0)})</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Renta más plusvalía por opción, comparado con CETES">${s}</svg>`;
   }
 
   function actualizar() {
@@ -204,7 +222,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     const cetesN = AM.cetesNeto(S);
     $('cetesChip').innerHTML = `📊 CETES hoy: <b>${pct(S.cetes)}</b> nominal → <b>${pct(cetesN)}</b> ya neto de ISR (tasa marginal 30%, ajústala con tu contador). Así comparamos parejo con el rendimiento neto de cada propiedad.`;
     markersLayer.clearLayers();
-    if (!currentPolygon) { $('conteo').textContent = 'Dibuja tu zona para empezar'; $('lista').innerHTML = ''; $('graficaWrap').style.display = 'none'; $('secPreventas').style.display = 'none'; $('ctaFinal').style.display = 'none'; return; }
+    if (!currentPolygon) { $('conteo').textContent = 'Dibuja tu zona para empezar'; $('lista').innerHTML = ''; $('graficaWrap').style.display = 'none'; $('secPreventas').style.display = 'none'; $('ctaFinal').style.display = 'none'; $('notaOrden').style.display = 'none'; return; }
     if (!TODAS.length) return;
     const opts = { poligono: currentPolygon.getLatLngs()[0], tope: parseFloat($('fTope').value) || 0, tipo: $('fTipo').value, recMin: parseInt($('fRec').value) || 0, horizonte: parseInt($('fHorizonte').value),
       banderas: { pagaSola: $('bPagaSola').checked, palancaAyuda: $('bPalanca').checked }, tasaHipoteca: parseFloat($('fTasaCred').value), enganchePct: parseInt($('fEnganche').value) };
@@ -229,7 +247,8 @@ let TODAS = [], currentPolygon = null, drawer = null;
       $('listaPreventas').innerHTML = `<p class="hint" style="margin:0 0 8px">En preventa no hay renta hasta la entrega, así que no calculamos su rendimiento. Si te interesan, te recomendamos pedir <b>Acierta Verifica</b> antes de comprometer tu dinero.</p>` + R.preventas.map(o => tarjeta(o, true)).join('');
     } else $('secPreventas').style.display = 'none';
     $('graficaWrap').style.display = mostrar.length ? 'block' : 'none';
-    if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN).replace('<svg', '<svg id="svgBarras"');
+    $('notaOrden').style.display = mostrar.length ? 'block' : 'none';
+    if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN, S.plusvalia_base).replace('<svg', '<svg id="svgBarras"');
     mostrar.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
     $('ctaFinal').style.display = mostrar.length ? 'block' : 'none';
     const folio = new URLSearchParams(location.search).get('folio');
@@ -245,6 +264,8 @@ let TODAS = [], currentPolygon = null, drawer = null;
 
 // "Agendar visita": la primera vez pide nombre y WhatsApp para asignarle un asesor real.
 document.addEventListener('click', e => {
+  const ay = e.target.closest('[data-ayuda]');
+  if (ay) { const txt = $(ay.dataset.ayuda); if (txt) txt.classList.toggle('abierta'); return; }
   const a = e.target.closest('[data-agendar-op]'); if (!a) return;
   e.preventDefault();
   const o = (ultimoR ? ultimoR.opciones : []).find(x => x.rank === Number(a.dataset.agendarOp)); if (!o) return;
