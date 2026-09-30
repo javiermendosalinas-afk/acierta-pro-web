@@ -651,6 +651,12 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .cam-migas { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px; }
 .cam-miga { background: none; border: 0; color: var(--red); font: 700 12.5px var(--font-body); text-decoration: underline; cursor: pointer; padding: 2px 0; }
 .cam-miga-sep { color: var(--gray); font-size: 12px; }
+.cam-verif-ok { color: #1f9d55; font-weight: 700; font-size: 13px; margin-top: 6px; }
+.cam-verif-txt { font-size: 12.5px; color: var(--gray); margin: 6px 0 0; }
+.cam-verif-fila { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.cam-verif-fila input { width: 56px; text-align: center; font-size: 18px; padding: 8px; border: 1px solid var(--gray-light); border-radius: 8px; }
+.cam-verif-error { color: #b3261e; font-size: 12.5px; margin: 4px 0 0; }
+.cam-verif-reenviar { background: none; border: 0; color: var(--red); font: 700 12px var(--font-body); text-decoration: underline; cursor: pointer; margin-top: 6px; padding: 0; }
 .cam-card { background: var(--white); border-radius: var(--radius); padding: 28px 26px; box-shadow: 0 2px 16px rgba(0,0,0,.07); }
 .cam-card h1 { font-family: var(--font-display); font-size: 26px; line-height: 1.25; color: var(--ink); margin: 0 0 14px; }
 .cam-sub { color: var(--gray); font-size: 15.5px; line-height: 1.55; margin: 0 0 18px; }

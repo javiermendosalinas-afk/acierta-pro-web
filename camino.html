@@ -30,10 +30,11 @@
   const money = AM.money;
   const CLAVE = 'aciertaCamino';
   let CFG = null, TAR = null, TODAS = [];
-  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', rentaUso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '',
+  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', rentaUso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '', whatsappVerificado: false,
             consent: false, metodo: 'sabe', presupuesto: '', ingresos: '', enganche: '', credito: '', verifica: '', notas: '',
             folio: '', token: '', vendedor: '', completado: false };
   let enviando = false, errorMsg = '';
+  let verifEstado = '', verifCodigo = '', verifError = '', verifTelDe = '';   // estado efímero de la verificación (no se guarda en localStorage)
 
   const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(S)); } catch (e) {} };
   const cargar = () => { try { const o = JSON.parse(localStorage.getItem(CLAVE) || 'null'); if (o && typeof o === 'object') S = Object.assign(S, o); } catch (e) {} };
@@ -106,12 +107,13 @@
         <div class="cam-campos">
           <label for="c_nombre">Tu nombre</label><input type="text" id="c_nombre" data-k="nombre" maxlength="80" autocomplete="name" value="${AM.esc(S.nombre)}">
           <label for="c_wa">Tu WhatsApp <span class="muted">(10 dígitos)</span></label><input type="tel" id="c_wa" data-k="whatsapp" inputmode="numeric" maxlength="20" autocomplete="tel" placeholder="33 1234 5678" value="${AM.esc(S.whatsapp)}">
-          <label for="c_email">Tu correo</label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
+          <div id="camVerifWA">${verifWAHTML()}</div>
+          <label for="c_email">Tu correo <span class="muted">(opcional)</span></label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
           <input type="text" id="c_empresa" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
           <label class="cam-consent"><input type="checkbox" id="c_consent" data-k="consent" ${S.consent ? 'checked' : ''}> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp y correo para acompañarme en mi proceso, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
         </div>
         <div class="cam-error" id="camError" style="display:${errorMsg ? 'block' : 'none'}">${AM.esc(errorMsg)}</div>`,
-      listo: () => S.nombre.trim().length >= 2 && telValido(S.whatsapp) && emailValido(S.email.trim()) && S.consent === true,
+      listo: () => S.nombre.trim().length >= 2 && S.whatsappVerificado === true && (!S.email.trim() || emailValido(S.email.trim())) && S.consent === true,
       sig: 'Guardar mi proceso y continuar →', enviar: true },
     { id: 'presupuesto', si: () => !esInvertir(), titulo: () => S.operacion === 'renta' ? '¿Cuánto quieres pagar de renta?' : 'Armemos tu presupuesto',
       html: () => presupuestoHTML(), listo: () => (parseFloat(S.presupuesto) || 0) > 0, after: () => pintarPresupuesto() },
@@ -246,6 +248,36 @@
       return { ok: r.ok && j.ok, status: r.status, j };
     } catch (e) { return { ok: false, status: 0, j: {} }; } finally { clearTimeout(t); }
   }
+  // ── Verificación de WhatsApp (código de 2 dígitos por Wati) ──
+  function verifWAHTML() {
+    const tel = telValido(S.whatsapp) ? S.whatsapp : '';
+    if (!tel) return '';
+    if (S.whatsappVerificado && verifTelDe === tel) return '<div class="cam-verif-ok">✅ WhatsApp verificado</div>';
+    if (verifEstado === 'enviando') return '<div class="cam-verif-txt">Enviando código…</div>';
+    if (verifEstado === 'confirmando') return '<div class="cam-verif-txt">Confirmando…</div>';
+    if (verifEstado === 'enviado' || verifEstado === 'error_confirmar') {
+      return `<div class="cam-verif"><p class="cam-verif-txt">Te mandamos un código de 2 dígitos por WhatsApp.</p>
+        <div class="cam-verif-fila"><input type="text" id="camCodigoWA" inputmode="numeric" maxlength="2" placeholder="00" value="${AM.esc(verifCodigo)}">
+        <button type="button" class="btn-sec" id="btnConfirmarWA">Confirmar</button></div>
+        ${verifError ? `<p class="cam-verif-error">${AM.esc(verifError)}</p>` : ''}
+        <button type="button" class="cam-verif-reenviar" id="btnReenviarWA">Reenviar código</button></div>`;
+    }
+    return `<button type="button" class="btn-sec" id="btnEnviarCodigoWA">Enviar código de verificación</button>${verifError ? `<p class="cam-verif-error">${AM.esc(verifError)}</p>` : ''}`;
+  }
+  function pintarVerifWA() { const el = $('camVerifWA'); if (el) el.innerHTML = verifWAHTML(); }
+  async function enviarCodigoWA() {
+    verifEstado = 'enviando'; verifError = ''; pintarVerifWA();
+    const r = await post('/verificar/enviar', { whatsapp: S.whatsapp });
+    if (r.ok) { verifEstado = 'enviado'; verifCodigo = ''; } else { verifEstado = ''; verifError = (r.j && r.j.error) || 'No pudimos enviar el código.'; }
+    pintarVerifWA();
+  }
+  async function confirmarCodigoWA() {
+    verifEstado = 'confirmando'; verifError = ''; pintarVerifWA();
+    const r = await post('/verificar/confirmar', { whatsapp: S.whatsapp, codigo: verifCodigo });
+    if (r.ok) { S.whatsappVerificado = true; verifTelDe = S.whatsapp; verifEstado = ''; guardar(); }
+    else { verifEstado = 'error_confirmar'; verifError = (r.j && r.j.error) || 'Código incorrecto.'; }
+    setNavCargando(false); pintarVerifWA();
+  }
   async function enviarContacto() {
     if (enviando) return; enviando = true; errorMsg = ''; setNavCargando(true);
     const r = await post('', { nombre: S.nombre.trim(), whatsapp: S.whatsapp, email: S.email.trim(), consentimiento: S.consent === true, aviso_version: CFG.avisoVersion,
@@ -314,12 +346,20 @@
     else if (b.dataset.usar) { S.presupuesto = b.dataset.usar; guardar(); pintar(); }
     else if (b.id === 'btnSinGuardar') { errorMsg = ''; siguiente(true); }
     else if (b.id === 'btnReiniciar') { try { localStorage.removeItem(CLAVE); } catch (er) {} AM.ir('camino.html'); }
+    else if (b.id === 'btnEnviarCodigoWA' || b.id === 'btnReenviarWA') { enviarCodigoWA(); }
+    else if (b.id === 'btnConfirmarWA') { confirmarCodigoWA(); }
   });
   $('btnSig').addEventListener('click', () => siguiente());
   $('btnAtras').addEventListener('click', atras);
   document.addEventListener('input', e => {
-    const el = e.target, k = el.dataset && el.dataset.k; if (!k) return;
+    const el = e.target;
+    if (el.id === 'camCodigoWA') { verifCodigo = el.value.replace(/\D/g, '').slice(0, 2); el.value = verifCodigo; return; }
+    const k = el.dataset && el.dataset.k; if (!k) return;
     S[k] = el.type === 'checkbox' ? el.checked : el.value; guardar(); errorMsg = '';
+    if (k === 'whatsapp') {
+      if (S.whatsapp !== verifTelDe) { S.whatsappVerificado = false; guardar(); verifEstado = ''; verifError = ''; }
+      pintarVerifWA();
+    }
     const ee = $('camError'); if (ee) ee.style.display = 'none';
     setNavCargando(false);
     if (k === 'municipio') pintarCuenta();
