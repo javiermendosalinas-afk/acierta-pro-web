@@ -17,12 +17,24 @@
   .mapa-header a.back:hover { color: var(--white); }
   .mapa-header h1 { font-family: var(--font-display); font-size: 20px; margin: 0; flex: 1; }
   .mapa-wrap { display: flex; height: calc(100vh - 60px); }
-  #map { flex: 1; min-width: 0; }
+  .mapa-contenedor { flex: 1; min-width: 0; position: relative; }
+  #map { width: 100%; height: 100%; }
   .panel { width: 420px; max-width: 45vw; background: var(--cream); overflow-y: auto; padding: 16px; flex-shrink: 0; }
+  .btn-dibujar-flotante { display: none; }
   @media (max-width: 800px) {
     .mapa-wrap { flex-direction: column; height: auto; }
-    #map { height: 55vh; flex: none; }
+    .mapa-contenedor { flex: none; height: 55vh; }
     .panel { width: 100%; max-width: 100%; max-height: none; }
+    /* En celular, el botón de abajo queda fuera de la vista inicial (hay que
+       bajar para verlo). Este flota encima del mapa para que se vea de
+       inmediato, sin scroll. */
+    .btn-dibujar-flotante {
+      display: block; position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 1000;
+      background: var(--red); color: var(--white); border: 0; border-radius: 999px;
+      padding: 13px; font-size: 15px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0,0,0,.3);
+    }
+    .btn-dibujar-flotante.activo { background: var(--navy); }
   }
   .btn-dibujar {
     width: 100%; background: var(--red); color: var(--white); border: 0; border-radius: 10px;
@@ -72,7 +84,10 @@
 </div>
 
 <div class="mapa-wrap">
-  <div id="map"></div>
+  <div class="mapa-contenedor">
+    <div id="map"></div>
+    <button class="btn-dibujar-flotante" id="btnDibujarFlotante">✏️ Dibujar mi zona en el mapa</button>
+  </div>
   <div class="panel">
     <div id="avisoError" class="error-box" style="display:none"></div>
 
@@ -325,6 +340,7 @@ function actualizarResultados() {
 
 // ── Eventos ──────────────────────────────────────────────
 const btnDibujar = document.getElementById('btnDibujar');
+const btnDibujarFlotante = document.getElementById('btnDibujarFlotante');
 
 function iniciarDibujo() {
   if (typeof L.Draw === 'undefined' || !L.Draw.Polygon) {
@@ -336,15 +352,20 @@ function iniciarDibujo() {
   drawer.enable();
   btnDibujar.classList.add('activo');
   btnDibujar.textContent = '✏️ Dibujando… haz clic en el mapa';
+  btnDibujarFlotante.classList.add('activo');
+  btnDibujarFlotante.textContent = '✏️ Dibujando… toca el mapa';
   document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function terminarDibujoUI() {
   btnDibujar.classList.remove('activo');
   btnDibujar.textContent = currentPolygon ? '✏️ Dibujar otra zona' : '✏️ Dibujar mi zona en el mapa';
+  btnDibujarFlotante.classList.remove('activo');
+  btnDibujarFlotante.textContent = currentPolygon ? '✏️ Dibujar otra zona' : '✏️ Dibujar mi zona en el mapa';
 }
 
 btnDibujar.addEventListener('click', iniciarDibujo);
+btnDibujarFlotante.addEventListener('click', iniciarDibujo);
 
 map.on(L.Draw.Event.CREATED, function (e) {
   drawnItems.clearLayers();
