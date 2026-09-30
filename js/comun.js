@@ -435,7 +435,7 @@
   let _caminoCfg = null;
   function caminoCfg() { return _caminoCfg || (_caminoCfg = fetch('camino-datos.json').then(r => r.json())); }
 
-  function modalContactoHTML(motivo) {
+  function modalContactoHTML(motivo, coaches) {
     return `<div class="am-modal-fondo" id="amModalFondo"><div class="am-modal">
       <button type="button" class="am-modal-cerrar" id="amModalCerrar" aria-label="Cerrar">✕</button>
       <h3>Un momento antes de continuar</h3>
@@ -443,6 +443,8 @@
       <label>Tu nombre</label><input type="text" id="amNombre" maxlength="80">
       <label>Tu WhatsApp (10 dígitos)</label><input type="tel" id="amWa" inputmode="numeric" maxlength="20">
       <div id="amVerifWA"></div>
+      <label for="amCoach">¿Ya conoces a un coach de Acierta Max? <span class="muted">(opcional)</span></label>
+      <select id="amCoach"><option value="">No, que me asignen uno</option>${(coaches || []).map(n => `<option>${AM.esc(n)}</option>`).join('')}</select>
       <label class="am-consent"><input type="checkbox" id="amConsent"> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
       <div class="am-modal-error" id="amModalError" style="display:none"></div>
       <button type="button" class="btn-solid" id="amModalEnviar" style="width:100%;padding:12px;border:0;border-radius:999px;font-weight:800;cursor:pointer">Continuar</button>
@@ -456,8 +458,8 @@
     opts = opts || {};
     const existente = AM.leadGuardado();
     if (existente && existente.folio) return Promise.resolve(existente);
-    return new Promise(resolve => {
-      const host = document.createElement('div'); host.innerHTML = modalContactoHTML(opts.motivo); document.body.appendChild(host);
+    return caminoCfg().then(cfg => new Promise(resolve => {
+      const host = document.createElement('div'); host.innerHTML = modalContactoHTML(opts.motivo, cfg.coaches); document.body.appendChild(host);
       let verificado = false, verifTelDe = '', estado = '', codigo = '';
       const $ = id => document.getElementById(id);
       const cerrar = lead => { host.remove(); resolve(lead); };
@@ -525,13 +527,13 @@
           const r = await fetch(cfg.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
             nombre, whatsapp: wa, email: '', consentimiento: true, aviso_version: cfg.avisoVersion,
             operacion: opts.operacion || 'compra', tipo: opts.tipo || 'nose', uso: opts.uso || '', cuando: opts.cuando || '',
-            municipio: opts.municipio || 'cualquiera', colonia: opts.notas || '' }) });
+            municipio: opts.municipio || 'cualquiera', colonia: opts.notas || '', coach_conocido: document.getElementById('amCoach').value }) });
           const j = await r.json().catch(() => ({}));
           if (r.ok && j.ok) { const lead = { folio: j.folio, vendedor: j.vendedor, token: j.token, nombre, whatsapp: wa }; guardarLead(lead); cerrar(lead); return; }
           err.textContent = (j && j.error) || 'No pudimos guardar tus datos.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Continuar';
         } catch (e) { err.textContent = 'No pudimos conectar. Revisa tu internet.'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Continuar'; }
       });
-    });
+    }));
   };
 
   // ── Análisis de precio por m² ──────────────────────────

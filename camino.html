@@ -30,7 +30,7 @@
   const money = AM.money;
   const CLAVE = 'aciertaCamino';
   let CFG = null, TAR = null, TODAS = [];
-  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', rentaUso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '', whatsappVerificado: false,
+  let S = { paso: 'bienvenida', operacion: '', tipo: '', uso: '', rentaUso: '', cuando: '', municipio: '', colonia: '', nombre: '', whatsapp: '', email: '', whatsappVerificado: false, coachConocido: '',
             consent: false, metodo: 'sabe', presupuesto: '', ingresos: '', enganche: '', credito: '', verifica: '', notas: '',
             folio: '', token: '', vendedor: '', completado: false };
   let enviando = false, errorMsg = '';
@@ -109,6 +109,8 @@
           <label for="c_wa">Tu WhatsApp <span class="muted">(10 dígitos)</span></label><input type="tel" id="c_wa" data-k="whatsapp" inputmode="numeric" maxlength="20" autocomplete="tel" placeholder="33 1234 5678" value="${AM.esc(S.whatsapp)}">
           <div id="camVerifWA">${verifWAHTML()}</div>
           <label for="c_email">Tu correo <span class="muted">(opcional)</span></label><input type="email" id="c_email" data-k="email" maxlength="120" autocomplete="email" value="${AM.esc(S.email)}">
+          <label for="c_coach">¿Ya conoces a un coach de Acierta Max? <span class="muted">(opcional)</span></label>
+          <select id="c_coach" data-k="coachConocido"><option value="">No, que me asignen uno</option>${(CFG && CFG.coaches ? CFG.coaches : []).map(n => `<option ${S.coachConocido === n ? 'selected' : ''}>${AM.esc(n)}</option>`).join('')}</select>
           <input type="text" id="c_empresa" name="empresa" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
           <label class="cam-consent"><input type="checkbox" id="c_consent" data-k="consent" ${S.consent ? 'checked' : ''}> <span>Acepto que Acierta Max guarde mis datos y me contacte por WhatsApp y correo para acompañarme en mi proceso, conforme al <a href="aviso-privacidad.html" target="_blank" rel="noopener">Aviso de privacidad</a>.</span></label>
         </div>
@@ -281,7 +283,7 @@
   async function enviarContacto() {
     if (enviando) return; enviando = true; errorMsg = ''; setNavCargando(true);
     const r = await post('', { nombre: S.nombre.trim(), whatsapp: S.whatsapp, email: S.email.trim(), consentimiento: S.consent === true, aviso_version: CFG.avisoVersion,
-      operacion: S.operacion, tipo: S.tipo, uso: usoEfectivo(), cuando: S.cuando, municipio: S.municipio, colonia: S.colonia.trim(), empresa: ($('c_empresa') || {}).value || '' });
+      operacion: S.operacion, tipo: S.tipo, uso: usoEfectivo(), cuando: S.cuando, municipio: S.municipio, colonia: S.colonia.trim(), coach_conocido: S.coachConocido, empresa: ($('c_empresa') || {}).value || '' });
     enviando = false; setNavCargando(false);
     if (r.ok) { S.folio = r.j.folio || ''; S.token = r.j.token || ''; S.vendedor = r.j.vendedor || ''; guardar(); siguiente(true); return; }
     errorMsg = (r.j && r.j.error) || 'No pudimos conectar. Revisa tu internet e intenta de nuevo.';
