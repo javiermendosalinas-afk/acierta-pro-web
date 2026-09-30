@@ -240,7 +240,7 @@
       <a href="${AM.SHF_FUENTE_URL}" target="_blank" rel="noopener">fuente</a>), y le suma un bono si la propiedad está cerca de centros comerciales,
       hospitales y escuelas conocidos de la ZMG (lista curada, no exhaustiva: hasta +0.5 puntos si está a menos de 1.5 km de cada uno, +0.25 si está a menos de 4 km).
       Las vías principales no se miden aparte: varios de estos centros y hospitales ya están sobre avenidas importantes (López Mateos, Vallarta, Periférico), así que la cercanía a ellos ya lo refleja en parte.<br><br>
-      <b>No incluye antigüedad de la construcción</b> — el inventario no trae ese dato hoy.`;
+      <b>No incluye antigüedad de la construcción</b> — el inventario no trae ese dato hoy; una propiedad muy nueva o muy antigua puede valer más o menos de lo que aquí se muestra.`;
   };
   AM.DESARROLLOS_PROPIOS = ['bella vittoria']; // los que Acierta Max comercializa directamente
   const _med = arr => { if (!arr.length) return null; const v = arr.slice().sort((a, b) => a - b), n = v.length; return n % 2 ? v[(n - 1) / 2] : (v[n / 2 - 1] + v[n / 2]) / 2; };

@@ -55,6 +55,9 @@
   .cta-final a { display: inline-block; margin-top: 10px; background: var(--red); color: #fff; padding: 11px 20px; border-radius: 999px; font-weight: 800; text-decoration: none; }
   .btn-clear { background: #fff; border: 1px solid var(--gray-light); color: var(--gray); border-radius: 8px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; width: 100%; margin-bottom: 12px; }
   .limite { background: #fff7e6; border: 1px solid #f0d896; color: #6b5a1e; border-radius: 8px; padding: 10px; font-size: 12px; line-height: 1.5; margin-top: 10px; }
+  .aviso-coach { background: var(--navy); color: #fff; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+  .aviso-coach b { color: #fff; }
+  .btn-coach { display: block; width: 100%; margin-top: 10px; background: var(--red); color: #fff; border: 0; border-radius: 999px; padding: 10px; font: 800 13px var(--font-body); cursor: pointer; }
   .ayuda-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
     border-radius: 50%; background: #d6dceb; color: var(--navy); font: 800 11px var(--font-body);
     cursor: pointer; margin-left: 4px; vertical-align: 1px; border: 0; flex: 0 0 auto; }
@@ -69,6 +72,11 @@
 <div class="inv-wrap">
   <div id="invMapa"></div>
   <div class="inv-panel">
+    <div class="aviso-coach">
+      <b>📌 Esto es un parámetro inicial de referencia</b>, no una recomendación final. Te recomendamos ampliamente contactar a tu <b>coach de Acierta Max</b> para trabajar juntos en lo que buscas específicamente como inversionista.
+      Con más de 30 años de experiencia, te acompañamos en cada decisión.
+      <button type="button" class="btn-coach" id="btnHablarCoach">Hablar con un coach de Acierta Max</button>
+    </div>
     <div id="avisoError" class="limite" style="display:none"></div>
     <button class="btn-dibujar" id="btnDibujar">✏️ Dibujar mi zona de interés</button>
     <div class="hint">Marca en el mapa las esquinas de la zona donde te gustaría invertir. Cierra el polígono en el primer punto.</div>
@@ -287,6 +295,12 @@ document.getElementById('ctaWa').addEventListener('click', function (e) {
   const href = this.href;
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con tu estudio de inversión.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' })
     .then(() => window.open(href, '_blank', 'noopener'));
+});
+document.getElementById('btnHablarCoach').addEventListener('click', () => {
+  const texto = encodeURIComponent('Hola, estoy viendo mi estudio de inversión en acierta.pro y quiero platicarlo con un coach de Acierta Max.');
+  const lanzar = lead => window.open('https://wa.me/523333777337?text=' + texto + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener');
+  if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
+  AM.asegurarLead({ motivo: 'Para que un coach de Acierta Max te acompañe como inversionista.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' }).then(lanzar);
 });
 
 document.getElementById('ayPlusvalia').innerHTML = AM.metodologiaPlusvaliaHTML();
