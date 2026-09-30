@@ -58,6 +58,11 @@
   .aviso-coach { background: var(--navy); color: #fff; border-radius: 12px; padding: 14px 16px; font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
   .aviso-coach b { color: #fff; }
   .btn-coach { display: block; width: 100%; margin-top: 10px; background: var(--red); color: #fff; border: 0; border-radius: 999px; padding: 10px; font: 800 13px var(--font-body); cursor: pointer; }
+.conf-coach { background: #eef7ee; border: 1px solid #bfe3bf; border-radius: 12px; padding: 16px; margin: 12px 0; }
+.conf-coach h3 { margin: 0 0 8px; font-family: var(--font-display); font-size: 17px; }
+.conf-item { background: #fff; border-radius: 8px; padding: 10px 12px; margin-top: 8px; font-size: 13px; line-height: 1.5; }
+.conf-fiscal-btns { display: flex; gap: 8px; margin-top: 6px; }
+.conf-fiscal-btns button { flex: 1; padding: 8px; border-radius: 999px; border: 1px solid var(--gray-light); background: var(--cream); font: 700 12.5px var(--font-body); cursor: pointer; }
   .ayuda-btn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
     border-radius: 50%; background: #d6dceb; color: var(--navy); font: 800 11px var(--font-body);
     cursor: pointer; margin-left: 4px; vertical-align: 1px; border: 0; flex: 0 0 auto; }
@@ -284,6 +289,7 @@ document.addEventListener('click', e => {
     const nota = lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : '';
     const credNota = conCredito ? encodeURIComponent(' Podría necesitar crédito para esta compra.') : '';
     window.open('https://wa.me/523333777337?text=' + base + nota + credNota, '_blank', 'noopener');
+    mostrarConfirmacionCoach(lead);
   };
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con esta propiedad.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir', municipio: '', notas: o.colonia })
@@ -294,16 +300,54 @@ document.getElementById('ctaWa').addEventListener('click', function (e) {
   e.preventDefault();
   const href = this.href;
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con tu estudio de inversión.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' })
-    .then(() => window.open(href, '_blank', 'noopener'));
+    .then(lead => { window.open(href, '_blank', 'noopener'); mostrarConfirmacionCoach(lead); });
 });
+let CFG = null;
 document.getElementById('btnHablarCoach').addEventListener('click', () => {
   const texto = encodeURIComponent('Hola, estoy viendo mi estudio de inversión en acierta.pro y quiero platicarlo con un coach de Acierta Max.');
-  const lanzar = lead => window.open('https://wa.me/523333777337?text=' + texto + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener');
+  const lanzar = lead => { window.open('https://wa.me/523333777337?text=' + texto + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener'); mostrarConfirmacionCoach(lead); };
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
   AM.asegurarLead({ motivo: 'Para que un coach de Acierta Max te acompañe como inversionista.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' }).then(lanzar);
 });
 
+// Panel que se muestra tras pedir cita con un coach: no se detiene ahí --
+// explica crédito, Verifica, y qué sigue (notaría y, si quiere, fiscal).
+function confirmacionCoachHTML(lead) {
+  const v = CFG && CFG.verifica ? CFG.verifica : { por_m2: 45, minimo: 3500 };
+  return `<div class="conf-coach" id="confCoach">
+    <h3>✅ ¡Listo${lead && lead.nombre ? ', ' + AM.esc(lead.nombre.split(' ')[0]) : ''}!</h3>
+    <p>${lead && lead.vendedor ? `<b>${AM.esc(lead.vendedor)}</b>, de nuestro equipo,` : 'Un coach de Acierta Max'} se va a comunicar contigo en horario hábil. Mientras tanto, MAX va dando seguimiento a tu avance en nuestro CRM, así que tu coach ya sabe en qué vas.</p>
+    <div class="conf-item">💳 <b>¿Necesitas crédito?</b> También puedes financiar esta compra — <a href="simulador.html">simula tu crédito aquí</a>, o tu coach te conecta con nuestro equipo de crédito.</div>
+    <div class="conf-item">🔍 <b>Antes de firmar, Acierta Verifica</b> revisa la propiedad físicamente y su documentación, para que no te lleves sorpresas — desde $${v.por_m2}/m² (mínimo ${money(v.minimo)}).</div>
+    <div class="conf-item">📝 <b>Una vez que decidas comprar</b> y hagamos Verifica, te acompañamos en todo el proceso de escrituración con notario — <a href="proceso.html">mira el proceso completo aquí</a>.</div>
+    <div class="conf-item conf-fiscal" id="confFiscal">
+      <p>¿Te interesaría también <b>asistencia fiscal</b> para tu declaración, una vez hecha la compra?</p>
+      <div class="conf-fiscal-btns"><button type="button" data-fiscal="si">Sí, me interesa</button><button type="button" data-fiscal="no">No, gracias</button></div>
+    </div>
+  </div>`;
+}
+function mostrarConfirmacionCoach(lead) {
+  const previo = document.getElementById('confCoach'); if (previo) previo.remove();
+  document.getElementById('avisoError').insertAdjacentHTML('afterend', confirmacionCoachHTML(lead));
+  document.getElementById('confCoach').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fiscal]'); if (!b) return;
+  const lead = AM.leadGuardado();
+  document.getElementById('confFiscal').innerHTML = b.dataset.fiscal === 'si'
+    ? '<p>Perfecto, tu coach te platica los detalles de la asistencia fiscal cuando te contacte. 🙌</p>'
+    : '<p>Entendido, sin problema. 🙌</p>';
+  if (lead && lead.folio && lead.token && CFG && b.dataset.fiscal === 'si') {
+    fetch(CFG.endpoint + '/completar', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folio: lead.folio, whatsapp: lead.whatsapp, token: lead.token, notas: 'Interesado en asistencia fiscal.' }) }).catch(() => {});
+  }
+});
+
+
 document.getElementById('ayPlusvalia').innerHTML = AM.metodologiaPlusvaliaHTML();
+Promise.all([fetch('camino-datos.json').then(r => r.json()), fetch('proceso-datos.json').then(r => r.json())])
+  .then(([cam, proc]) => { CFG = Object.assign({}, cam, { verifica: proc.tarifas.verifica }); })
+  .catch(() => {});
 fetch('data.json').then(r => r.json()).then(d => { TODAS = d; actualizar(); })
   .catch(e => { console.error('inversion:', e); $('conteo').textContent = 'No se pudo cargar el inventario. Recarga la página.'; });
 </script>
