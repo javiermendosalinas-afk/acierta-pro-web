@@ -52,7 +52,7 @@
 
   // ── Comparador (guardado en el navegador) ──────────────
   const KEY = 'aciertaComparar';
-  const MAX = 4;
+  const MAX = 10;
   AM.cmp = {
     max: MAX,
     get() {

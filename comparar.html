@@ -6,16 +6,16 @@
 <title>Comparar propiedades | Acierta Max</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Comparar propiedades | Acierta Max">
-<meta property="og:description" content="Compara hasta 4 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
+<meta property="og:description" content="Compara hasta 10 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
 <meta property="og:image" content="https://acierta.pro/assets/verifica/hero-termografia.jpg">
 <meta property="og:url" content="https://acierta.pro/comparar.html">
 <meta property="og:site_name" content="Acierta Max">
 <meta property="og:locale" content="es_MX">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Comparar propiedades | Acierta Max">
-<meta name="twitter:description" content="Compara hasta 4 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
+<meta name="twitter:description" content="Compara hasta 10 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
 <meta name="twitter:image" content="https://acierta.pro/assets/verifica/hero-termografia.jpg">
-<meta name="description" content="Compara hasta 4 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
+<meta name="description" content="Compara hasta 10 propiedades lado a lado: precio, m², zona y análisis, para decidir con criterio.">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
 </head>
@@ -69,6 +69,11 @@
     if (grupos.length > 1) L.push({ tipo: 'alerta', t: 'Son de <b>tipos distintos</b> (' + grupos.map(g => AM.GRUPO_LABEL[g]).join(', ') + '). El precio por m² no es directamente comparable entre ellos.' });
 
     const conPrecio = items.slice().sort((a, b) => a.p.precio - b.p.precio);
+    if (conPrecio.length > 1 && ops.length === 1 && !mixMoneda) {
+      const promedio = conPrecio.reduce((s, i) => s + i.p.precio, 0) / conPrecio.length;
+      const u = conPrecio[0].p.operacion === 'RENTA' ? '/mes' : '';
+      L.push({ t: `Precio promedio de estas ${conPrecio.length} propiedades: <b>${AM.money(promedio)}${u}</b>.` });
+    }
     if (conPrecio.length > 1 && conPrecio[0].p.precio !== conPrecio[conPrecio.length - 1].p.precio && ops.length === 1 && !mixMoneda) {
       const lo = conPrecio[0], hi = conPrecio[conPrecio.length - 1];
       const dif = hi.p.precio - lo.p.precio, pct = Math.round(dif / lo.p.precio * 100);
@@ -77,6 +82,8 @@
     }
     const conPm2 = items.filter(i => AM.precioM2(i.p));
     if (conPm2.length > 1 && grupos.length === 1 && ops.length === 1) {
+      const promPm2 = conPm2.reduce((s, i) => s + AM.precioM2(i.p), 0) / conPm2.length;
+      L.push({ t: `Precio por m² promedio: <b>${AM.money(promPm2)}/m²</b>.` });
       const m = conPm2.slice().sort((a, b) => AM.precioM2(a.p) - AM.precioM2(b.p))[0];
       L.push({ t: `Menor precio por m²: <b>${AM.esc(corto(m.p.titulo, 60))}</b> (${AM.money(AM.precioM2(m.p))}/m²).` });
     }
