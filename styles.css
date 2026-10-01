@@ -710,3 +710,10 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .am-consent a { color: var(--red); font-weight: 700; }
 .am-modal-error { background: #fdecea; color: #8a1f14; border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-top: 10px; }
 .am-modal-saltar { display: block; width: 100%; text-align: center; background: none; border: 0; color: var(--gray); text-decoration: underline; font: 600 12.5px var(--font-body); cursor: pointer; margin-top: 10px; }
+
+/* ── PREGUNTAS FRECUENTES (portada) ── */
+.faq-sec { max-width: 760px; margin: 50px auto; padding: 0 20px; }
+.faq-sec h2 { font-family: var(--font-display); font-size: 26px; margin-bottom: 20px; text-align: center; }
+.faq-item { border-bottom: 1px solid var(--gray-light); padding: 16px 0; }
+.faq-item h3 { font-size: 15.5px; margin: 0 0 6px; color: var(--navy); }
+.faq-item p { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.55; }
