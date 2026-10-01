@@ -625,6 +625,7 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .paso-cuerpo p { margin: 0 0 8px; font-size: 14px; line-height: 1.5; color: var(--ink); }
 .paso-res { color: var(--gray) !important; }
 .paso-quien { font-size: 13px !important; color: var(--gray) !important; }
+.paso-enlace { display: inline-block; margin-top: 8px; font-weight: 700; font-size: 14px; color: var(--red); text-decoration: underline; }
 .paso-cuerpo details { margin: 6px 0 10px; font-size: 13.5px; }
 .paso-cuerpo summary { cursor: pointer; font-weight: 700; color: var(--navy); }
 .paso-cuerpo details ul { margin: 8px 0 0; padding-left: 20px; line-height: 1.55; }

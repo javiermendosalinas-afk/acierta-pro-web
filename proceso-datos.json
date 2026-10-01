@@ -1,104 +1,212 @@
 {
   "actualizado": "2026-09-27",
   "tarifas": {
-    "renta": { "investigacion": 1500, "ija": 2000, "meses_deposito": 1, "meses_anticipada": 1 },
-    "compra": { "gastos_min_pct": 4, "gastos_max_pct": 8 },
-    "verifica": { "por_m2": 45, "minimo": 3500 }
+    "renta": {
+      "investigacion": 1500,
+      "ija": 2000,
+      "meses_deposito": 1,
+      "meses_anticipada": 1
+    },
+    "compra": {
+      "gastos_min_pct": 4,
+      "gastos_max_pct": 8
+    },
+    "verifica": {
+      "por_m2": 45,
+      "minimo": 3500
+    }
   },
   "pasos": {
     "compra": [
-      { "id": "c1", "titulo": "Define cuánto puedes invertir y qué necesitas",
+      {
+        "id": "c1",
+        "titulo": "Define cuánto puedes invertir y qué necesitas",
         "resumen": "Presupuesto, enganche, mensualidad cómoda, zona y tipo de propiedad.",
         "importancia": "Es la base de todo: comprar dentro de lo que sí puedes pagar evita quedarte sin liquidez, y acota la búsqueda a opciones realistas.",
         "quien": "Tú, con apoyo de un asesor de Acierta Max",
-        "necesitas": ["Una idea de tus ingresos mensuales", "Cuánto tienes ahorrado para el enganche"],
-        "costo": "ninguno" },
-      { "id": "c2", "titulo": "Precalifica tu crédito",
-        "resumen": "Con banco, Infonavit o Cofinavit: cuánto te prestarían y bajo qué condiciones.",
-        "importancia": "Con crédito, tu presupuesto real es tu enganche más lo que te autoricen. Precalificar antes de enamorarte de una propiedad evita sorpresas.",
+        "necesitas": [
+          "Una idea de tus ingresos mensuales",
+          "Cuánto tienes ahorrado para el enganche"
+        ],
+        "costo": "ninguno"
+      },
+      {
+        "id": "c2",
+        "titulo": "Precalifica tu crédito",
+        "resumen": "Antes de enamorarte de una propiedad, averigua cuánto te prestarían realmente un banco, Infonavit o Cofinavit, y bajo qué condiciones (tasa, plazo, mensualidad).",
+        "importancia": "Tu presupuesto real para comprar es tu enganche más lo que te autoricen de crédito — no el precio que te gustaría pagar. Precalificar primero evita dos problemas comunes: perder tiempo viendo propiedades fuera de tu alcance, o firmar un apartado y luego enterarte de que el banco te autoriza menos de lo que pensabas. Con Infonavit, además, tus puntos acumulados y tu salario determinan el monto — vale la pena revisarlo en Mi Cuenta Infonavit antes de buscar.",
         "quien": "Nuestro equipo de crédito, el banco o el Infonavit",
-        "necesitas": ["Identificación oficial", "Comprobante de ingresos", "Tu reporte de buró de crédito", "Número de seguridad social (si usarás Infonavit)"],
-        "costo": "ninguno" },
-      { "id": "c3", "titulo": "Busca, compara y visita",
+        "necesitas": [
+          "Identificación oficial",
+          "Comprobante de ingresos",
+          "Tu reporte de buró de crédito",
+          "Número de seguridad social (si usarás Infonavit)"
+        ],
+        "costo": "ninguno",
+        "enlace": {
+          "texto": "Calcula tu mensualidad y crédito aquí →",
+          "href": "simulador.html"
+        }
+      },
+      {
+        "id": "c3",
+        "titulo": "Busca, compara y visita",
         "resumen": "Usa el buscador, el mapa por zona y el comparador; agenda visitas con tu asesor.",
         "importancia": "Ver varias opciones y compararlas por precio por m² te ayuda a decidir con datos, no solo con intuición.",
         "quien": "Tú y tu asesor de Acierta Max",
-        "necesitas": ["Identificación oficial para agendar la visita (medida de seguridad para ti y para el asesor)"],
-        "costo": "ninguno" },
-      { "id": "c4", "titulo": "Verifica antes de firmar (opcional)",
+        "necesitas": [
+          "Identificación oficial para agendar la visita (medida de seguridad para ti y para el asesor)"
+        ],
+        "costo": "ninguno"
+      },
+      {
+        "id": "c4",
+        "titulo": "Verifica antes de firmar (opcional)",
         "resumen": "Acierta Verifica: revisión física básica (agua, luz, humedades, gas, drenaje) y análisis documental preventivo.",
         "importancia": "Detectar un problema antes de firmar es mucho más barato que resolverlo después. Es la diferencia entre creer que la propiedad está bien y saberlo.",
         "quien": "Equipo verificador de Acierta Verifica",
-        "necesitas": ["Dirección o ficha de la propiedad", "Acceso para la revisión"],
-        "costo": "verifica" },
-      { "id": "c5", "titulo": "Oferta y apartado",
+        "necesitas": [
+          "Dirección o ficha de la propiedad",
+          "Acceso para la revisión"
+        ],
+        "costo": "verifica"
+      },
+      {
+        "id": "c5",
+        "titulo": "Oferta y apartado",
         "resumen": "Presentas tu oferta, se negocia y se aparta la propiedad con un contrato de promesa.",
         "importancia": "Deja por escrito el precio y las condiciones, y retira la propiedad del mercado mientras haces los trámites.",
         "quien": "Tú, el vendedor y tu asesor",
-        "necesitas": ["Tu oferta", "Monto de apartado, si se pacta"],
-        "costo": "apartado" },
-      { "id": "c6", "titulo": "Avalúo y autorización del crédito",
+        "necesitas": [
+          "Tu oferta",
+          "Monto de apartado, si se pacta"
+        ],
+        "costo": "apartado"
+      },
+      {
+        "id": "c6",
+        "titulo": "Avalúo y autorización del crédito",
         "resumen": "El banco valúa la propiedad y autoriza tu crédito.",
         "importancia": "Confirma el valor real de la propiedad y el monto que te prestan; de aquí sale tu mensualidad definitiva.",
         "quien": "Banco o Infonavit, con apoyo de nuestro equipo de crédito",
-        "necesitas": ["Documentación que te pida la institución"],
-        "costo": "banco" },
-      { "id": "c7", "titulo": "Escrituración ante notario",
+        "necesitas": [
+          "Documentación que te pida la institución"
+        ],
+        "costo": "banco"
+      },
+      {
+        "id": "c7",
+        "titulo": "Escrituración ante notario",
         "resumen": "El notario revisa los documentos legales, calcula los impuestos y prepara la escritura.",
         "importancia": "Es la garantía de que la propiedad esté libre de gravámenes y quede legalmente a tu nombre.",
         "quien": "Notario público, vendedor, banco y tú",
-        "necesitas": ["Identificación oficial", "CURP y RFC", "Comprobante de domicilio", "Acta de nacimiento y estado civil (el notario te da la lista exacta)"],
-        "costo": "gastos" },
-      { "id": "c8", "titulo": "Firma, pago y entrega",
+        "necesitas": [
+          "Identificación oficial",
+          "CURP y RFC",
+          "Comprobante de domicilio",
+          "Acta de nacimiento y estado civil (el notario te da la lista exacta)"
+        ],
+        "costo": "gastos"
+      },
+      {
+        "id": "c8",
+        "titulo": "Firma, pago y entrega",
         "resumen": "Firmas la escritura, se paga, se inscribe en el Registro Público y recibes las llaves.",
         "importancia": "La inscripción en el Registro Público de la Propiedad protege tu derecho frente a terceros.",
         "quien": "Notario, vendedor, banco y tú",
-        "necesitas": ["Estar presente en la firma", "Recursos del enganche y gastos disponibles"],
-        "costo": "incluido" }
+        "necesitas": [
+          "Estar presente en la firma",
+          "Recursos del enganche y gastos disponibles"
+        ],
+        "costo": "incluido"
+      }
     ],
     "renta": [
-      { "id": "r1", "titulo": "Define tu renta cómoda y lo que necesitas",
+      {
+        "id": "r1",
+        "titulo": "Define tu renta cómoda y lo que necesitas",
         "resumen": "Renta mensual, zona, tipo y número de recámaras.",
         "importancia": "Rentar dentro de lo que realmente puedes sostener evita apuros a mitad del contrato.",
         "quien": "Tú, con apoyo de un asesor de Acierta Max",
-        "necesitas": ["Una idea de tus ingresos mensuales"],
-        "costo": "ninguno" },
-      { "id": "r2", "titulo": "Busca, compara y visita",
+        "necesitas": [
+          "Una idea de tus ingresos mensuales"
+        ],
+        "costo": "ninguno"
+      },
+      {
+        "id": "r2",
+        "titulo": "Busca, compara y visita",
         "resumen": "Usa el buscador, el mapa por zona y el comparador; agenda visitas con tu asesor.",
         "importancia": "Comparar varias opciones por precio por m² te ayuda a elegir bien.",
         "quien": "Tú y tu asesor de Acierta Max",
-        "necesitas": ["Identificación oficial para agendar la visita (medida de seguridad para ti y para el asesor)"],
-        "costo": "ninguno" },
-      { "id": "r3", "titulo": "Verifica antes de firmar (opcional)",
+        "necesitas": [
+          "Identificación oficial para agendar la visita (medida de seguridad para ti y para el asesor)"
+        ],
+        "costo": "ninguno"
+      },
+      {
+        "id": "r3",
+        "titulo": "Verifica antes de firmar (opcional)",
         "resumen": "Acierta Verifica: revisión física básica (agua, luz, humedades, gas, drenaje) y análisis documental preventivo.",
         "importancia": "Conocer el estado real de la propiedad antes de pagar te evita discusiones y gastos después.",
         "quien": "Equipo verificador de Acierta Verifica",
-        "necesitas": ["Dirección o ficha de la propiedad", "Acceso para la revisión"],
-        "costo": "verifica" },
-      { "id": "r4", "titulo": "Solicitud y documentos",
+        "necesitas": [
+          "Dirección o ficha de la propiedad",
+          "Acceso para la revisión"
+        ],
+        "costo": "verifica"
+      },
+      {
+        "id": "r4",
+        "titulo": "Solicitud y documentos",
         "resumen": "Integras tu expediente para que el propietario apruebe la renta.",
         "importancia": "El propietario decide con base en tu solvencia; tener el expediente completo agiliza la aprobación.",
         "quien": "Tú y tu asesor",
-        "necesitas": ["Identificación oficial (INE) y datos completos", "5 referencias personales", "Comprobante de ingresos de los últimos 2 meses (con vigencia no mayor a 3 meses)", "Autorización para consultar tu buró de crédito", "Datos y predial de tu obligado solidario"],
-        "costo": "ninguno" },
-      { "id": "r5", "titulo": "Investigación del inquilino",
+        "necesitas": [
+          "Identificación oficial (INE) y datos completos",
+          "5 referencias personales",
+          "Comprobante de ingresos de los últimos 2 meses (con vigencia no mayor a 3 meses)",
+          "Autorización para consultar tu buró de crédito",
+          "Datos y predial de tu obligado solidario"
+        ],
+        "costo": "ninguno"
+      },
+      {
+        "id": "r5",
+        "titulo": "Investigación del inquilino",
         "resumen": "Se validan tu identidad, referencias e historial para aprobar la renta.",
         "importancia": "Es la validación que el propietario necesita para aprobar; con ella el proceso avanza con confianza para ambas partes.",
         "quien": "Acierta Max",
-        "necesitas": ["Tu expediente completo", "Pago de la investigación"],
-        "costo": "investigacion" },
-      { "id": "r6", "titulo": "Contrato ante Justicia Alternativa (IJA)",
+        "necesitas": [
+          "Tu expediente completo",
+          "Pago de la investigación"
+        ],
+        "costo": "investigacion"
+      },
+      {
+        "id": "r6",
+        "titulo": "Contrato ante Justicia Alternativa (IJA)",
         "resumen": "El contrato se formaliza ante el Instituto de Justicia Alternativa del Estado de Jalisco.",
         "importancia": "Le da mayor certeza jurídica al contrato, tanto para ti como para el propietario.",
         "quien": "Propietario, inquilino y Acierta Max",
-        "necesitas": ["Estar presentes las partes", "Pago del trámite"],
-        "costo": "ija" },
-      { "id": "r7", "titulo": "Firma, pago inicial y entrega",
+        "necesitas": [
+          "Estar presentes las partes",
+          "Pago del trámite"
+        ],
+        "costo": "ija"
+      },
+      {
+        "id": "r7",
+        "titulo": "Firma, pago inicial y entrega",
         "resumen": "Pagas el depósito y la renta anticipada, firmas y recibes la propiedad.",
         "importancia": "El depósito en garantía y la renta anticipada respaldan el contrato desde el primer día.",
         "quien": "Tú, el propietario y tu asesor",
-        "necesitas": ["Depósito en garantía y renta anticipada", "Contrato firmado"],
-        "costo": "inicial" }
+        "necesitas": [
+          "Depósito en garantía y renta anticipada",
+          "Contrato firmado"
+        ],
+        "costo": "inicial"
+      }
     ]
   }
 }

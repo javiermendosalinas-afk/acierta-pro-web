@@ -252,6 +252,7 @@
           <p class="paso-imp"><b>Por qué importa:</b> ${AM.esc(p.importancia)}</p>
           <p class="paso-quien"><b>Quién participa:</b> ${AM.esc(p.quien)}</p>
           <details><summary>Qué necesitas</summary><ul>${p.necesitas.map(n => `<li>${AM.esc(n)}</li>`).join('')}</ul></details>
+          ${p.enlace ? `<a class="paso-enlace" href="${AM.esc(p.enlace.href)}">${AM.esc(p.enlace.texto)}</a>` : ''}
           <div class="paso-pie"><span class="chip ${cls}">${txt}</span>
             <label class="paso-hecho"><input type="checkbox" data-hecho="${p.id}" ${hecho ? 'checked' : ''}> Ya lo hice</label></div>
         </div></li>`;
