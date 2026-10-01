@@ -717,3 +717,6 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .faq-item { border-bottom: 1px solid var(--gray-light); padding: 16px 0; }
 .faq-item h3 { font-size: 15.5px; margin: 0 0 6px; color: var(--navy); }
 .faq-item p { margin: 0; font-size: 14px; color: var(--ink); line-height: 1.55; }
+
+/* ── Enlace al camino guiado, en el hero ── */
+.hero-camino-link { display: inline-block; margin: 4px 0 18px; font-size: 14px; font-weight: 700; color: var(--red); text-decoration: underline; }
