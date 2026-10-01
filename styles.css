@@ -55,6 +55,7 @@ img { max-width: 100%; display: block; }
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+.logo img { height: 34px; width: auto; display: block; }
 .logo .pin {
   width: 30px; height: 30px;
   background: var(--red);
