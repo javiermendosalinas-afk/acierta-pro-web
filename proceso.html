@@ -142,7 +142,7 @@
         <input type="range" id="v_precio_r" data-k="precio" min="300000" max="20000000" step="50000" value="${Math.min(Math.max(S.precio, 300000), 20000000)}">
         <input type="number" id="v_precio" data-k="precio" min="0" step="50000" value="${S.precio}"></div>
       <div class="campo"><label for="v_enganche">Enganche: <b id="lbl_enganche">${S.enganche}%</b></label>
-        <input type="range" id="v_enganche" data-k="enganche" min="5" max="50" step="1" value="${S.enganche}"></div>
+        <input type="range" id="v_enganche" data-k="enganche" min="5" max="100" step="1" value="${S.enganche}"></div>
       <div class="campo dos"><div><label for="v_plazo">Plazo</label>
         <select id="v_plazo" data-k="plazo">${opciones([5, 10, 15, 20, 25, 30].map(a => [a, a + ' años']), S.plazo)}</select></div>
         <div><label for="v_tasa">Tasa anual: <b id="lbl_tasa">${Number(S.tasa).toFixed(1)}%</b></label>
@@ -172,12 +172,14 @@
       const eng = S.precio * S.enganche / 100, monto = S.precio - eng, mens = pmt(monto, S.tasa, S.plazo);
       const gMin = S.precio * T.compra.gastos_min_pct / 100, gMax = S.precio * T.compra.gastos_max_pct / 100;
       const ver = S.verifica ? costoVerifica() : 0;
-      filas.push(['Precio de la propiedad', money(S.precio)], ['Enganche (' + S.enganche + '%)', money(eng)], ['Crédito solicitado', money(monto)],
-        ['Mensualidad estimada <small>(' + Number(S.tasa).toFixed(1) + '% a ' + S.plazo + ' años)</small>', '<b>' + money(mens) + '/mes</b>'],
+      filas.push(['Precio de la propiedad', money(S.precio)], ['Enganche (' + S.enganche + '%)', money(eng)],
+        ['Crédito solicitado', monto > 0 ? money(monto) : 'No necesitas crédito'],
+        ['Mensualidad estimada <small>(' + Number(S.tasa).toFixed(1) + '% a ' + S.plazo + ' años)</small>',
+          monto > 0 ? '<b>' + money(mens) + '/mes</b>' : '<b>Pago de contado</b>'],
         ['Impuestos, notario, registro y gastos de cierre <small>(' + T.compra.gastos_min_pct + '%–' + T.compra.gastos_max_pct + '% del valor)</small>', rango(gMin, gMax)]);
       if (S.verifica) filas.push(['Acierta Verifica <small>(' + S.m2 + ' m²)</small>', money(ver)]);
       filas.push(['Efectivo para arrancar <small>(enganche + gastos' + (S.verifica ? ' + Verifica' : '') + ')</small>', '<b>' + rango(eng + gMin + ver, eng + gMax + ver) + '</b>']);
-      if (ing > 0) {
+      if (ing > 0 && monto > 0) {
         const pct = mens / ing * 100, tope = pagoMaxAMonto(0.30 * ing, S.tasa, S.plazo) / (1 - S.enganche / 100);
         const nivel = pct <= 30 ? ['ok', 'dentro de la regla práctica'] : pct <= 40 ? ['medio', 'ajustada'] : ['alto', 'elevada'];
         capacidad = `<div class="capacidad ${nivel[0]}"><b>Tu mensualidad sería ${Math.round(pct)}% de tus ingresos</b> — ${nivel[1]}.
