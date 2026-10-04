@@ -1,4 +1,3 @@
-  RENTA guadalajara pag 14: 18 (acum 252)
   RENTA guadalajara pag 15: 18 (acum 270)
   RENTA guadalajara pag 16: 18 (acum 288)
   RENTA guadalajara pag 17: 18 (acum 306)
@@ -92,7 +91,7 @@
   RENTA zapopan pag 52: 18 (acum 936)
   RENTA zapopan pag 53: 18 (acum 954)
   RENTA zapopan pag 54: 18 (acum 972)
-  RENTA zapopan pag 55: 2 (acum 974)
+  RENTA zapopan pag 55: 1 (acum 973)
 
 == RENTA - Tlaquepaque ==
   RENTA tlaquepaque pag 1: 18 (acum 18)
@@ -129,22 +128,23 @@
 
 # Inventario acierta.pro - corrida 2026-10-04
 
-- Fichas publicadas: **7,874**
-- Por segmento: {'comercial': 1876, 'vivienda': 5998}
-- Por segmento y operacion: {'comercial/RENTA': 1154, 'vivienda/RENTA': 1137, 'comercial/VENTA': 722, 'vivienda/VENTA': 4861}
-- Por municipio: {'Guadalajara': 2704, 'Tlajomulco de Zúñiga': 1588, 'Tlaquepaque': 569, 'Tonalá': 266, 'Zapopan': 2747}
-- Segmento por: {'tipo comercial': 1775, 'por decidir -> vivienda': 958, 'palabra clave en el titulo': 101, 'tipo de vivienda': 5040}
+- Fichas publicadas: **7,963**
+- Por segmento: {'comercial': 1927, 'vivienda': 6036}
+- Por segmento y operacion: {'comercial/RENTA': 1166, 'vivienda/RENTA': 1140, 'comercial/VENTA': 761, 'vivienda/VENTA': 4896}
+- Por municipio: {'Guadalajara': 2702, 'Tlajomulco de Zúñiga': 1631, 'Tlaquepaque': 577, 'Tonalá': 295, 'Zapopan': 2758}
+- Segmento por: {'tipo comercial': 1820, 'por decidir -> vivienda': 998, 'palabra clave en el titulo': 107, 'tipo de vivienda': 5038}
 
 ## Contra la corrida anterior (mismos 4 municipios)
-- Nuevas: 1,415 | Bajas: 738 | Cambios de precio: 413
+- Nuevas: 116 | Bajas: 27 | Cambios de precio: 2
 - Fichas de otros municipios retiradas del sitio: 0
 
 ## Calidad
-- Precios BLOQUEADOS (no publicados, verificar con el originador): 149
-- Precios con AVISO (publicados, conviene revisar): 26
+- Precios BLOQUEADOS (no publicados, verificar con el originador): 59
+- Precios con AVISO (publicados, conviene revisar): 32
+- Precios por m2 convertidos a total: 117 (el anuncio lo dice: 113 | inferidos, con aviso: 4)
 - Fotos rescatadas desde la pagina de detalle: 0
 - Fichas sin foto: 0 (descartadas del sitio: 0)
 - Fuera de zona descartadas: 0 | Duplicadas: 0
-- Prueba de foto grande: 9/12 fotos >= 900px de ancho (929x529, 1200x1600, 1200x900, 675x1200, 1200x900, 1200x900, 900x1200, 960x1200, 1200x540, 770x507, 900x1200, 897x1200)
+- Prueba de foto grande: 12/12 fotos con lado mayor >= 900px (929x529, 1200x1600, 1200x675, 1200x901, 900x900, 1080x548, 591x1010, 952x1200, 1100x825, 1200x900, 1200x903, 1200x900)
 
-Reportes: reportes/inventario/anomalias_precio.csv y reportes/inventario/sin_foto.csv
+Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv
