@@ -6,6 +6,9 @@ name: Actualizar inventario
 on:
   schedule:
     - cron: '0 11 * * 1'      # lunes 05:00 hora de Guadalajara
+  push:
+    paths:
+      - 'herramientas/disparar_inventario.txt'   # subir una marca en este archivo tambien la arranca
   workflow_dispatch:
     inputs:
       prueba:
@@ -35,11 +38,21 @@ jobs:
       - name: Instalar dependencias
         run: pip install requests beautifulsoup4 pillow
 
+      - name: Definir modo (prueba o completa)
+        id: modo
+        shell: bash
+        run: |
+          P=false
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then P="${{ inputs.prueba }}"; fi
+          if [ "${{ github.event_name }}" = "push" ] && grep -qi "prueba" herramientas/disparar_inventario.txt; then P=true; fi
+          echo "prueba=$P" >> "$GITHUB_OUTPUT"
+          echo "Modo prueba: $P"
+
       - name: Sincronizar inventario
         shell: bash
         run: |
           mkdir -p reportes/inventario
-          if [ "${{ inputs.prueba }}" = "true" ]; then
+          if [ "${{ steps.modo.outputs.prueba }}" = "true" ]; then
             ARGS="--paginas-max 2 --sin-escribir"
           else
             ARGS=""
@@ -60,7 +73,7 @@ jobs:
           git config user.name "inventario-bot"
           git config user.email "inventario-bot@users.noreply.github.com"
           git add reportes/inventario
-          if [ "${{ inputs.prueba }}" != "true" ]; then
+          if [ "${{ steps.modo.outputs.prueba }}" != "true" ]; then
             git add data.json inventario.csv inventario-meta.json 2>/dev/null || true
           fi
           if git diff --cached --quiet; then
@@ -72,7 +85,7 @@ jobs:
           fi
 
       - name: Pedir publicacion del sitio
-        if: ${{ inputs.prueba != true }}
+        if: ${{ steps.modo.outputs.prueba != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
