@@ -1,0 +1,78 @@
+name: Actualizar inventario
+
+# Trae el inventario de aciertamax.com, lo clasifica (vivienda/comercial), aplica las
+# guardas de precio y publica data.json en acierta.pro. Corre solo cada lunes y
+# tambien a mano desde la pestana Actions -> "Actualizar inventario" -> Run workflow.
+on:
+  schedule:
+    - cron: '0 11 * * 1'      # lunes 05:00 hora de Guadalajara
+  workflow_dispatch:
+    inputs:
+      prueba:
+        description: 'Prueba rapida (2 paginas por zona, no publica nada)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: inventario
+  cancel-in-progress: false
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: pip install requests beautifulsoup4 pillow
+
+      - name: Sincronizar inventario
+        shell: bash
+        run: |
+          mkdir -p reportes/inventario
+          if [ "${{ inputs.prueba }}" = "true" ]; then
+            ARGS="--paginas-max 2 --sin-escribir"
+          else
+            ARGS=""
+          fi
+          python -u herramientas/inventario_sync.py $ARGS 2>&1 | tee "$RUNNER_TEMP/corrida.log"
+
+      - name: Guardar bitacora de la corrida
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p reportes/inventario
+          tail -n 150 "$RUNNER_TEMP/corrida.log" > reportes/inventario/ultima_corrida.log || true
+
+      - name: Publicar cambios
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "inventario-bot"
+          git config user.email "inventario-bot@users.noreply.github.com"
+          git add reportes/inventario
+          if [ "${{ inputs.prueba }}" != "true" ]; then
+            git add data.json inventario.csv inventario-meta.json 2>/dev/null || true
+          fi
+          if git diff --cached --quiet; then
+            echo "Sin cambios que publicar"
+          else
+            git commit -m "Inventario: corrida $(date -u +%F)"
+            git pull --rebase -q || true
+            git push
+          fi
+
+      - name: Pedir publicacion del sitio
+        if: ${{ inputs.prueba != true }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
