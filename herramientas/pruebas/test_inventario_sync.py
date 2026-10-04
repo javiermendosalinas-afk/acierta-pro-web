@@ -114,6 +114,66 @@ ok(bloquea and "superficie" in motivo, "anuncio por m2 sin superficie: no se pue
 conv = pm("VENTA","terreno",18_000,164.65); S.resolver_precio_por_m2(conv)
 ok(S.evaluar_precio(conv)[0] == "ok", "tras convertir, el precio total pasa las guardas")
 
+print("── PRECIO POR M2: DOS LECTURAS (el anuncio dice 'por m2' pero a veces el numero ya es el total)")
+casos_total = [
+ (pm("VENTA","terreno",20_189_800,1009.49,texto="$20,189,800 MXN por m²"), "terreno 1,009 m2 '$20,189,800 por m2' -> es el total"),
+ (pm("RENTA","oficina",70_000,148,texto="$70,000 MXN por m²"), "oficina 148 m2 '$70,000 por m2' -> es la renta total"),
+ (pm("RENTA","bodega comercial",294_598,1847,texto="$294,598 MXN por m²"), "bodega 1,847 m2 '$294,598 por m2' -> es la renta total"),
+ (pm("VENTA","departamento",6_215_000,68,texto="$6,215,000 MXN por m²"), "departamento 68 m2 '$6,215,000 por m2' -> es el total"),
+ (pm("RENTA","casa en condominio",9_000,93,texto="$9,000 MXN por m²"), "casa 93 m2 '$9,000 por m2' de renta -> es el total"),
+]
+for fila, desc in casos_total:
+    antes = fila["precio"]; via, motivo, bloquea = S.resolver_precio_por_m2(fila)
+    ok(via == "total" and fila["precio"] == antes and "pm2_pub" not in fila and not bloquea, f"{desc} (precio se queda en {fila['precio']:,.0f})")
+fila = pm("RENTA","bodega industrial",120,10750,texto="$120 MXN por m²")
+via, _m, _b = S.resolver_precio_por_m2(fila)
+ok(via == "anuncio" and fila["precio"] == 1_290_000, "bodega '$120 por m2' x 10,750 m2 = $1.29M/mes (si es por m2)")
+fila = pm("VENTA","terreno",100,1000,texto="$100 MXN por m²")
+via, _m, _b = S.resolver_precio_por_m2(fila)
+ok(via is None and fila["precio"] == 100, "si ninguna lectura es creible no se toca (las guardas deciden)")
+fila = pm("VENTA","terreno",18_000,164.65,texto="$18,000 MXN por m²")
+S.resolver_precio_por_m2(fila)
+ok(fila["precio"] == 2_963_700 and fila["pm2_pub"] == 18_000, "terreno '$18,000 por m2' x 164.65 m2 sigue convirtiendose a $2.96M")
+
+print("── ARCHIVO PARA CHATGPT")
+base = {"eb": "EB-WX1234", "operacion": "VENTA", "segmento": "vivienda", "tipo": "casa en condominio", "municipio": "Zapopan",
+        "colonia": "Valle Real", "titulo": "Casa en Valle Real", "precio": 9_900_000, "m2": 247.0, "recamaras": 3, "banos": 3.5,
+        "niveles": 2, "foto": "https://assets.easybroker.com/property_images/1/2/EB-WX1234.jpg?height=300&version=9&width=450",
+        "liga": "https://www.aciertamax.com/property/casa-valle-real", "lat": 20.7, "lon": -103.4}
+r = S.fila_chatgpt(base, "2026-10-04")
+from urllib.parse import unquote, urlparse, parse_qs
+texto_wa = parse_qs(urlparse(r["liga_whatsapp"]).query)["text"][0]
+ok("EB-WX1234" in texto_wa and "venta" in texto_wa and "ficha.html?eb=EB-WX1234&op=VENTA" in texto_wa and r["liga_whatsapp"].startswith("https://wa.me/523333777337?text="),
+   "la liga de WhatsApp trae la clave EB, la operacion y la ficha (asi la lee Wati/MAX)")
+ok(r["precio_texto"] == "$9,900,000 MXN" and r["rango_precio"] == "$8 a $12 millones", f"precio redactado y rango: {r['precio_texto']} / {r['rango_precio']}")
+ok(r["datos_clave"] == "3 recamaras · 3.5 banos · 247 m2 · 2 niveles", f"datos clave: {r['datos_clave']}")
+ok(r["imagen_titular"] == "Casa en condominio en venta" and r["imagen_ubicacion"] == "Valle Real, Zapopan" and r["imagen_precio"] == "$9,900,000 MXN", "textos para la imagen")
+ok("width=1200" in r["foto_principal"] and "width=450" in r["foto_miniatura"], "foto grande y miniatura de respaldo")
+ok(r["hashtags_sugeridos"].startswith("#AciertaMax #Zapopan #CasaEnVenta") and "#ValleReal" in r["hashtags_sugeridos"], f"hashtags: {r['hashtags_sugeridos']}")
+ok(r["apto_para_publicar"] == "si" and r["grupo_tipo"] == "casa" and r["precio_por_m2"] == 40081, "apto = si, grupo y precio por m2")
+rr = S.fila_chatgpt(dict(base, _revisar=True, _nota="precio dudoso"), "2026-10-04")
+ok(rr["apto_para_publicar"] == "revisar" and "dudoso" in rr["nota_calidad"], "una ficha con duda de precio sale como 'revisar'")
+rs = S.fila_chatgpt(dict(base, m2=None, tipo="terreno", recamaras=None, banos=None, niveles=None), "2026-10-04")
+ok(rs["m2"] == "" and "no mencionar m2" in rs["nota_calidad"].lower() and rs["datos_clave"] == "", "sin m2 confiable: dato vacio y nota para no mencionarlo")
+rn = S.fila_chatgpt(dict(base, eb=""), "2026-10-04")
+ok(rn["apto_para_publicar"] == "revisar", "sin clave EB no es apta (Wati no podria identificarla)")
+rent = S.fila_chatgpt(dict(base, operacion="RENTA", precio=18_500, m2=90.0), "2026-10-04")
+ok(rent["precio_texto"] == "$18,500 MXN al mes" and rent["rango_precio"] == "$12,000 a $18,000 al mes".replace("$12,000 a $18,000", "$18,000 a $25,000") and "op=RENTA" in rent["liga_ficha_acierta_pro"], f"renta: {rent['precio_texto']} / {rent['rango_precio']}")
+com = S.fila_chatgpt(dict(base, segmento="comercial", tipo="bodega industrial", recamaras=None, banos=None, niveles=None), "2026-10-04")
+ok("#InmueblesComerciales" in com["hashtags_sugeridos"] and com["grupo_tipo"] == "bodega", "comercial: hashtags y grupo propios")
+
+import tempfile as _tf, os as _os
+_d = _tf.mkdtemp(); _os.chdir(_d)
+n = S.escribir_chatgpt([dict(base), dict(base, eb="EB-ZZ0001", segmento="comercial", tipo="oficina", operacion="RENTA", precio=25_000, m2=20.0)], "2026-10-04")
+import csv as _csv
+filas_csv = list(_csv.DictReader(open("inventario-chatgpt.csv", encoding="utf-8")))
+ok(n == 2 and len(filas_csv) == 2 and set(filas_csv[0].keys()) == {c for c, _d2 in S.COLUMNAS_CHATGPT}, "CSV con todas las columnas documentadas")
+from openpyxl import load_workbook
+wb = load_workbook("inventario-chatgpt.xlsx")
+ok(wb.sheetnames == ["Leeme", "Inventario", "Guia de columnas"], f"Excel con hojas: {wb.sheetnames}")
+ok(wb["Inventario"].auto_filter.ref is not None and wb["Inventario"].freeze_panes == "B2" and wb["Inventario"].max_row == 3, "Excel con filtros y encabezado fijo")
+ok(wb["Guia de columnas"].max_row == len(S.COLUMNAS_CHATGPT) + 1, "la guia describe cada columna")
+
 print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")
 ok(S.normalizar_municipio("Tlajomulco de Zúñiga", "tlajomulco-de-zuniga") == "Tlajomulco de Zúñiga", "Tlajomulco de Zúñiga es parte de la zona")
@@ -176,6 +236,10 @@ ok("EB-B1" in an and "BLOQUEADA" in an, "la ficha con precio imposible queda en 
 sf = open(os.path.join(d,"reportes","inventario","sin_foto.csv"), encoding="utf-8").read()
 ok("EB-F1" in sf, "la ficha sin foto queda en el reporte de sin foto")
 ok(os.path.exists(os.path.join(d,"inventario.csv")) and os.path.exists(os.path.join(d,"inventario-meta.json")), "genera inventario.csv e inventario-meta.json")
+ok(os.path.exists(os.path.join(d,"inventario-chatgpt.csv")) and os.path.exists(os.path.join(d,"inventario-chatgpt.xlsx")), "la corrida tambien genera el archivo para ChatGPT (CSV y Excel)")
+import csv as _c2
+cg = list(_c2.DictReader(open(os.path.join(d,"inventario-chatgpt.csv"), encoding="utf-8")))
+ok(len(cg) == len(data) and all(r["codigo_eb"].startswith("EB-") for r in cg), f"el archivo de ChatGPT tiene las {len(cg)} fichas publicadas, todas con clave EB")
 
 print("── FRENO DE FOTOS: si faltan demasiadas, algo fallo -> NO se descartan")
 muchas_sin_foto = {("VENTA","zapopan"): [tarjeta(f"EB-S{i}","VENTA","Zapopan","casa",2_000_000+i,90,foto=None) for i in range(30)] +

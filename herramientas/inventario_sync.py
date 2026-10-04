@@ -124,6 +124,14 @@ UMBRAL_PM2 = {                 # (operacion, moneda_es_mxn) -> si el precio es m
     ("VENTA", False): 5_000,
     ("RENTA", False): 60,
 }
+# Rango creible de precio POR m2 (pesos; en renta, por mes). Sirve para decidir si el numero de un anuncio
+# "por m2" es de verdad el precio por m2 o ya es el total (error de captura frecuente en EasyBroker).
+RANGO_UNIT = {
+    ("VENTA", True): (150, 250_000),
+    ("RENTA", True): (30, 3_000),
+    ("VENTA", False): (8, 12_000),
+    ("RENTA", False): (1, 120),
+}
 MARCADOR_POR_M2 = re.compile(r"(por|x|/)\s*m\s*(2|²|etro)", re.I)
 
 BANOS_MAX_CREIBLE = 30
@@ -244,7 +252,10 @@ def sanear_m2(fila):
 
 def resolver_precio_por_m2(fila):
     """Convierte un precio por m2 a precio total. Devuelve (via, motivo, bloquea):
-    via in {None, 'anuncio', 'inferido'}."""
+    via in {None, 'anuncio', 'inferido', 'total'}.
+      'anuncio'  : el anuncio dice "por m2" y el numero es creible como precio por m2 -> se convierte a total.
+      'inferido' : el anuncio no lo dice, pero el numero es imposible como total -> se convierte (con aviso).
+      'total'    : el anuncio dice "por m2" pero el numero ya es el total (error de captura) -> se deja igual (con aviso)."""
     precio, m2 = fila.get("precio"), fila.get("m2")
     if not precio:
         return None, "", False
@@ -253,16 +264,28 @@ def resolver_precio_por_m2(fila):
     es_mxn = (fila.get("moneda") or "MXN") == "MXN"
     op = fila["operacion"]
     dice_por_m2 = bool(MARCADOR_POR_M2.search(texto))
-    infiere = (tipo.startswith(TIPOS_PRECIO_M2) and m2 is not None and m2 >= M2_MIN_INFERIR[op]
-               and precio < UMBRAL_PM2[(op, es_mxn)])
-    if not (dice_por_m2 or infiere):
-        return None, "", False
-    if not m2:
-        return None, f"el anuncio es por m2 ({precio:,.0f}) pero no trae superficie", True
+
+    if dice_por_m2:
+        if not m2:
+            return None, f"el anuncio es por m2 ({precio:,.0f}) pero no trae superficie", True
+        lo, hi = RANGO_UNIT[(op, es_mxn)]
+        unitario_b = precio / m2
+        if lo <= precio <= hi:
+            via = "anuncio"
+        elif lo <= unitario_b <= hi:
+            return "total", (f"el anuncio dice 'por m2' pero {precio:,.0f} es el total "
+                             f"(equivale a {unitario_b:,.0f} por m2)"), False
+        else:
+            return None, "", False          # ninguna lectura es creible: que decidan las guardas
+    else:
+        infiere = (tipo.startswith(TIPOS_PRECIO_M2) and m2 is not None and m2 >= M2_MIN_INFERIR[op]
+                   and precio < UMBRAL_PM2[(op, es_mxn)])
+        if not infiere:
+            return None, "", False
+        via = "inferido"
     total = round(precio * m2)
     fila["pm2_pub"] = precio
     fila["precio"] = total
-    via = "anuncio" if dice_por_m2 else "inferido"
     return via, f"precio por m2 {precio:,.0f} x {m2:,.0f} m2 = {total:,.0f} ({via})", False
 
 
@@ -540,12 +563,271 @@ def probar_foto_grande(filas, muestra=12):
 
 
 # ----------------------------------------------------------------------
+# ARCHIVO PARA CHATGPT (publicidad en redes) - CSV y Excel
+# ----------------------------------------------------------------------
+RUTA_CHATGPT_CSV = "inventario-chatgpt.csv"
+RUTA_CHATGPT_XLSX = "inventario-chatgpt.xlsx"
+WHATSAPP_ACIERTA = "523333777337"      # el mismo que usa el sitio (wa.me)
+SITIO = "https://acierta.pro"
+
+GRUPOS_TIPO = {   # igual que AM.GRUPOS_TIPO en js/comun.js
+    "casa": ("casa", "casa en condominio", "casa con uso de suelo", "quinta", "rancho", "villa"),
+    "departamento": ("departamento",),
+    "terreno": ("terreno", "terreno industrial", "terreno comercial"),
+    "local": ("local comercial", "local en centro comercial"),
+    "oficina": ("oficina",),
+    "bodega": ("bodega comercial", "bodega industrial", "nave industrial"),
+    "edificio": ("edificio",),
+}
+ETIQUETA_HASHTAG_TIPO = {"casa": "Casa", "departamento": "Departamento", "terreno": "Terreno",
+                         "local": "LocalComercial", "oficina": "Oficina", "bodega": "Bodega", "edificio": "Edificio"}
+HASHTAG_MUNICIPIO = {"Guadalajara": "Guadalajara", "Zapopan": "Zapopan", "Tlaquepaque": "Tlaquepaque",
+                     "Tonalá": "Tonala", "Tlajomulco de Zúñiga": "Tlajomulco"}
+RANGOS_VENTA = [(1e6, "Menos de $1 millon"), (2e6, "$1 a $2 millones"), (3e6, "$2 a $3 millones"),
+                (5e6, "$3 a $5 millones"), (8e6, "$5 a $8 millones"), (12e6, "$8 a $12 millones"),
+                (20e6, "$12 a $20 millones"), (40e6, "$20 a $40 millones")]
+RANGOS_RENTA = [(8000, "Menos de $8,000 al mes"), (12000, "$8,000 a $12,000 al mes"), (18000, "$12,000 a $18,000 al mes"),
+                (25000, "$18,000 a $25,000 al mes"), (40000, "$25,000 a $40,000 al mes"),
+                (60000, "$40,000 a $60,000 al mes"), (100000, "$60,000 a $100,000 al mes")]
+
+COLUMNAS_CHATGPT = [
+    ("codigo_eb", "Clave de la propiedad (EB-XXXXXX). Es la que Wati/MAX usa para identificar la propiedad: debe ir SIEMPRE en el texto."),
+    ("operacion", "VENTA o RENTA. Una misma clave EB puede aparecer en venta y en renta."),
+    ("segmento", "vivienda o comercial. Son clientes distintos: no se mezclan en una publicacion."),
+    ("tipo", "Tipo tal como lo captura EasyBroker (casa, departamento, terreno, local comercial, bodega industrial...)."),
+    ("grupo_tipo", "Tipo agrupado para filtrar: casa, departamento, terreno, local, oficina, bodega, edificio."),
+    ("municipio", "Guadalajara, Zapopan, Tlaquepaque, Tonala o Tlajomulco de Zuniga."),
+    ("colonia", "Colonia o zona, tal como viene del anuncio."),
+    ("titulo_anuncio", "Titulo original del anuncio en EasyBroker (sirve de referencia; no es obligatorio usarlo)."),
+    ("precio", "Precio numerico (total). En renta es por mes."),
+    ("moneda", "MXN o USD."),
+    ("precio_texto", "Precio ya redactado para usar en el texto (ej. $3,200,000 MXN o $18,500 MXN al mes)."),
+    ("precio_por_m2", "Precio total entre m2 (en renta, por mes). Vacio si no hay superficie confiable."),
+    ("precio_publicado_por_m2", "Si el anuncio original estaba por m2, aqui va ese precio; el total ya esta calculado en 'precio'."),
+    ("rango_precio", "Rango de precio para filtrar (ej. $3 a $5 millones)."),
+    ("m2", "Superficie en m2. Vacia = no se conoce o no es confiable: NO mencionarla."),
+    ("recamaras", "Numero de recamaras (vivienda). Vacio = no se conoce."),
+    ("banos", "Numero de banos. Vacio = no se conoce."),
+    ("niveles", "Numero de niveles/plantas. Vacio = no se conoce."),
+    ("lat", "Latitud."),
+    ("lon", "Longitud."),
+    ("foto_principal", "Foto principal en tamano grande (1200x800 aprox.). Usar para la imagen."),
+    ("foto_miniatura", "La misma foto en miniatura (respaldo si la grande no abre)."),
+    ("liga_aciertamax", "Anuncio original en aciertamax.com (la fuente)."),
+    ("liga_ficha_acierta_pro", "Ficha de la propiedad en acierta.pro (con comparador, mapa y simulador)."),
+    ("liga_whatsapp", "Liga de WhatsApp que ya trae el mensaje con la clave EB: al tocarla, Wati recibe la clave. Usar como llamada a la accion."),
+    ("imagen_titular", "Titular corto para la imagen (ej. Casa en venta)."),
+    ("imagen_ubicacion", "Ubicacion para la imagen (colonia, municipio)."),
+    ("imagen_datos", "Linea de datos para la imagen (recamaras, banos, m2). Puede estar vacia."),
+    ("imagen_precio", "Precio para la imagen."),
+    ("datos_clave", "Datos verificables de la propiedad para la descripcion. No agregar nada que no este aqui."),
+    ("hashtags_sugeridos", "Hashtags sugeridos."),
+    ("apto_para_publicar", "si = se puede publicar. revisar = hay una duda en el precio: NO publicar sin autorizacion."),
+    ("nota_calidad", "Aviso sobre el dato (ej. precio calculado, m2 no confiable). Respetarlo."),
+    ("fecha_inventario", "Fecha de la actualizacion del inventario."),
+]
+
+
+def _txt_precio(f):
+    n = f.get("precio") or 0
+    moneda = f.get("moneda") or "MXN"
+    sufijo = " al mes" if f["operacion"] == "RENTA" else ""
+    return f"${n:,.0f} {moneda}{sufijo}"
+
+
+def _rango_precio(f):
+    if (f.get("moneda") or "MXN") != "MXN":
+        return "En dolares (USD)"
+    n = f.get("precio") or 0
+    if f["operacion"] == "RENTA":
+        for tope, texto in RANGOS_RENTA:
+            if n < tope:
+                return texto
+        return "Mas de $100,000 al mes"
+    for tope, texto in RANGOS_VENTA:
+        if n < tope:
+            return texto
+    return "Mas de $40 millones"
+
+
+def _grupo_tipo(tipo):
+    t = sin_acentos(tipo)
+    for grupo, tipos in GRUPOS_TIPO.items():
+        if t in tipos:
+            return grupo
+    return "otro"
+
+
+def _plural(n, uno, varios):
+    n = float(n)
+    num = f"{n:g}"
+    return f"{num} {uno if n == 1 else varios}"
+
+
+def _datos_clave(f):
+    partes = []
+    if f.get("recamaras"):
+        partes.append(_plural(f["recamaras"], "recamara", "recamaras"))
+    if f.get("banos"):
+        partes.append(_plural(f["banos"], "bano", "banos"))
+    if f.get("m2"):
+        partes.append(f"{f['m2']:,.0f} m2")
+    if f.get("niveles"):
+        partes.append(_plural(f["niveles"], "nivel", "niveles"))
+    return " · ".join(partes)
+
+
+def _hashtag(texto):
+    limpio = re.sub(r"[^A-Za-z0-9 ]", "", sin_acentos(texto))
+    palabras = [w.capitalize() for w in limpio.split()]
+    return "#" + "".join(palabras)[:28] if palabras else ""
+
+
+def _hashtags(f):
+    grupo = _grupo_tipo(f["tipo"])
+    en = "EnVenta" if f["operacion"] == "VENTA" else "EnRenta"
+    tags = ["#AciertaMax", "#" + HASHTAG_MUNICIPIO.get(f["municipio"], "Guadalajara"),
+            "#" + ETIQUETA_HASHTAG_TIPO.get(grupo, "Propiedad") + en]
+    tags.append("#InmueblesComerciales" if f.get("segmento") == "comercial" else "#BienesRaicesGDL")
+    col = _hashtag(f.get("colonia") or "")
+    if col and col.lower() not in [t.lower() for t in tags]:
+        tags.append(col)
+    return " ".join(tags)
+
+
+def _liga_whatsapp(f):
+    from urllib.parse import quote
+    op = "venta" if f["operacion"] == "VENTA" else "renta"
+    ficha = f"{SITIO}/ficha.html?eb={f['eb']}&op={f['operacion']}"
+    texto = f"Hola, me interesa esta propiedad: {f.get('titulo') or ''} ({f['eb']}, {op}) — {ficha}"
+    return f"https://wa.me/{WHATSAPP_ACIERTA}?text={quote(texto)}"
+
+
+def fila_chatgpt(f, fecha):
+    """Una fila del archivo para ChatGPT a partir de una ficha publicada."""
+    op = "venta" if f["operacion"] == "VENTA" else "renta"
+    m2 = f.get("m2")
+    precio = f.get("precio") or 0
+    tipo = (f.get("tipo") or "").strip()
+    nota = f.get("_nota", "")
+    if not f.get("eb"):
+        nota = (nota + " | " if nota else "") + "Sin clave EB: Wati no podria identificarla"
+    if not m2 and "m2" not in nota.lower():
+        nota = (nota + " | " if nota else "") + "Sin superficie confiable (no mencionar m2)"
+    return {
+        "codigo_eb": f["eb"], "operacion": f["operacion"], "segmento": f.get("segmento", "vivienda"),
+        "tipo": tipo, "grupo_tipo": _grupo_tipo(tipo), "municipio": f["municipio"], "colonia": f.get("colonia") or "",
+        "titulo_anuncio": f.get("titulo") or "", "precio": round(precio), "moneda": f.get("moneda") or "MXN",
+        "precio_texto": _txt_precio(f),
+        "precio_por_m2": round(precio / m2) if (m2 and precio) else "",
+        "precio_publicado_por_m2": f.get("pm2_pub") or "",
+        "rango_precio": _rango_precio(f), "m2": round(m2, 1) if m2 else "",
+        "recamaras": f.get("recamaras") or "", "banos": f.get("banos") or "", "niveles": f.get("niveles") or "",
+        "lat": f.get("lat") or "", "lon": f.get("lon") or "",
+        "foto_principal": foto_con_tamano(f.get("foto"), 1200, 800) if f.get("foto") else "",
+        "foto_miniatura": f.get("foto") or "",
+        "liga_aciertamax": f.get("liga") or "",
+        "liga_ficha_acierta_pro": f"{SITIO}/ficha.html?eb={f['eb']}&op={f['operacion']}",
+        "liga_whatsapp": _liga_whatsapp(f),
+        "imagen_titular": f"{tipo[:1].upper()}{tipo[1:]} en {op}",
+        "imagen_ubicacion": ", ".join(x for x in [f.get("colonia"), f["municipio"]] if x),
+        "imagen_datos": _datos_clave(f), "imagen_precio": _txt_precio(f),
+        "datos_clave": _datos_clave(f), "hashtags_sugeridos": _hashtags(f),
+        "apto_para_publicar": "revisar" if f.get("_revisar") or not f.get("foto") or not precio or not f.get("eb") else "si",
+        "nota_calidad": nota, "fecha_inventario": fecha,
+    }
+
+
+def escribir_chatgpt(filas, fecha):
+    """Escribe inventario-chatgpt.csv e inventario-chatgpt.xlsx. Devuelve el numero de filas."""
+    cols = [c for c, _d in COLUMNAS_CHATGPT]
+    registros = [fila_chatgpt(f, fecha) for f in filas]
+    registros.sort(key=lambda r: (r["segmento"], r["operacion"], r["municipio"], -(r["precio"] or 0)))
+    with open(RUTA_CHATGPT_CSV, "w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, fieldnames=cols)
+        w.writeheader()
+        w.writerows(registros)
+    escribir_xlsx(RUTA_CHATGPT_XLSX, registros, fecha)
+    return len(registros)
+
+
+def escribir_xlsx(ruta, registros, fecha):
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+    cols = [c for c, _d in COLUMNAS_CHATGPT]
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Inventario"
+    ws.append(cols)
+    for r in registros:
+        ws.append([r[c] for c in cols])
+    fuente = Font(name="Arial", size=10)
+    cab = Font(name="Arial", size=10, bold=True, color="FFFFFF")
+    relleno = PatternFill("solid", fgColor="0F1F3D")
+    for celda in ws[1]:
+        celda.font, celda.fill = cab, relleno
+        celda.alignment = Alignment(vertical="center", wrap_text=True)
+    for fila in ws.iter_rows(min_row=2):
+        for celda in fila:
+            celda.font = fuente
+    anchos = {"codigo_eb": 12, "operacion": 10, "segmento": 11, "tipo": 20, "grupo_tipo": 13, "municipio": 20, "colonia": 24,
+              "titulo_anuncio": 46, "precio": 14, "precio_texto": 24, "rango_precio": 24, "imagen_titular": 24,
+              "imagen_ubicacion": 30, "imagen_datos": 34, "imagen_precio": 24, "datos_clave": 34, "hashtags_sugeridos": 50,
+              "nota_calidad": 44, "apto_para_publicar": 12, "foto_principal": 40, "liga_whatsapp": 40,
+              "liga_ficha_acierta_pro": 40, "liga_aciertamax": 40, "foto_miniatura": 30}
+    for i, c in enumerate(cols, 1):
+        ws.column_dimensions[get_column_letter(i)].width = anchos.get(c, 11)
+    for c in ("precio", "precio_por_m2", "precio_publicado_por_m2"):
+        letra = get_column_letter(cols.index(c) + 1)
+        for celda in ws[letra][1:]:
+            celda.number_format = "#,##0"
+    ws.freeze_panes = "B2"
+    ws.auto_filter.ref = ws.dimensions
+    ws.row_dimensions[1].height = 30
+
+    gu = wb.create_sheet("Guia de columnas")
+    gu.append(["Columna", "Que contiene / como usarla"])
+    for c, d in COLUMNAS_CHATGPT:
+        gu.append([c, d])
+    for celda in gu[1]:
+        celda.font, celda.fill = cab, relleno
+    for fila in gu.iter_rows(min_row=2):
+        for celda in fila:
+            celda.font = fuente
+            celda.alignment = Alignment(wrap_text=True, vertical="top")
+    gu.column_dimensions["A"].width = 26
+    gu.column_dimensions["B"].width = 120
+    gu.freeze_panes = "A2"
+
+    lee = wb.create_sheet("Leeme")
+    lineas = [
+        f"Inventario de Acierta Max para publicidad - actualizado el {fecha}",
+        "Fuente: aciertamax.com (EasyBroker). Se actualiza el dia 3 de cada mes.",
+        "Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonala y Tlajomulco de Zuniga.",
+        "Usar los filtros de la fila de encabezados (segmento, operacion, municipio, tipo, rango_precio...).",
+        "Publicar solo filas con apto_para_publicar = si. Las marcadas 'revisar' tienen una duda en el precio.",
+        "La clave codigo_eb (EB-XXXXXX) debe ir siempre en el texto: asi Wati identifica la propiedad.",
+    ]
+    for l in lineas:
+        lee.append([l])
+    lee["A1"].font = Font(name="Arial", size=12, bold=True)
+    for fila in lee.iter_rows(min_row=2):
+        fila[0].font = fuente
+    lee.column_dimensions["A"].width = 110
+    wb.move_sheet("Leeme", offset=-2)
+    wb.save(ruta)
+
+
+# ----------------------------------------------------------------------
 # PRINCIPAL
 # ----------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--paginas-max", type=int, default=0, help="limita paginas por municipio/operacion (pruebas)")
     ap.add_argument("--sin-escribir", action="store_true", help="no escribe data.json (pruebas)")
+    ap.add_argument("--solo-exportar", action="store_true",
+                    help="no rastrea ni cambia data.json: solo regenera el archivo para ChatGPT (CSV y Excel)")
     ap.add_argument("--reusar-data", action="store_true",
                     help="no rastrea: aplica 4 municipios, segmento y guardas de precio a data.json existente")
     args = ap.parse_args()
@@ -553,6 +835,10 @@ def main():
     ahora = datetime.now(timezone.utc)
     fecha = ahora.strftime("%Y-%m-%d")
     previo = cargar_previo(RUTA_DATA)
+    if args.solo_exportar:
+        n = escribir_chatgpt(previo, fecha)
+        print(f"Archivo para ChatGPT regenerado: {n:,} fichas -> {RUTA_CHATGPT_CSV} y {RUTA_CHATGPT_XLSX}")
+        return
     previas = {clave(p): p for p in previo}
     municipios_ok = set(MUNICIPIOS.values())
     previo_zona = [p for p in previo if p.get("municipio") in municipios_ok]
@@ -627,24 +913,37 @@ def main():
 
     # --- guardas de precio
     publicables, bloqueadas, avisos = [], [], []
-    conversiones = []
+    conversiones, total_en_realidad = [], []
     for f in filas:
         aviso_m2 = sanear_m2(f)
         via_pm2, motivo_pm2, bloquea_pm2 = resolver_precio_por_m2(f)
+        notas, revisar = [], False
         if bloquea_pm2:
             nivel, motivo = "bloquea", motivo_pm2
         else:
             nivel, motivo = evaluar_precio(f)
-            if via_pm2:
+            if via_pm2 in ("anuncio", "inferido"):
                 conversiones.append((f, via_pm2, motivo_pm2))
-                if via_pm2 == "inferido":
-                    motivo = (motivo + " | " if motivo else "") + motivo_pm2
-                    if nivel == "ok":
-                        nivel = "aviso"
+            if via_pm2 == "anuncio":
+                notas.append(f"Precio total calculado: ${f['pm2_pub']:,.0f} por m2 x {f['m2']:,.0f} m2")
+            if via_pm2 in ("inferido", "total"):
+                if via_pm2 == "total":
+                    total_en_realidad.append(f)
+                motivo = (motivo + " | " if motivo else "") + motivo_pm2
+                revisar = True
+                if nivel == "ok":
+                    nivel = "aviso"
+            if nivel == "aviso":
+                revisar = True
+        if revisar and motivo:
+            notas.append(motivo)
         if aviso_m2:
             motivo = (motivo + " | " if motivo else "") + aviso_m2
+            notas.append(aviso_m2 + " (no mencionar m2)")
             if nivel == "ok":
                 nivel = "aviso"
+        f["_nota"] = " | ".join(notas)
+        f["_revisar"] = revisar
         if nivel == "bloquea":
             bloqueadas.append((f, motivo))
         else:
@@ -680,6 +979,7 @@ def main():
         with open(RUTA_DATA, "w", encoding="utf-8") as fh:
             json.dump(salida, fh, ensure_ascii=False, separators=(",", ":"))
         escribir_csv(RUTA_CSV, salida)
+        escribir_chatgpt(publicables, fecha)
         with open(RUTA_META, "w", encoding="utf-8") as fh:
             json.dump({
                 "actualizado": ahora.isoformat(timespec="seconds"), "total": len(salida),
@@ -726,6 +1026,8 @@ def main():
         f"- Precios por m2 convertidos a total: {sum(1 for f, v, m in conversiones if f in publicables)} "
         f"(el anuncio lo dice: {sum(1 for f, v, m in conversiones if v == 'anuncio' and f in publicables)}"
         f" | inferidos, con aviso: {sum(1 for f, v, m in conversiones if v == 'inferido' and f in publicables)})",
+        f"- Anuncios que dicen 'por m2' pero el numero ya era el total (error de captura en EasyBroker, se publican tal cual con aviso): "
+        f"{sum(1 for f in total_en_realidad if f in publicables)}",
         f"- Fotos rescatadas desde la pagina de detalle: {rescatadas}",
         f"- Fichas sin foto: {len(sin_foto)} "
         + ("(sin rastreo / FRENO: no se descartaron)" if freno_foto else f"(descartadas del sitio: {len(descartadas_sin_foto)})"),

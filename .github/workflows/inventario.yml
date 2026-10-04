@@ -1,11 +1,12 @@
 name: Actualizar inventario
 
 # Trae el inventario de aciertamax.com, lo clasifica (vivienda/comercial), aplica las
-# guardas de precio y publica data.json en acierta.pro. Corre solo cada lunes y
-# tambien a mano desde la pestana Actions -> "Actualizar inventario" -> Run workflow.
+# guardas de precio y publica data.json en acierta.pro, mas el archivo para ChatGPT.
+# Corre solo el dia 3 de cada mes y tambien a mano desde la pestana Actions ->
+# "Actualizar inventario" -> Run workflow.
 on:
   schedule:
-    - cron: '0 11 * * 1'      # lunes 05:00 hora de Guadalajara
+    - cron: '0 11 3 * *'      # dia 3 de cada mes, 05:00 hora de Guadalajara
   push:
     paths:
       - 'herramientas/disparar_inventario.txt'   # subir una marca en este archivo tambien la arranca
@@ -36,7 +37,7 @@ jobs:
           python-version: '3.12'
 
       - name: Instalar dependencias
-        run: pip install requests beautifulsoup4 pillow
+        run: pip install requests beautifulsoup4 pillow openpyxl
 
       - name: Definir modo (prueba o completa)
         id: modo
@@ -74,7 +75,7 @@ jobs:
           git config user.email "inventario-bot@users.noreply.github.com"
           git add reportes/inventario
           if [ "${{ steps.modo.outputs.prueba }}" != "true" ]; then
-            git add data.json inventario.csv inventario-meta.json 2>/dev/null || true
+            git add data.json inventario.csv inventario-meta.json inventario-chatgpt.csv inventario-chatgpt.xlsx 2>/dev/null || true
           fi
           if git diff --cached --quiet; then
             echo "Sin cambios que publicar"
