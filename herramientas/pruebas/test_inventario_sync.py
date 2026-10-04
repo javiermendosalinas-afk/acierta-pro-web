@@ -1,3 +1,4 @@
+import re
 import os, sys, json, importlib.util, tempfile, shutil, io, contextlib
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 spec = importlib.util.spec_from_file_location("S", os.path.join(RAIZ, "herramientas", "inventario_sync.py"))
@@ -146,7 +147,7 @@ texto_wa = parse_qs(urlparse(r["liga_whatsapp"]).query)["text"][0]
 ok("EB-WX1234" in texto_wa and "venta" in texto_wa and "ficha.html?eb=EB-WX1234&op=VENTA" in texto_wa and r["liga_whatsapp"].startswith("https://wa.me/523333777337?text="),
    "la liga de WhatsApp trae la clave EB, la operacion y la ficha (asi la lee Wati/MAX)")
 ok(r["precio_texto"] == "$9,900,000 MXN" and r["rango_precio"] == "$8 a $12 millones", f"precio redactado y rango: {r['precio_texto']} / {r['rango_precio']}")
-ok(r["datos_clave"] == "3 recamaras · 3.5 banos · 247 m2 · 2 niveles", f"datos clave: {r['datos_clave']}")
+ok(r["datos_clave"] == "3 recámaras · 3.5 baños · 247 m² · 2 niveles", f"datos clave: {r['datos_clave']}")
 ok(r["imagen_titular"] == "Casa en condominio en venta" and r["imagen_ubicacion"] == "Valle Real, Zapopan" and r["imagen_precio"] == "$9,900,000 MXN", "textos para la imagen")
 ok("width=1200" in r["foto_principal"] and "width=450" in r["foto_miniatura"], "foto grande y miniatura de respaldo")
 ok(r["hashtags_sugeridos"].startswith("#AciertaMax #Zapopan #CasaEnVenta") and "#ValleReal" in r["hashtags_sugeridos"], f"hashtags: {r['hashtags_sugeridos']}")
@@ -154,7 +155,7 @@ ok(r["apto_para_publicar"] == "si" and r["grupo_tipo"] == "casa" and r["precio_p
 rr = S.fila_chatgpt(dict(base, _revisar=True, _nota="precio dudoso"), "2026-10-04")
 ok(rr["apto_para_publicar"] == "revisar" and "dudoso" in rr["nota_calidad"], "una ficha con duda de precio sale como 'revisar'")
 rs = S.fila_chatgpt(dict(base, m2=None, tipo="terreno", recamaras=None, banos=None, niveles=None), "2026-10-04")
-ok(rs["m2"] == "" and "no mencionar m2" in rs["nota_calidad"].lower() and rs["datos_clave"] == "", "sin m2 confiable: dato vacio y nota para no mencionarlo")
+ok(rs["m2"] == "" and "no mencionar m²" in rs["nota_calidad"].lower() and rs["datos_clave"] == "", "sin m2 confiable: dato vacio y nota para no mencionarlo")
 rn = S.fila_chatgpt(dict(base, eb=""), "2026-10-04")
 ok(rn["apto_para_publicar"] == "revisar", "sin clave EB no es apta (Wati no podria identificarla)")
 rent = S.fila_chatgpt(dict(base, operacion="RENTA", precio=18_500, m2=90.0), "2026-10-04")
@@ -173,6 +174,10 @@ wb = load_workbook("inventario-chatgpt.xlsx")
 ok(wb.sheetnames == ["Leeme", "Inventario", "Guia de columnas"], f"Excel con hojas: {wb.sheetnames}")
 ok(wb["Inventario"].auto_filter.ref is not None and wb["Inventario"].freeze_panes == "B2" and wb["Inventario"].max_row == 3, "Excel con filtros y encabezado fijo")
 ok(wb["Guia de columnas"].max_row == len(S.COLUMNAS_CHATGPT) + 1, "la guia describe cada columna")
+
+ok(S.fila_chatgpt(dict(base, tipo="rancho"), "2026-10-04")["hashtags_sugeridos"].startswith("#AciertaMax #Zapopan #RanchoEnVenta"), "un rancho lleva #RanchoEnVenta, no #CasaEnVenta")
+ok(S.fila_chatgpt(dict(base, revisar=True, nota="precio dudoso"), "2026-10-04")["apto_para_publicar"] == "revisar", "las banderas guardadas en data.json (revisar/nota) se respetan al regenerar el archivo")
+ok(not re.search(r"recamara|\bbanos\b|\bm2\b", " ".join(str(v) for k, v in S.fila_chatgpt(base, "2026-10-04").items() if k in ("datos_clave", "imagen_datos", "nota_calidad", "rango_precio"))), "los textos para publicar llevan acentos y ñ (recámaras, baños, m²)")
 
 print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")

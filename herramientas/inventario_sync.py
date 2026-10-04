@@ -583,7 +583,7 @@ ETIQUETA_HASHTAG_TIPO = {"casa": "Casa", "departamento": "Departamento", "terren
                          "local": "LocalComercial", "oficina": "Oficina", "bodega": "Bodega", "edificio": "Edificio"}
 HASHTAG_MUNICIPIO = {"Guadalajara": "Guadalajara", "Zapopan": "Zapopan", "Tlaquepaque": "Tlaquepaque",
                      "Tonalá": "Tonala", "Tlajomulco de Zúñiga": "Tlajomulco"}
-RANGOS_VENTA = [(1e6, "Menos de $1 millon"), (2e6, "$1 a $2 millones"), (3e6, "$2 a $3 millones"),
+RANGOS_VENTA = [(1e6, "Menos de $1 millón"), (2e6, "$1 a $2 millones"), (3e6, "$2 a $3 millones"),
                 (5e6, "$3 a $5 millones"), (8e6, "$5 a $8 millones"), (12e6, "$8 a $12 millones"),
                 (20e6, "$12 a $20 millones"), (40e6, "$20 a $40 millones")]
 RANGOS_RENTA = [(8000, "Menos de $8,000 al mes"), (12000, "$8,000 a $12,000 al mes"), (18000, "$12,000 a $18,000 al mes"),
@@ -592,39 +592,39 @@ RANGOS_RENTA = [(8000, "Menos de $8,000 al mes"), (12000, "$8,000 a $12,000 al m
 
 COLUMNAS_CHATGPT = [
     ("codigo_eb", "Clave de la propiedad (EB-XXXXXX). Es la que Wati/MAX usa para identificar la propiedad: debe ir SIEMPRE en el texto."),
-    ("operacion", "VENTA o RENTA. Una misma clave EB puede aparecer en venta y en renta."),
-    ("segmento", "vivienda o comercial. Son clientes distintos: no se mezclan en una publicacion."),
+    ("operacion", "VENTA o RENTA. Una misma clave EB puede aparecer en venta y en renta: la clave siempre va junto con la operación."),
+    ("segmento", "vivienda o comercial. Son clientes distintos: no se mezclan en una publicación."),
     ("tipo", "Tipo tal como lo captura EasyBroker (casa, departamento, terreno, local comercial, bodega industrial...)."),
     ("grupo_tipo", "Tipo agrupado para filtrar: casa, departamento, terreno, local, oficina, bodega, edificio."),
-    ("municipio", "Guadalajara, Zapopan, Tlaquepaque, Tonala o Tlajomulco de Zuniga."),
+    ("municipio", "Guadalajara, Zapopan, Tlaquepaque, Tonalá o Tlajomulco de Zúñiga."),
     ("colonia", "Colonia o zona, tal como viene del anuncio."),
-    ("titulo_anuncio", "Titulo original del anuncio en EasyBroker (sirve de referencia; no es obligatorio usarlo)."),
-    ("precio", "Precio numerico (total). En renta es por mes."),
+    ("titulo_anuncio", "Título original del anuncio en EasyBroker (sirve de referencia; no es obligatorio usarlo)."),
+    ("precio", "Precio numérico (total). En renta es por mes."),
     ("moneda", "MXN o USD."),
     ("precio_texto", "Precio ya redactado para usar en el texto (ej. $3,200,000 MXN o $18,500 MXN al mes)."),
-    ("precio_por_m2", "Precio total entre m2 (en renta, por mes). Vacio si no hay superficie confiable."),
-    ("precio_publicado_por_m2", "Si el anuncio original estaba por m2, aqui va ese precio; el total ya esta calculado en 'precio'."),
+    ("precio_por_m2", "Precio total entre m² (en renta, por mes). Vacío si no hay superficie confiable."),
+    ("precio_publicado_por_m2", "Si el anuncio original estaba por m², aquí va ese precio; el total ya está calculado en 'precio'."),
     ("rango_precio", "Rango de precio para filtrar (ej. $3 a $5 millones)."),
-    ("m2", "Superficie en m2. Vacia = no se conoce o no es confiable: NO mencionarla."),
-    ("recamaras", "Numero de recamaras (vivienda). Vacio = no se conoce."),
-    ("banos", "Numero de banos. Vacio = no se conoce."),
-    ("niveles", "Numero de niveles/plantas. Vacio = no se conoce."),
+    ("m2", "Superficie en m². Vacía = no se conoce o no es confiable: NO mencionarla."),
+    ("recamaras", "Número de recámaras (vivienda). Vacío = no se conoce."),
+    ("banos", "Número de baños. Vacío = no se conoce."),
+    ("niveles", "Número de niveles o plantas. Vacío = no se conoce."),
     ("lat", "Latitud."),
     ("lon", "Longitud."),
-    ("foto_principal", "Foto principal en tamano grande (1200x800 aprox.). Usar para la imagen."),
+    ("foto_principal", "Foto principal en tamaño grande (1200x800 aprox.). Usar para la imagen."),
     ("foto_miniatura", "La misma foto en miniatura (respaldo si la grande no abre)."),
     ("liga_aciertamax", "Anuncio original en aciertamax.com (la fuente)."),
     ("liga_ficha_acierta_pro", "Ficha de la propiedad en acierta.pro (con comparador, mapa y simulador)."),
-    ("liga_whatsapp", "Liga de WhatsApp que ya trae el mensaje con la clave EB: al tocarla, Wati recibe la clave. Usar como llamada a la accion."),
+    ("liga_whatsapp", "Liga de WhatsApp que ya trae el mensaje con la clave EB: al tocarla, Wati recibe la clave. Usar como llamada a la acción."),
     ("imagen_titular", "Titular corto para la imagen (ej. Casa en venta)."),
-    ("imagen_ubicacion", "Ubicacion para la imagen (colonia, municipio)."),
-    ("imagen_datos", "Linea de datos para la imagen (recamaras, banos, m2). Puede estar vacia."),
+    ("imagen_ubicacion", "Ubicación para la imagen (colonia, municipio)."),
+    ("imagen_datos", "Línea de datos para la imagen (recámaras, baños, m²). Puede estar vacía."),
     ("imagen_precio", "Precio para la imagen."),
-    ("datos_clave", "Datos verificables de la propiedad para la descripcion. No agregar nada que no este aqui."),
+    ("datos_clave", "Datos verificables de la propiedad para la descripción. No agregar nada que no esté aquí."),
     ("hashtags_sugeridos", "Hashtags sugeridos."),
-    ("apto_para_publicar", "si = se puede publicar. revisar = hay una duda en el precio: NO publicar sin autorizacion."),
-    ("nota_calidad", "Aviso sobre el dato (ej. precio calculado, m2 no confiable). Respetarlo."),
-    ("fecha_inventario", "Fecha de la actualizacion del inventario."),
+    ("apto_para_publicar", "si = se puede publicar. revisar = hay una duda en el precio: NO publicar sin autorización de Javier."),
+    ("nota_calidad", "Aviso sobre el dato (ej. precio calculado, m² no confiable). Respetarlo."),
+    ("fecha_inventario", "Fecha de la actualización del inventario."),
 ]
 
 
@@ -637,17 +637,17 @@ def _txt_precio(f):
 
 def _rango_precio(f):
     if (f.get("moneda") or "MXN") != "MXN":
-        return "En dolares (USD)"
+        return "En dólares (USD)"
     n = f.get("precio") or 0
     if f["operacion"] == "RENTA":
         for tope, texto in RANGOS_RENTA:
             if n < tope:
                 return texto
-        return "Mas de $100,000 al mes"
+        return "Más de $100,000 al mes"
     for tope, texto in RANGOS_VENTA:
         if n < tope:
             return texto
-    return "Mas de $40 millones"
+    return "Más de $40 millones"
 
 
 def _grupo_tipo(tipo):
@@ -667,11 +667,11 @@ def _plural(n, uno, varios):
 def _datos_clave(f):
     partes = []
     if f.get("recamaras"):
-        partes.append(_plural(f["recamaras"], "recamara", "recamaras"))
+        partes.append(_plural(f["recamaras"], "recámara", "recámaras"))
     if f.get("banos"):
-        partes.append(_plural(f["banos"], "bano", "banos"))
+        partes.append(_plural(f["banos"], "baño", "baños"))
     if f.get("m2"):
-        partes.append(f"{f['m2']:,.0f} m2")
+        partes.append(f"{f['m2']:,.0f} m²")
     if f.get("niveles"):
         partes.append(_plural(f["niveles"], "nivel", "niveles"))
     return " · ".join(partes)
@@ -683,11 +683,15 @@ def _hashtag(texto):
     return "#" + "".join(palabras)[:28] if palabras else ""
 
 
+HASHTAG_TIPO_ESPECIFICO = {"rancho": "Rancho", "quinta": "Quinta", "villa": "Villa",
+                           "casa en condominio": "Casa", "casa con uso de suelo": "Casa"}
+
+
 def _hashtags(f):
     grupo = _grupo_tipo(f["tipo"])
     en = "EnVenta" if f["operacion"] == "VENTA" else "EnRenta"
-    tags = ["#AciertaMax", "#" + HASHTAG_MUNICIPIO.get(f["municipio"], "Guadalajara"),
-            "#" + ETIQUETA_HASHTAG_TIPO.get(grupo, "Propiedad") + en]
+    etiqueta = HASHTAG_TIPO_ESPECIFICO.get(sin_acentos(f["tipo"])) or ETIQUETA_HASHTAG_TIPO.get(grupo, "Propiedad")
+    tags = ["#AciertaMax", "#" + HASHTAG_MUNICIPIO.get(f["municipio"], "Guadalajara"), "#" + etiqueta + en]
     tags.append("#InmueblesComerciales" if f.get("segmento") == "comercial" else "#BienesRaicesGDL")
     col = _hashtag(f.get("colonia") or "")
     if col and col.lower() not in [t.lower() for t in tags]:
@@ -709,11 +713,13 @@ def fila_chatgpt(f, fecha):
     m2 = f.get("m2")
     precio = f.get("precio") or 0
     tipo = (f.get("tipo") or "").strip()
-    nota = f.get("_nota", "")
+    nota = f.get("_nota") or f.get("nota") or ""
+    revisar = f.get("_revisar") or f.get("revisar")
     if not f.get("eb"):
         nota = (nota + " | " if nota else "") + "Sin clave EB: Wati no podria identificarla"
     if not m2 and "m2" not in nota.lower():
         nota = (nota + " | " if nota else "") + "Sin superficie confiable (no mencionar m2)"
+    nota = re.sub(r"\bm2\b", "m²", nota)
     return {
         "codigo_eb": f["eb"], "operacion": f["operacion"], "segmento": f.get("segmento", "vivienda"),
         "tipo": tipo, "grupo_tipo": _grupo_tipo(tipo), "municipio": f["municipio"], "colonia": f.get("colonia") or "",
@@ -733,7 +739,7 @@ def fila_chatgpt(f, fecha):
         "imagen_ubicacion": ", ".join(x for x in [f.get("colonia"), f["municipio"]] if x),
         "imagen_datos": _datos_clave(f), "imagen_precio": _txt_precio(f),
         "datos_clave": _datos_clave(f), "hashtags_sugeridos": _hashtags(f),
-        "apto_para_publicar": "revisar" if f.get("_revisar") or not f.get("foto") or not precio or not f.get("eb") else "si",
+        "apto_para_publicar": "revisar" if revisar or not f.get("foto") or not precio or not f.get("eb") else "si",
         "nota_calidad": nota, "fecha_inventario": fecha,
     }
 
@@ -802,12 +808,12 @@ def escribir_xlsx(ruta, registros, fecha):
 
     lee = wb.create_sheet("Leeme")
     lineas = [
-        f"Inventario de Acierta Max para publicidad - actualizado el {fecha}",
-        "Fuente: aciertamax.com (EasyBroker). Se actualiza el dia 3 de cada mes.",
-        "Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonala y Tlajomulco de Zuniga.",
-        "Usar los filtros de la fila de encabezados (segmento, operacion, municipio, tipo, rango_precio...).",
+        f"Inventario de Acierta Max para publicidad · actualizado el {fecha}",
+        "Fuente: aciertamax.com (EasyBroker). Se actualiza el día 3 de cada mes.",
+        "Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonalá y Tlajomulco de Zúñiga.",
+        "Usar los filtros de la fila de encabezados (segmento, operación, municipio, tipo, rango_precio...).",
         "Publicar solo filas con apto_para_publicar = si. Las marcadas 'revisar' tienen una duda en el precio.",
-        "La clave codigo_eb (EB-XXXXXX) debe ir siempre en el texto: asi Wati identifica la propiedad.",
+        "La clave codigo_eb (EB-XXXXXX) debe ir siempre en el texto: así Wati identifica la propiedad.",
     ]
     for l in lineas:
         lee.append([l])
@@ -973,7 +979,14 @@ def main():
     foto_ok, foto_detalle = (None, "no aplica (sin rastreo)") if args.reusar_data else probar_foto_grande(publicables)
 
     # --- escribir
-    salida = [{k: v for k, v in f.items() if not k.startswith("_")} for f in publicables]
+    salida = []
+    for f in publicables:
+        fila_pub = {k: v for k, v in f.items() if not k.startswith("_")}
+        if f.get("_nota"):
+            fila_pub["nota"] = f["_nota"]
+        if f.get("_revisar"):
+            fila_pub["revisar"] = True
+        salida.append(fila_pub)
     os.makedirs(DIR_REPORTES, exist_ok=True)
     if not args.sin_escribir:
         with open(RUTA_DATA, "w", encoding="utf-8") as fh:
