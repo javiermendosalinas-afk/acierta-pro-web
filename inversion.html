@@ -360,7 +360,7 @@ document.getElementById('ayPlusvalia').innerHTML = AM.metodologiaPlusvaliaHTML()
 Promise.all([fetch('camino-datos.json').then(r => r.json()), fetch('proceso-datos.json').then(r => r.json())])
   .then(([cam, proc]) => { CFG = Object.assign({}, cam, { verifica: proc.tarifas.verifica }); })
   .catch(() => {});
-fetch('data.json').then(r => r.json()).then(d => { TODAS = d; actualizar(); })
+fetch('data.json').then(r => r.json()).then(d => { TODAS = AM.soloVivienda(d); actualizar(); })
   .catch(e => { console.error('inversion:', e); $('conteo').textContent = 'No se pudo cargar el inventario. Recarga la página.'; });
 </script>
 </body>

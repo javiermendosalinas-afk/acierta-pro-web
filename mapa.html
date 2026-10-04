@@ -143,7 +143,6 @@
             <option value="">Toda la ZMG</option>
             <option>Guadalajara</option>
             <option>Zapopan</option>
-            <option>Tlajomulco de Zúñiga</option>
             <option>Tlaquepaque</option>
             <option>Tonalá</option>
           </select>
@@ -419,7 +418,7 @@ document.getElementById('btnMas').addEventListener('click', pintarPagina);
 
 fetch('data.json')
   .then(r => r.json())
-  .then(data => { ALL_PROPS = data; actualizarResultados(); })
+  .then(data => { const seg = AM.segActual(); ALL_PROPS = data.filter(p => AM.segDe(p) === seg); actualizarResultados(); })
   .catch(() => {
     document.getElementById('panelCount').textContent = 'No se pudo cargar el inventario.';
     mostrarError('No se pudo cargar el inventario. Recarga la página.');

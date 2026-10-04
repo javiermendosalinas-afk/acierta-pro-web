@@ -172,6 +172,8 @@ img { max-width: 100%; display: block; }
 }
 .search-btn:hover { background: var(--red-dark); }
 
+.toggles-fila { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-bottom: 18px; }
+.toggles-fila .op-toggle { margin-bottom: 0; }
 .op-toggle {
   display: flex;
   gap: 6px;

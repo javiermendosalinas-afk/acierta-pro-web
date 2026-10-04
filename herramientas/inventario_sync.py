@@ -93,9 +93,12 @@ GUARDA_PM2_VENTA = {          # pesos por m2
     "comercial": (200_000, 600_000),
 }
 GUARDA_PM2_RENTA = {          # pesos por m2 al mes
-    "vivienda": (600, 1_500),
-    "comercial": (1_000, 3_000),
+    "vivienda": (800, 1_500),
+    "comercial": (2_500, 6_000),
 }
+# m2 por debajo de esto es casi seguro un error de captura (ej. una casa de "1 m2"):
+# no se bloquea la ficha por eso; se publica SIN m2 y se avisa.
+M2_MIN_CREIBLE = {"vivienda": 15, "terreno": 20, "comercial": 8}
 VENTA_ABS_BLOQUEA_MXN = 5_000_000_000      # sin m2: mas de 5 mil millones
 VENTA_ABS_AVISO_MXN = 500_000_000
 VENTA_USD_AVISO = 50_000_000
@@ -204,6 +207,24 @@ def clasificar_segmento(tipo, titulo):
 # ----------------------------------------------------------------------
 # GUARDAS DE PRECIO
 # ----------------------------------------------------------------------
+def grupo_m2(fila):
+    if sin_acentos(fila.get("tipo")).startswith("terreno"):
+        return "terreno"
+    return "comercial" if fila.get("segmento") == "comercial" else "vivienda"
+
+
+def sanear_m2(fila):
+    """Si los m2 son imposibles de creer, se publica sin m2 y se devuelve el aviso."""
+    m2 = fila.get("m2")
+    if m2 is None:
+        return None
+    if m2 < M2_MIN_CREIBLE[grupo_m2(fila)]:
+        fila["_m2_original"] = m2
+        fila["m2"] = None
+        return f"m2 dudoso ({m2:g}); se publica sin m2"
+    return None
+
+
 def evaluar_precio(fila):
     """Devuelve (nivel, motivo): nivel in {'ok','aviso','bloquea'}."""
     precio = fila.get("precio")
@@ -246,7 +267,7 @@ def evaluar_precio(fila):
         return "ok", ""
     if precio < RENTA_MIN_BLOQUEA:
         return "bloquea", f"renta demasiado baja ({precio:,.0f})"
-    if seg == "vivienda" and precio > RENTA_VIVIENDA_ABS_BLOQUEA:
+    if seg == "vivienda" and not tipo.startswith("terreno") and precio > RENTA_VIVIENDA_ABS_BLOQUEA:
         return "bloquea", f"renta mensual de vivienda irreal ({precio:,.0f})"
     if m2 and m2 > 0:
         pm2 = precio / m2
@@ -483,6 +504,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--paginas-max", type=int, default=0, help="limita paginas por municipio/operacion (pruebas)")
     ap.add_argument("--sin-escribir", action="store_true", help="no escribe data.json (pruebas)")
+    ap.add_argument("--reusar-data", action="store_true",
+                    help="no rastrea: aplica 4 municipios, segmento y guardas de precio a data.json existente")
     args = ap.parse_args()
 
     ahora = datetime.now(timezone.utc)
@@ -496,31 +519,44 @@ def main():
     session = requests.Session()
     tarjetas, incompletos = [], []
     cuenta_combo = Counter()
-    for operacion, slug_op in OPERACIONES.items():
-        for slug_mun, nombre in MUNICIPIOS.items():
-            print(f"\n== {operacion} - {nombre} ==", flush=True)
-            filas, completo = recorrer(session, operacion, slug_op, slug_mun, args.paginas_max)
-            tarjetas.extend(filas)
-            cuenta_combo[(nombre, operacion)] = len(filas)
-            if not completo:
-                incompletos.append(f"{operacion} {nombre}")
+    fuera_zona, duplicadas = 0, 0
+    if args.reusar_data:
+        # Sin rastreo: se reutiliza lo que ya esta en data.json y solo se aplican las reglas nuevas.
+        filas = []
+        for p in previo_zona:
+            fila = dict(p)
+            fila["segmento"], fila["_razon_segmento"] = clasificar_segmento(p.get("tipo"), p.get("titulo"))
+            if fila.get("banos") is not None and fila["banos"] > BANOS_MAX_CREIBLE:
+                fila["banos"] = None
+            if fila.get("recamaras") is not None and fila["recamaras"] > RECAMARAS_MAX_CREIBLE:
+                fila["recamaras"] = None
+            filas.append(fila)
+    else:
+        for operacion, slug_op in OPERACIONES.items():
+            for slug_mun, nombre in MUNICIPIOS.items():
+                print(f"\n== {operacion} - {nombre} ==", flush=True)
+                filas_mun, completo = recorrer(session, operacion, slug_op, slug_mun, args.paginas_max)
+                tarjetas.extend(filas_mun)
+                cuenta_combo[(nombre, operacion)] = len(filas_mun)
+                if not completo:
+                    incompletos.append(f"{operacion} {nombre}")
 
-    # --- construir y deduplicar
-    filas, vistos, fuera_zona, duplicadas = [], set(), 0, 0
-    for t in tarjetas:
-        fila, motivo = construir_fila(t, previas)
-        if fila is None:
-            fuera_zona += 1
-            continue
-        k = clave(fila)
-        if k in vistos:
-            duplicadas += 1
-            continue
-        vistos.add(k)
-        filas.append(fila)
+        # --- construir y deduplicar
+        filas, vistos = [], set()
+        for t in tarjetas:
+            fila, motivo = construir_fila(t, previas)
+            if fila is None:
+                fuera_zona += 1
+                continue
+            k = clave(fila)
+            if k in vistos:
+                duplicadas += 1
+                continue
+            vistos.add(k)
+            filas.append(fila)
 
     # --- frenos de seguridad (no aplican en corrida de prueba)
-    if not args.sin_escribir:
+    if not args.sin_escribir and not args.reusar_data:
         previo_combo = Counter((p["municipio"], p["operacion"]) for p in previo_zona)
         problemas = []
         for combo, n_prev in previo_combo.items():
@@ -539,7 +575,7 @@ def main():
     # --- fotos: rescate por pagina de detalle
     sin_foto = [f for f in filas if not f.get("foto")]
     rescatadas = 0
-    for f in sin_foto[:MAX_DETALLES_FOTO]:
+    for f in ([] if args.reusar_data else sin_foto[:MAX_DETALLES_FOTO]):
         foto = foto_desde_detalle(session, f["liga"])
         time.sleep(PAUSA_DETALLE)
         if foto:
@@ -550,7 +586,12 @@ def main():
     # --- guardas de precio
     publicables, bloqueadas, avisos = [], [], []
     for f in filas:
+        aviso_m2 = sanear_m2(f)
         nivel, motivo = evaluar_precio(f)
+        if aviso_m2:
+            motivo = (motivo + " | " if motivo else "") + aviso_m2
+            if nivel == "ok":
+                nivel = "aviso"
         if nivel == "bloquea":
             bloqueadas.append((f, motivo))
         else:
@@ -559,7 +600,7 @@ def main():
             publicables.append(f)
 
     # --- regla de fotos: toda ficha debe tener foto
-    freno_foto = len(filas) > 0 and (len(sin_foto) / len(filas)) > FRENO_SIN_FOTO
+    freno_foto = args.reusar_data or (len(filas) > 0 and (len(sin_foto) / len(filas)) > FRENO_SIN_FOTO)
     descartadas_sin_foto = []
     if not freno_foto:
         descartadas_sin_foto = [f for f in publicables if not f.get("foto")]
@@ -577,7 +618,7 @@ def main():
     por_seg_op = Counter((f["segmento"], f["operacion"]) for f in publicables)
     por_municipio = Counter(f["municipio"] for f in publicables)
     razones = Counter(f["_razon_segmento"] for f in publicables)
-    foto_ok, foto_detalle = probar_foto_grande(publicables)
+    foto_ok, foto_detalle = (None, "no aplica (sin rastreo)") if args.reusar_data else probar_foto_grande(publicables)
 
     # --- escribir
     salida = [{k: v for k, v in f.items() if not k.startswith("_")} for f in publicables]
@@ -627,7 +668,7 @@ def main():
         f"- Precios con AVISO (publicados, conviene revisar): {len(avisos)}",
         f"- Fotos rescatadas desde la pagina de detalle: {rescatadas}",
         f"- Fichas sin foto: {len(sin_foto)} "
-        + ("(FRENO: demasiadas, no se descartaron)" if freno_foto else f"(descartadas del sitio: {len(descartadas_sin_foto)})"),
+        + ("(sin rastreo / FRENO: no se descartaron)" if freno_foto else f"(descartadas del sitio: {len(descartadas_sin_foto)})"),
         f"- Fuera de zona descartadas: {fuera_zona} | Duplicadas: {duplicadas}",
         f"- Prueba de foto grande: {foto_detalle}",
         "",

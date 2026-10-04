@@ -1,0 +1,15 @@
+{
+ "actualizado": "2026-10-04T16:57:10+00:00",
+ "total": 5950,
+ "por_segmento": {
+  "comercial": 1466,
+  "vivienda": 4484
+ },
+ "municipios": [
+  "Guadalajara",
+  "Tlaquepaque",
+  "Tonalá",
+  "Zapopan"
+ ],
+ "foto_grande_ok": false
+}

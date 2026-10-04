@@ -30,6 +30,12 @@
   };
   // Algunas publicaciones (pocas, sobre todo edificios y macro-lotes) están en dólares: no se mezclan con pesos.
   AM.esMXN = p => !p.moneda || p.moneda === 'MXN';
+  // Segmento: cada ficha es de 'vivienda' o 'comercial' (lo decide el sincronizador al traer el inventario).
+  // Si una ficha vieja no trae el campo, se deduce del tipo.
+  AM.TIPOS_COMERCIALES = ['oficina', 'local comercial', 'local en centro comercial', 'bodega comercial', 'bodega industrial', 'nave industrial', 'terreno comercial', 'terreno industrial'];
+  AM.segDe = p => p.segmento || (AM.TIPOS_COMERCIALES.includes(p.tipo) ? 'comercial' : 'vivienda');
+  AM.soloVivienda = lista => lista.filter(p => AM.segDe(p) === 'vivienda');
+  AM.segActual = () => new URLSearchParams(location.search).get('seg') === 'comercial' ? 'comercial' : 'vivienda';
   AM.precioTxt = p => (AM.esMXN(p) ? AM.money(p.precio) : 'US' + AM.money(p.precio));
   AM.precioM2 = p => (p.m2 > 0 && p.precio > 0 && AM.esMXN(p)) ? p.precio / p.m2 : null;
   // Un mismo código EB puede estar publicado en venta Y en renta (dos anuncios distintos):

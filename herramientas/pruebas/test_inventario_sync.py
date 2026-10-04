@@ -48,13 +48,17 @@ reales = [
  (f("VENTA","casa en condominio",31_500_000_000,508), "bloquea", "casa 508m2 a 31,500 millones"),
  (f("VENTA","departamento",1_850_000_000,53), "bloquea", "depto 53m2 a 1,850 millones"),
  (f("VENTA","terreno",507_000_000,39), "bloquea", "terreno 39m2 a 507 millones"),
- (f("VENTA","terreno",388_656_000,4.8), "bloquea", "terreno 4.8m2 a 388 millones"),
+ (f("VENTA","terreno",388_656_000,4.8), "aviso", "terreno 4.8m2 a 388M: m2 dudoso, se juzga sin m2 (aviso)"),
  (f("VENTA","terreno",432_000_000,520_000), "ok", "terreno 520,000m2 a 432M (831 $/m2, legitimo)"),
  (f("VENTA","terreno",2_500_000_000,1_000_000), "ok", "terreno 1,000,000m2 a 2,500M (2,500 $/m2, legitimo)"),
  (f("VENTA","edificio",450_000_000,12185), "ok", "edificio 12,185m2 a 450M (legitimo)"),
  (f("RENTA","casa",5_000_000,180), "bloquea", "renta casa 180m2 a 5M/mes"),
  (f("RENTA","departamento",4_548_289,53), "bloquea", "renta depto 53m2 a 4.5M/mes"),
  (f("RENTA","nave industrial",3_644_912,23200), "ok", "renta nave 23,200m2 a 3.6M (157 $/m2, legitimo)"),
+ (f("RENTA","terreno",1_462_500,32500), "ok", "renta de terreno 32,500m2 a 1.46M/mes (45 $/m2, legitimo; no es renta de vivienda)"),
+ (f("RENTA","oficina",25_000,20), "ok", "oficina chica 20m2 a 25,000/mes (1,250 $/m2, plausible)"),
+ (f("RENTA","local comercial",300_000,30), "bloquea", "local 30m2 a 300,000/mes (10,000 $/m2/mes: imposible)"),
+ (f("RENTA","local comercial",90_000,30), "aviso", "local 30m2 a 90,000/mes (3,000 $/m2/mes: caro, se publica con aviso)"),
  (f("VENTA","edificio",85_100_000_000,12185,"USD"), "bloquea", "USD 85,100 millones"),
  (f("VENTA","edificio",85_000_000,8000,"USD"), "aviso", "USD 85 millones (aviso, no se oculta)"),
  (f("VENTA","departamento",2_500_000,70), "ok", "depto normal 2.5M"),
@@ -66,8 +70,18 @@ reales = [
  (f("VENTA","casa",None,100), "bloquea", "sin precio"),
 ]
 for fila, esp, desc in reales:
+    aviso_m2 = S.sanear_m2(fila)                    # igual que en el proceso real
     nivel, motivo = S.evaluar_precio(fila)
+    if aviso_m2 and nivel == "ok":
+        nivel, motivo = "aviso", aviso_m2
     ok(nivel == esp, f"{desc} -> {nivel}" + (f" ({motivo})" if motivo else ""))
+
+print("── M2 DUDOSOS")
+caso = {"operacion":"VENTA","tipo":"casa","precio":3_295_000,"m2":1.0,"segmento":"vivienda"}
+aviso = S.sanear_m2(caso)
+ok(aviso and caso["m2"] is None and S.evaluar_precio(caso)[0] == "ok", "casa de 3.3M con '1 m2': se publica SIN m2 (el precio es normal), con aviso")
+caso2 = {"operacion":"VENTA","tipo":"casa","precio":3_000_000,"m2":120.0,"segmento":"vivienda"}
+ok(S.sanear_m2(caso2) is None and caso2["m2"] == 120.0, "m2 normales no se tocan")
 
 print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")
