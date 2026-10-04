@@ -21,8 +21,8 @@ python3 herramientas/inventario_sync.py --reusar-data                  # sin ras
 Requiere: `pip install requests beautifulsoup4 pillow`.
 
 ### Automatización semanal
-`inventario.workflow.yml` es la automatización de GitHub Actions (cada lunes + botón manual). Para activarla se
-copia a `.github/workflows/inventario.yml`; subirla por API exige que el token tenga permiso **Workflows**.
+`.github/workflows/inventario.yml` es la automatización de GitHub Actions (cada lunes + botón manual).
+Para subirla por API el token necesita permiso **Workflows**; para lanzarla, **Actions**.
 
 ## Pruebas (`pruebas/`)
 ```
