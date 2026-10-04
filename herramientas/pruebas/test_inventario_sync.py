@@ -83,6 +83,37 @@ ok(aviso and caso["m2"] is None and S.evaluar_precio(caso)[0] == "ok", "casa de 
 caso2 = {"operacion":"VENTA","tipo":"casa","precio":3_000_000,"m2":120.0,"segmento":"vivienda"}
 ok(S.sanear_m2(caso2) is None and caso2["m2"] == 120.0, "m2 normales no se tocan")
 
+print("── PRECIO POR M2 (casos REALES de la corrida)")
+def pm(op, tipo, precio, m2, moneda=None, texto=""):
+    d = {"operacion": op, "tipo": tipo, "precio": precio, "m2": m2, "_precio_texto": texto, "segmento": S.clasificar_segmento(tipo, "")[0]}
+    if moneda: d["moneda"] = moneda
+    return d
+casos_pm = [
+ (pm("VENTA","terreno",18_000,164.65), "inferido", 2_963_700, "terreno 164 m2 a $18,000 -> $2.96M"),
+ (pm("RENTA","oficina",670,218), "inferido", 146_060, "oficina 218 m2 a $670/m2 -> $146,060/mes"),
+ (pm("RENTA","bodega industrial",120,10750), "inferido", 1_290_000, "bodega 10,750 m2 a $120 -> $1.29M/mes"),
+ (pm("RENTA","nave industrial",6.3,3360,"USD"), "inferido", 21_168, "nave USD 6.3/m2 x 3,360 m2 -> USD 21,168/mes"),
+ (pm("VENTA","terreno comercial",4_550,14_417,texto="$4,550 MXN por m²"), "anuncio", 65_597_350, "el anuncio dice 'por m2'"),
+]
+for fila, via_esp, total_esp, desc in casos_pm:
+    via, motivo, bloquea = S.resolver_precio_por_m2(fila)
+    ok(via == via_esp and fila["precio"] == total_esp and fila.get("pm2_pub") and not bloquea, f"{desc} -> {via}, total {fila['precio']:,.0f}")
+no_conv = [
+ (pm("VENTA","casa",15_000,70), "casa de vivienda con precio bajo NO se convierte (es error, no precio por m2)"),
+ (pm("VENTA","terreno",18_000,50), "terreno de 50 m2 (< 100) no se infiere: queda para las guardas"),
+ (pm("RENTA","departamento",670,60), "departamento a $670 NO se convierte"),
+ (pm("VENTA","terreno",2_960_000,164), "precio ya total no se toca"),
+ (pm("RENTA","oficina",25_000,20), "oficina 20 m2 a $25,000/mes (total plausible) no se toca"),
+]
+for fila, desc in no_conv:
+    antes = fila["precio"]; via, _m, _b = S.resolver_precio_por_m2(fila)
+    ok(via is None and fila["precio"] == antes, desc)
+fila = pm("VENTA","terreno",5_000,None,texto="$5,000 MXN por m2")
+via, motivo, bloquea = S.resolver_precio_por_m2(fila)
+ok(bloquea and "superficie" in motivo, "anuncio por m2 sin superficie: no se puede calcular el total -> se reporta")
+conv = pm("VENTA","terreno",18_000,164.65); S.resolver_precio_por_m2(conv)
+ok(S.evaluar_precio(conv)[0] == "ok", "tras convertir, el precio total pasa las guardas")
+
 print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")
 ok(S.normalizar_municipio("Tlajomulco de Zúñiga", "tlajomulco-de-zuniga") == "Tlajomulco de Zúñiga", "Tlajomulco de Zúñiga es parte de la zona")

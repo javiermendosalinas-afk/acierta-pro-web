@@ -117,6 +117,7 @@
         <div class="ficha-eyebrow">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)} · ${AM.esc(lugar)}</div>
         <h1>${AM.esc(p.titulo)}</h1>
         <div class="ficha-precio">${AM.precioTxt(p)} <span>${AM.esMXN(p) ? 'MXN' : 'USD'}${p.operacion === 'RENTA' ? '/mes' : ''}</span></div>
+        ${p.pm2_pub && p.m2 ? `<div class="ficha-pm2">Publicado a ${AM.money(p.pm2_pub)} ${AM.esMXN(p) ? 'MXN' : 'USD'} por m²${p.operacion === 'RENTA' ? ' al mes' : ''} · precio total calculado con ${Math.round(p.m2).toLocaleString('es-MX')} m²</div>` : ''}
         <div class="chips">${chips.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>
         ${otraHTML}
         <div class="ficha-cta">

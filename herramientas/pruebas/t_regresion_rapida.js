@@ -54,6 +54,14 @@ const fs = require('fs');
   const tarjeta = wi.document.querySelector('.card-media img');
   ok(tarjeta && /width=720/.test(tarjeta.src), 'las tarjetas piden la foto a 720 px');
 
+  // ficha de un anuncio por m2 (solo si ya hay alguno en los datos)
+  const porM2 = data.find(p => p.pm2_pub && p.m2 && p.foto);
+  if (porM2) {
+    const wp = await T.abrir('ficha.html', '?eb=' + porM2.eb + '&op=' + (porM2.operacion === 'RENTA' ? 'R' : 'V'), errores);
+    const nota = wp.document.querySelector('.ficha-pm2');
+    ok(nota && /por m²/.test(nota.textContent), 'la ficha explica que el precio total sale de un anuncio por m²: ' + (nota ? nota.textContent.slice(0, 70) : ''));
+  } else console.log('(sin anuncios por m² en los datos todavía: prueba omitida)');
+
   ok(errores.length === 0, 'sin errores de JavaScript' + (errores.length ? ': ' + errores.slice(0, 2).join(' | ') : ''));
   process.exit(T.fallas ? 1 : 0);
 })();

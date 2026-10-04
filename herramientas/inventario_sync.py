@@ -112,6 +112,20 @@ RENTA_MIN_BLOQUEA = 1_000
 RENTA_MIN_AVISO = 2_500
 RENTA_VIVIENDA_ABS_BLOQUEA = 1_000_000     # renta mensual de vivienda
 
+# Precio por m2: en terrenos y espacios comerciales es comun anunciar "$18,000 por m2" o una renta
+# "$120 por m2 al mes". Eso NO es un error: se convierte a precio total (precio x m2) y se conserva
+# el dato original en 'pm2_pub'. Si el anuncio lo dice, es seguro; si no, se infiere cuando el precio
+# es imposible como total (y se avisa).
+TIPOS_PRECIO_M2 = ("terreno", "bodega", "nave", "local", "oficina", "edificio")
+M2_MIN_INFERIR = {"VENTA": 100, "RENTA": 50}
+UMBRAL_PM2 = {                 # (operacion, moneda_es_mxn) -> si el precio es menor, se asume por m2
+    ("VENTA", True): 150_000,
+    ("RENTA", True): 2_500,
+    ("VENTA", False): 5_000,
+    ("RENTA", False): 60,
+}
+MARCADOR_POR_M2 = re.compile(r"(por|x|/)\s*m\s*(2|²|etro)", re.I)
+
 BANOS_MAX_CREIBLE = 30
 RECAMARAS_MAX_CREIBLE = 30
 
@@ -226,6 +240,30 @@ def sanear_m2(fila):
         fila["m2"] = None
         return f"m2 dudoso ({m2:g}); se publica sin m2"
     return None
+
+
+def resolver_precio_por_m2(fila):
+    """Convierte un precio por m2 a precio total. Devuelve (via, motivo, bloquea):
+    via in {None, 'anuncio', 'inferido'}."""
+    precio, m2 = fila.get("precio"), fila.get("m2")
+    if not precio:
+        return None, "", False
+    texto = fila.get("_precio_texto") or ""
+    tipo = sin_acentos(fila.get("tipo"))
+    es_mxn = (fila.get("moneda") or "MXN") == "MXN"
+    op = fila["operacion"]
+    dice_por_m2 = bool(MARCADOR_POR_M2.search(texto))
+    infiere = (tipo.startswith(TIPOS_PRECIO_M2) and m2 is not None and m2 >= M2_MIN_INFERIR[op]
+               and precio < UMBRAL_PM2[(op, es_mxn)])
+    if not (dice_por_m2 or infiere):
+        return None, "", False
+    if not m2:
+        return None, f"el anuncio es por m2 ({precio:,.0f}) pero no trae superficie", True
+    total = round(precio * m2)
+    fila["pm2_pub"] = precio
+    fila["precio"] = total
+    via = "anuncio" if dice_por_m2 else "inferido"
+    return via, f"precio por m2 {precio:,.0f} x {m2:,.0f} m2 = {total:,.0f} ({via})", False
 
 
 def evaluar_precio(fila):
@@ -364,7 +402,7 @@ def parsear_tarjetas(html):
             "banos": a_numero(data.get("bathrooms")),
             "colonia": colonia, "municipio_tarjeta": municipio_tarjeta,
             "tipo": (tipo or "").strip().lower(), "titulo": data.get("title", "") or "",
-            "codigo_eb": codigo_eb, "foto": foto or None,
+            "codigo_eb": codigo_eb, "foto": foto or None, "precio_texto": data.get("price", "") or "",
             "lat": _f(tarjeta.get("data-lat")), "lon": _f(tarjeta.get("data-long")),
         })
     return resultados
@@ -450,13 +488,14 @@ def construir_fila(t, previas):
         if not fila["foto"] and previa.get("foto"):
             fila["foto"] = previa["foto"]
     fila["_razon_segmento"] = razon
+    fila["_precio_texto"] = t.get("precio_texto", "")
     return fila, None
 
 
 # ----------------------------------------------------------------------
 # SALIDAS
 # ----------------------------------------------------------------------
-COLUMNAS_CSV = ["eb", "operacion", "segmento", "tipo", "municipio", "colonia", "titulo", "precio",
+COLUMNAS_CSV = ["eb", "operacion", "segmento", "tipo", "municipio", "colonia", "titulo", "precio", "pm2_pub",
                 "moneda", "recamaras", "banos", "m2", "niveles", "lat", "lon", "foto", "liga"]
 
 
@@ -495,9 +534,9 @@ def probar_foto_grande(filas, muestra=12):
                 resultados.append((0, 0))
         except Exception:
             resultados.append((0, 0))
-    buenas = sum(1 for w, _ in resultados if w >= 900)
+    buenas = sum(1 for w, h in resultados if max(w, h) >= 900)
     detalle = ", ".join(f"{w}x{h}" for w, h in resultados)
-    return buenas >= max(1, int(len(resultados) * 0.8)), f"{buenas}/{len(resultados)} fotos >= 900px de ancho ({detalle})"
+    return buenas >= max(1, int(len(resultados) * 0.8)), f"{buenas}/{len(resultados)} fotos con lado mayor >= 900px ({detalle})"
 
 
 # ----------------------------------------------------------------------
@@ -588,9 +627,20 @@ def main():
 
     # --- guardas de precio
     publicables, bloqueadas, avisos = [], [], []
+    conversiones = []
     for f in filas:
         aviso_m2 = sanear_m2(f)
-        nivel, motivo = evaluar_precio(f)
+        via_pm2, motivo_pm2, bloquea_pm2 = resolver_precio_por_m2(f)
+        if bloquea_pm2:
+            nivel, motivo = "bloquea", motivo_pm2
+        else:
+            nivel, motivo = evaluar_precio(f)
+            if via_pm2:
+                conversiones.append((f, via_pm2, motivo_pm2))
+                if via_pm2 == "inferido":
+                    motivo = (motivo + " | " if motivo else "") + motivo_pm2
+                    if nivel == "ok":
+                        nivel = "aviso"
         if aviso_m2:
             motivo = (motivo + " | " if motivo else "") + aviso_m2
             if nivel == "ok":
@@ -644,11 +694,15 @@ def main():
             w.writerows(filas_rep)
 
     _escribir_reporte("anomalias_precio.csv",
-                      ["nivel", "eb", "operacion", "tipo", "municipio", "precio", "moneda", "m2", "motivo", "liga"],
+                      ["nivel", "eb", "operacion", "tipo", "municipio", "precio", "moneda", "m2", "motivo", "liga", "precio_texto_anuncio"],
                       [["BLOQUEADA (no publicada)", f["eb"], f["operacion"], f["tipo"], f["municipio"], f["precio"],
-                        f.get("moneda", "MXN"), f["m2"], m, f["liga"]] for f, m in bloqueadas] +
+                        f.get("moneda", "MXN"), f["m2"], m, f["liga"], f.get("_precio_texto", "")] for f, m in bloqueadas] +
                       [["AVISO (publicada)", f["eb"], f["operacion"], f["tipo"], f["municipio"], f["precio"],
-                        f.get("moneda", "MXN"), f["m2"], m, f["liga"]] for f, m in avisos])
+                        f.get("moneda", "MXN"), f["m2"], m, f["liga"], f.get("_precio_texto", "")] for f, m in avisos])
+    _escribir_reporte("precios_por_m2.csv",
+                      ["eb", "operacion", "tipo", "municipio", "moneda", "precio_publicado_por_m2", "m2", "precio_total", "como_se_supo", "liga", "precio_texto_anuncio"],
+                      [[f["eb"], f["operacion"], f["tipo"], f["municipio"], f.get("moneda", "MXN"), f.get("pm2_pub"), f["m2"], f["precio"], via,
+                        f["liga"], f.get("_precio_texto", "")] for f, via, _m in conversiones if f in publicables])
     _escribir_reporte("sin_foto.csv", ["eb", "operacion", "tipo", "municipio", "titulo", "liga"],
                       [[f["eb"], f["operacion"], f["tipo"], f["municipio"], f["titulo"], f["liga"]]
                        for f in (sin_foto if freno_foto else descartadas_sin_foto)])
@@ -669,13 +723,16 @@ def main():
         "## Calidad",
         f"- Precios BLOQUEADOS (no publicados, verificar con el originador): {len(bloqueadas)}",
         f"- Precios con AVISO (publicados, conviene revisar): {len(avisos)}",
+        f"- Precios por m2 convertidos a total: {sum(1 for f, v, m in conversiones if f in publicables)} "
+        f"(el anuncio lo dice: {sum(1 for f, v, m in conversiones if v == 'anuncio' and f in publicables)}"
+        f" | inferidos, con aviso: {sum(1 for f, v, m in conversiones if v == 'inferido' and f in publicables)})",
         f"- Fotos rescatadas desde la pagina de detalle: {rescatadas}",
         f"- Fichas sin foto: {len(sin_foto)} "
         + ("(sin rastreo / FRENO: no se descartaron)" if freno_foto else f"(descartadas del sitio: {len(descartadas_sin_foto)})"),
         f"- Fuera de zona descartadas: {fuera_zona} | Duplicadas: {duplicadas}",
         f"- Prueba de foto grande: {foto_detalle}",
         "",
-        "Reportes: reportes/inventario/anomalias_precio.csv y reportes/inventario/sin_foto.csv",
+        "Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv",
     ]
     texto = "\n".join(resumen)
     with open(os.path.join(DIR_REPORTES, "resumen.md"), "w", encoding="utf-8") as fh:
