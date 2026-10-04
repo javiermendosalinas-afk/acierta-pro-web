@@ -195,6 +195,37 @@ tt2 = dict(t[0]); tt2["operacion"]="VENTA"; tt2["slug_municipio"]="zapopan"; tt2
 fila2, motivo = S.construir_fila(tt2, {})
 ok(fila2 is None and motivo == "fuera de zona", "una tarjeta de otro municipio (El Salto) se descarta")
 
+print("── TOPE DE 100 PAGINAS DE EASYBROKER (doble pasada)")
+class _Resp:
+    def __init__(s, text): s.text = text
+def _simular_eb(total, por_pag=18, tope=100):
+    precios = list(range(total, 0, -1))   # EB-<total> es la mas cara
+    def get(ses, url):
+        m = re.search(r"page=(\d+)", url); pag = int(m.group(1)) if m else 1
+        lista = precios if "price-desc" in url else precios[::-1]
+        if pag > tope: return _Resp("[]|")
+        trozo = lista[(pag-1)*por_pag: pag*por_pag]
+        sig = f"Siguiente page={pag+1}" if pag < tope and pag*por_pag < total else ""
+        return _Resp(json.dumps(trozo) + "|" + sig)
+    return get
+_orig = (S.get_con_reintentos, S.parsear_tarjetas, S.time.sleep)
+S.parsear_tarjetas = lambda html: [{"codigo_eb": f"EB-{n}", "precio": n} for n in json.loads(html.split("|")[0] or "[]")]
+S.time.sleep = lambda s: None
+for total in (2500, 1000, 4000):
+    S.AVISOS_TOPE.clear()
+    S.get_con_reintentos = _simular_eb(total)
+    with contextlib.redirect_stdout(io.StringIO()):
+        filas, completo = S.recorrer(None, "VENTA", "venta", "zapopan", 0)
+    unicas = {f["codigo_eb"] for f in filas}
+    if total <= 3600:
+        ok(completo and len(unicas) == total and not S.AVISOS_TOPE,
+           f"{total} fichas en EB: se recuperan todas ({len(unicas)}), incluidas las mas baratas")
+    else:
+        ok(completo and len(unicas) == 3600 and len(S.AVISOS_TOPE) == 1,
+           f"{total} fichas en EB: se recuperan 3600 y el resumen avisa que pueden faltar")
+S.get_con_reintentos, S.parsear_tarjetas, S.time.sleep = _orig
+S.AVISOS_TOPE.clear()
+
 print("── CORRIDA COMPLETA SIMULADA (con frenos)")
 SLUG = {"Guadalajara":"guadalajara","Zapopan":"zapopan","Tlaquepaque":"tlaquepaque","Tonalá":"tonala","Tlajomulco de Zúñiga":"tlajomulco-de-zuniga"}
 def tarjeta(eb, op, mun, tipo, precio, m2, foto="http://f/x.jpg", titulo="Prop", moneda="MXN", mun_tarj=None):

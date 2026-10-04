@@ -431,14 +431,19 @@ def parsear_tarjetas(html):
     return resultados
 
 
-def recorrer(session, operacion, slug_operacion, slug_municipio, paginas_max):
-    """Devuelve (filas, completo). completo=False si una pagina fallo a medio camino."""
-    filas, pagina, completo = [], 1, True
+TOPE_PAGINAS_EB = 100   # EasyBroker no entrega mas de 100 paginas (~1,800 fichas) por busqueda
+AVISOS_TOPE = []        # combos donde ni con las dos pasadas se cubrio todo (va al resumen)
+
+
+def _pasada(session, operacion, slug_operacion, slug_municipio, orden, paginas_max, ya_vistos=None):
+    """Recorre una busqueda en un orden dado. Devuelve (filas, completo, paginas,
+    toco_repetidas). Si ya_vistos viene, se detiene en cuanto una pagina trae
+    solo fichas ya vistas (las dos pasadas ya se encontraron)."""
+    filas, pagina, completo, toco = [], 1, True, False
     while True:
-        if pagina == 1:
-            url = f"{BASE}/{slug_operacion}/mexico/jalisco/{slug_municipio}?sort_by=price-desc"
-        else:
-            url = f"{BASE}/{slug_operacion}/mexico/jalisco/{slug_municipio}?page={pagina}&sort_by=price-desc"
+        url = f"{BASE}/{slug_operacion}/mexico/jalisco/{slug_municipio}?sort_by={orden}"
+        if pagina > 1:
+            url = f"{BASE}/{slug_operacion}/mexico/jalisco/{slug_municipio}?page={pagina}&sort_by={orden}"
         resp = get_con_reintentos(session, url)
         if resp is None:
             completo = False
@@ -450,13 +455,44 @@ def recorrer(session, operacion, slug_operacion, slug_municipio, paginas_max):
             t["operacion"] = operacion
             t["slug_municipio"] = slug_municipio
         filas.extend(tarjetas)
-        print(f"  {operacion} {slug_municipio} pag {pagina}: {len(tarjetas)} (acum {len(filas)})", flush=True)
+        print(f"  {operacion} {slug_municipio} [{orden}] pag {pagina}: {len(tarjetas)} (acum {len(filas)})", flush=True)
+        if ya_vistos is not None and all(t.get("codigo_eb") in ya_vistos for t in tarjetas):
+            toco = True
+            break
         if paginas_max and pagina >= paginas_max:
             break
         if "Siguiente" not in resp.text or f"page={pagina + 1}" not in resp.text:
             break
         pagina += 1
         time.sleep(PAUSA_ENTRE_PAGINAS)
+    return filas, completo, pagina, toco
+
+
+def recorrer(session, operacion, slug_operacion, slug_municipio, paginas_max):
+    """Devuelve (filas, completo). completo=False si una pagina fallo a medio camino.
+    EasyBroker corta en 100 paginas: si la pasada de mayor a menor precio llega
+    al tope, se hace una segunda de menor a mayor hasta encontrarse con la
+    primera, para no perder las propiedades mas baratas (antes en Zapopan y
+    Guadalajara solo llegaban las caras)."""
+    filas, completo, paginas, _ = _pasada(session, operacion, slug_operacion, slug_municipio,
+                                          "price-desc", paginas_max)
+    if completo and not paginas_max and paginas >= TOPE_PAGINAS_EB:
+        vistos = {t.get("codigo_eb") for t in filas}
+        print(f"  {operacion} {slug_municipio}: llego al tope de {TOPE_PAGINAS_EB} paginas, "
+              f"segunda pasada de menor a mayor precio", flush=True)
+        filas2, completo2, paginas2, toco = _pasada(session, operacion, slug_operacion, slug_municipio,
+                                                    "price-asc", 0, vistos)
+        nuevas = [t for t in filas2 if t.get("codigo_eb") not in vistos]
+        print(f"  {operacion} {slug_municipio}: segunda pasada agrego {len(nuevas)} fichas", flush=True)
+        filas.extend(filas2)
+        completo = completo and completo2
+        primera_pag = {t.get("codigo_eb") for t in filas[:len(filas2)]}
+        if toco and paginas2 == 1 and {t.get("codigo_eb") for t in filas2} <= primera_pag:
+            AVISOS_TOPE.append(f"{operacion} {slug_municipio}: EasyBroker ignoro el orden de menor a mayor "
+                               f"precio; siguen faltando las fichas mas baratas")
+        elif completo2 and not toco:
+            AVISOS_TOPE.append(f"{operacion} {slug_municipio}: ni con las dos pasadas se cubrio todo "
+                               f"(+{len(nuevas)} en la segunda); pueden faltar fichas de precio medio")
     return filas, completo
 
 
@@ -1045,6 +1081,7 @@ def main():
         f"- Fichas sin foto: {len(sin_foto)} "
         + ("(sin rastreo / FRENO: no se descartaron)" if freno_foto else f"(descartadas del sitio: {len(descartadas_sin_foto)})"),
         f"- Fuera de zona descartadas: {fuera_zona} | Duplicadas: {duplicadas}",
+        *([f"- AVISO tope EasyBroker: {a}" for a in AVISOS_TOPE] or ["- Tope de 100 paginas de EasyBroker: cubierto con doble pasada donde hizo falta"]),
         f"- Prueba de foto grande: {foto_detalle}",
         "",
         "Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv",
