@@ -1,4 +1,3 @@
-  RENTA guadalajara pag 15: 18 (acum 270)
   RENTA guadalajara pag 16: 18 (acum 288)
   RENTA guadalajara pag 17: 18 (acum 306)
   RENTA guadalajara pag 18: 18 (acum 324)
@@ -91,7 +90,7 @@
   RENTA zapopan pag 52: 18 (acum 936)
   RENTA zapopan pag 53: 18 (acum 954)
   RENTA zapopan pag 54: 18 (acum 972)
-  RENTA zapopan pag 55: 1 (acum 973)
+  RENTA zapopan pag 55: 2 (acum 974)
 
 == RENTA - Tlaquepaque ==
   RENTA tlaquepaque pag 1: 18 (acum 18)
@@ -128,23 +127,24 @@
 
 # Inventario acierta.pro - corrida 2026-10-04
 
-- Fichas publicadas: **7,963**
-- Por segmento: {'comercial': 1927, 'vivienda': 6036}
-- Por segmento y operacion: {'comercial/RENTA': 1166, 'vivienda/RENTA': 1140, 'comercial/VENTA': 761, 'vivienda/VENTA': 4896}
-- Por municipio: {'Guadalajara': 2702, 'Tlajomulco de Zúñiga': 1631, 'Tlaquepaque': 577, 'Tonalá': 295, 'Zapopan': 2758}
-- Segmento por: {'tipo comercial': 1820, 'por decidir -> vivienda': 998, 'palabra clave en el titulo': 107, 'tipo de vivienda': 5038}
+- Fichas publicadas: **7,983**
+- Por segmento: {'comercial': 1940, 'vivienda': 6043}
+- Por segmento y operacion: {'comercial/RENTA': 1179, 'vivienda/RENTA': 1140, 'comercial/VENTA': 761, 'vivienda/VENTA': 4903}
+- Por municipio: {'Guadalajara': 2707, 'Tlajomulco de Zúñiga': 1632, 'Tlaquepaque': 589, 'Tonalá': 292, 'Zapopan': 2763}
+- Segmento por: {'tipo comercial': 1833, 'por decidir -> vivienda': 1001, 'palabra clave en el titulo': 107, 'tipo de vivienda': 5042}
 
 ## Contra la corrida anterior (mismos 4 municipios)
-- Nuevas: 116 | Bajas: 27 | Cambios de precio: 2
+- Nuevas: 26 | Bajas: 6 | Cambios de precio: 0
 - Fichas de otros municipios retiradas del sitio: 0
 
 ## Calidad
-- Precios BLOQUEADOS (no publicados, verificar con el originador): 59
-- Precios con AVISO (publicados, conviene revisar): 32
-- Precios por m2 convertidos a total: 117 (el anuncio lo dice: 113 | inferidos, con aviso: 4)
+- Precios BLOQUEADOS (no publicados, verificar con el originador): 40
+- Precios con AVISO (publicados, conviene revisar): 56
+- Precios por m2 convertidos a total: 111 (el anuncio lo dice: 107 | inferidos, con aviso: 4)
+- Anuncios que dicen 'por m2' pero el numero ya era el total (error de captura en EasyBroker, se publican tal cual con aviso): 25
 - Fotos rescatadas desde la pagina de detalle: 0
 - Fichas sin foto: 0 (descartadas del sitio: 0)
 - Fuera de zona descartadas: 0 | Duplicadas: 0
-- Prueba de foto grande: 12/12 fotos con lado mayor >= 900px (929x529, 1200x1600, 1200x675, 1200x901, 900x900, 1080x548, 591x1010, 952x1200, 1100x825, 1200x900, 1200x903, 1200x900)
+- Prueba de foto grande: 11/12 fotos con lado mayor >= 900px (929x529, 903x1200, 900x1200, 675x1200, 1200x900, 1200x900, 900x1200, 1200x904, 1100x825, 1200x900, 960x1280, 720x519)
 
 Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv
