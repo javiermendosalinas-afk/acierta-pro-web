@@ -1,23 +1,12 @@
 nivel,eb,operacion,tipo,municipio,precio,moneda,m2,motivo,liga
-BLOQUEADA (no publicada),EB-WU8632,VENTA,edificio,Zapopan,85100000000,USD,36000.0,"precio en USD irreal (85,100,000,000)",https://www.aciertamax.com/property/plaza-panoramica-bugambilias-bugambilias
-BLOQUEADA (no publicada),EB-WR6018,VENTA,casa en condominio,Zapopan,31500000000,MXN,508.0,"precio/m2 imposible (62,007,874 $/m2 con 508 m2)",https://www.aciertamax.com/property/casa-de-oportunidad-frente-a-andares-coto-santa-isabel-zapopan
-BLOQUEADA (no publicada),EB-WX2916,VENTA,departamento,Zapopan,1850000000,MXN,53.0,"precio/m2 imposible (34,905,660 $/m2 con 53 m2)",https://www.aciertamax.com/property/departamento-en-santa-ana-360-a92b09b3-f110-4e8b-99fa-44f6d4fdc6ca
-BLOQUEADA (no publicada),EB-WF7085,VENTA,terreno,Zapopan,507000000,MXN,39.0,"precio/m2 imposible (13,000,000 $/m2 con 39 m2)",https://www.aciertamax.com/property/terreno-en-venta-camino-a-copalita
-BLOQUEADA (no publicada),EB-WM3612,RENTA,departamento,Guadalajara,4548289,MXN,53.0,"renta mensual de vivienda irreal (4,548,289)",https://www.aciertamax.com/property/departamento-en-venta-en-col-americana-8ac6bb79-b0f6-456c-85a2-cab590f43164
-BLOQUEADA (no publicada),EB-WZ4946,RENTA,casa,Zapopan,5000000,MXN,180.0,"renta mensual de vivienda irreal (5,000,000)",https://www.aciertamax.com/property/casa-en-venta-en-el-campestre-residencial-d4255778-8ccf-4855-93a0-2b939d69e696
-AVISO (publicada),EB-UL6830,VENTA,bodega comercial,Guadalajara,50000000,MXN,150.0,"precio/m2 muy alto (333,333 $/m2)",https://www.aciertamax.com/property/excelente-bodega-sobre-avenida-principal-del-mercado-de-abastos-enfocado-en-ubi
-AVISO (publicada),EB-VQ6560,VENTA,departamento,Guadalajara,4950000,MXN,,m2 dudoso (7.16); se publica sin m2,https://www.aciertamax.com/property/departamento-en-venta-qalina-chapultepec
-AVISO (publicada),EB-NW9748,VENTA,edificio,Zapopan,85000000,USD,36000.0,"precio en USD muy alto (85,000,000)",https://www.aciertamax.com/property/plaza-panoramica-bugambilias-fraccionamiento-bugambilias-zapopan
-AVISO (publicada),EB-GT5465,VENTA,terreno,Zapopan,388656000,MXN,,m2 dudoso (4.8); se publica sin m2,https://www.aciertamax.com/property/terreno-ideal-desarrolladores-inversionistas-en-venta-en-el-bajio-zapopan
-AVISO (publicada),EB-TO4926,VENTA,rancho,Zapopan,179189000,MXN,360.0,"precio/m2 muy alto (497,747 $/m2)",https://www.aciertamax.com/property/rancho-terreno-en-venta-en-santa-lucia-zapopan-jalisco
-AVISO (publicada),EB-QZ0067,VENTA,terreno,Zapopan,65000000,MXN,,m2 dudoso (11); se publica sin m2,https://www.aciertamax.com/property/terreno-en-venta-con-escritura-publica
-AVISO (publicada),EB-EH6043,VENTA,terreno,Zapopan,52500000,MXN,,m2 dudoso (10.6); se publica sin m2,https://www.aciertamax.com/property/terreno-el-arbolado
-AVISO (publicada),EB-VU0649,VENTA,departamento,Tlaquepaque,8890000,MXN,21.72,"precio/m2 muy alto (409,300 $/m2)",https://www.aciertamax.com/property/casa-en-venta-punto-sur-264-tlaquepaque-jalisco
-AVISO (publicada),EB-WT1262,VENTA,casa,Tlaquepaque,3295000,MXN,,m2 dudoso (1); se publica sin m2,https://www.aciertamax.com/property/casa-venta-zimalta-tlaquepaque
-AVISO (publicada),EB-US7993,VENTA,bodega comercial,Tonalá,57400000,MXN,160.0,"precio/m2 muy alto (358,750 $/m2)",https://www.aciertamax.com/property/amplia-bodega-c-libre-zapotlanejo-la-ladrillera
-AVISO (publicada),EB-WE9758,VENTA,casa,Tlajomulco de Zúñiga,7850000,MXN,,m2 dudoso (10); se publica sin m2,https://www.aciertamax.com/property/casa-en-venta-amueblada-en-balcones-de-la-calera-jalisco
-AVISO (publicada),EB-TE1256,VENTA,terreno,Tlajomulco de Zúñiga,2153607,MXN,,m2 dudoso (17.24); se publica sin m2,https://www.aciertamax.com/property/terreno-en-venta-bosques-santa-anita-terreno
-AVISO (publicada),EB-MS5881,RENTA,oficina,Guadalajara,30000,MXN,,m2 dudoso (4); se publica sin m2,https://www.aciertamax.com/property/oficinas-en-renta-en-lujosos-espacios-co-working
-AVISO (publicada),EB-NR8270,RENTA,oficina,Zapopan,35000,MXN,12.0,"renta/m2 muy alta (2,917 $/m2/mes)",https://www.aciertamax.com/property/renta-de-oficinas-en-jardines-del-valle-jardines-del-valle
-AVISO (publicada),EB-MT0090,RENTA,terreno,Tlajomulco de Zúñiga,150000,MXN,,m2 dudoso (2.5); se publica sin m2,https://www.aciertamax.com/property/renta-terreno-frente-clinica-180
-AVISO (publicada),EB-VA6653,RENTA,casa,Tlajomulco de Zúñiga,24000,MXN,,m2 dudoso (10); se publica sin m2,https://www.aciertamax.com/property/casa-en-renta-amueblada-en-balcones-de-la-calera-jalisco
+BLOQUEADA (no publicada),EB-WU8632,VENTA,edificio,Zapopan,85100000000.0,USD,36000.0,"precio en USD irreal (85,100,000,000)",https://www.aciertamax.com/property/plaza-panoramica-bugambilias-bugambilias
+BLOQUEADA (no publicada),EB-WR6018,VENTA,casa en condominio,Zapopan,31500000000.0,MXN,508.0,"precio/m2 imposible (62,007,874 $/m2 con 508 m2)",https://www.aciertamax.com/property/casa-de-oportunidad-frente-a-andares-coto-santa-isabel-zapopan
+BLOQUEADA (no publicada),EB-WC8850,VENTA,casa,Zapopan,19990000000.0,MXN,476.72,"precio/m2 imposible (41,932,371 $/m2 con 477 m2)",https://www.aciertamax.com/property/casa-en-venta-en-fracc-puerta-de-hierro-zapopan-jalisco
+BLOQUEADA (no publicada),EB-WH2847,VENTA,departamento,Zapopan,5490000000.0,MXN,75.0,"precio/m2 imposible (73,200,000 $/m2 con 75 m2)",https://www.aciertamax.com/property/departamento-en-renta-liva-residencial-solares-zapopan
+BLOQUEADA (no publicada),EB-WX2916,VENTA,departamento,Zapopan,1850000000.0,MXN,53.0,"precio/m2 imposible (34,905,660 $/m2 con 53 m2)",https://www.aciertamax.com/property/departamento-en-santa-ana-360-a92b09b3-f110-4e8b-99fa-44f6d4fdc6ca
+BLOQUEADA (no publicada),EB-WF7085,VENTA,terreno,Zapopan,507000000.0,MXN,39.0,"precio/m2 imposible (13,000,000 $/m2 con 39 m2)",https://www.aciertamax.com/property/terreno-en-venta-camino-a-copalita
+BLOQUEADA (no publicada),EB-WM3612,RENTA,departamento,Guadalajara,4548289.0,MXN,53.0,"renta mensual de vivienda irreal (4,548,289)",https://www.aciertamax.com/property/departamento-en-venta-en-col-americana-8ac6bb79-b0f6-456c-85a2-cab590f43164
+AVISO (publicada),EB-NW9748,VENTA,edificio,Zapopan,85000000.0,USD,36000.0,"precio en USD muy alto (85,000,000)",https://www.aciertamax.com/property/plaza-panoramica-bugambilias-fraccionamiento-bugambilias-zapopan
+AVISO (publicada),EB-GT5465,VENTA,terreno,Zapopan,388656000.0,MXN,,m2 dudoso (4.8); se publica sin m2,https://www.aciertamax.com/property/terreno-ideal-desarrolladores-inversionistas-en-venta-en-el-bajio-zapopan
+AVISO (publicada),EB-US7993,VENTA,bodega comercial,Tonalá,57400000.0,MXN,160.0,"precio/m2 muy alto (358,750 $/m2)",https://www.aciertamax.com/property/amplia-bodega-c-libre-zapotlanejo-la-ladrillera
+AVISO (publicada),EB-UG8729,RENTA,terreno industrial,Tlaquepaque,9800000.0,MXN,,m2 dudoso (14); se publica sin m2,https://www.aciertamax.com/property/terreno-en-renta-sobre-8-de-juio-y-periferico
