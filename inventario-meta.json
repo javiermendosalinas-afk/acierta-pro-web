@@ -1,9 +1,9 @@
 {
- "actualizado": "2026-10-04T17:02:07+00:00",
- "total": 7197,
+ "actualizado": "2026-10-04T17:23:56+00:00",
+ "total": 7874,
  "por_segmento": {
-  "comercial": 1728,
-  "vivienda": 5469
+  "comercial": 1876,
+  "vivienda": 5998
  },
  "municipios": [
   "Guadalajara",
@@ -12,5 +12,5 @@
   "Tonalá",
   "Zapopan"
  ],
- "foto_grande_ok": false
+ "foto_grande_ok": true
 }

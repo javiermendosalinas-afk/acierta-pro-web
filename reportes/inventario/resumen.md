@@ -1,21 +1,21 @@
 # Inventario acierta.pro - corrida 2026-10-04
 
-- Fichas publicadas: **353**
-- Por segmento: {'comercial': 249, 'vivienda': 104}
-- Por segmento y operacion: {'comercial/RENTA': 166, 'vivienda/RENTA': 13, 'comercial/VENTA': 83, 'vivienda/VENTA': 91}
-- Por municipio: {'Guadalajara': 71, 'Tlajomulco de Zúñiga': 72, 'Tlaquepaque': 72, 'Tonalá': 72, 'Zapopan': 66}
-- Segmento por: {'tipo comercial': 237, 'por decidir -> vivienda': 96, 'palabra clave en el titulo': 12, 'tipo de vivienda': 8}
+- Fichas publicadas: **7,874**
+- Por segmento: {'comercial': 1876, 'vivienda': 5998}
+- Por segmento y operacion: {'comercial/RENTA': 1154, 'vivienda/RENTA': 1137, 'comercial/VENTA': 722, 'vivienda/VENTA': 4861}
+- Por municipio: {'Guadalajara': 2704, 'Tlajomulco de Zúñiga': 1588, 'Tlaquepaque': 569, 'Tonalá': 266, 'Zapopan': 2747}
+- Segmento por: {'tipo comercial': 1775, 'por decidir -> vivienda': 958, 'palabra clave en el titulo': 101, 'tipo de vivienda': 5040}
 
 ## Contra la corrida anterior (mismos 4 municipios)
-- Nuevas: 23 | Bajas: 6,867 | Cambios de precio: 21
+- Nuevas: 1,415 | Bajas: 738 | Cambios de precio: 413
 - Fichas de otros municipios retiradas del sitio: 0
 
 ## Calidad
-- Precios BLOQUEADOS (no publicados, verificar con el originador): 7
-- Precios con AVISO (publicados, conviene revisar): 4
+- Precios BLOQUEADOS (no publicados, verificar con el originador): 149
+- Precios con AVISO (publicados, conviene revisar): 26
 - Fotos rescatadas desde la pagina de detalle: 0
 - Fichas sin foto: 0 (descartadas del sitio: 0)
 - Fuera de zona descartadas: 0 | Duplicadas: 0
-- Prueba de foto grande: 11/12 fotos >= 900px de ancho (929x529, 1200x817, 770x507, 1200x878, 900x1200, 1200x900, 1200x900, 960x802, 1200x899, 923x503, 1200x819, 1200x900)
+- Prueba de foto grande: 9/12 fotos >= 900px de ancho (929x529, 1200x1600, 1200x900, 675x1200, 1200x900, 1200x900, 900x1200, 960x1200, 1200x540, 770x507, 900x1200, 897x1200)
 
 Reportes: reportes/inventario/anomalias_precio.csv y reportes/inventario/sin_foto.csv
