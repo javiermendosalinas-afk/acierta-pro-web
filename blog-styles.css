@@ -155,3 +155,8 @@
 }
 .author-box p { font-size: 13px; color: var(--gray); }
 .author-box strong { color: var(--navy); display: block; font-size: 14px; margin-bottom: 2px; }
+
+/* Portadas de artículos (Canva) */
+.blog-card-media.has-img { padding: 0; min-height: 0; aspect-ratio: 4 / 3; overflow: hidden; background: #f7f5f0; }
+.blog-card-media.has-img img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.blog-card-media.has-img .blog-card-cat { position: absolute; left: 12px; bottom: 12px; }
