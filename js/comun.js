@@ -36,6 +36,16 @@
   AM.segDe = p => p.segmento || (AM.TIPOS_COMERCIALES.includes(p.tipo) ? 'comercial' : 'vivienda');
   AM.soloVivienda = lista => lista.filter(p => AM.segDe(p) === 'vivienda');
   AM.segActual = () => new URLSearchParams(location.search).get('seg') === 'comercial' ? 'comercial' : 'vivienda';
+
+  // Fotos: EasyBroker entrega la imagen al tamaño que se pida en la URL (width/height). Se pide grande y,
+  // si no carga, se vuelve a la miniatura original; si tampoco, se quita la imagen y queda el ícono de casa.
+  AM.fotoTam = (url, w, h) => {
+    if (!url) return url;
+    url = /[?&]width=\d+/.test(url) ? url.replace(/([?&])width=\d+/, '$1width=' + w) : url + (url.includes('?') ? '&' : '?') + 'width=' + w;
+    return /[?&]height=\d+/.test(url) ? url.replace(/([?&])height=\d+/, '$1height=' + h) : url + '&height=' + h;
+  };
+  AM.fotoImg = (url, w, h, alt, extra) =>
+    `<img src="${AM.esc(AM.fotoTam(url, w, h))}" data-f="${AM.esc(url)}" alt="${AM.esc(alt || '')}" ${extra || ''} onerror="if(this.dataset.f){var o=this.dataset.f;this.dataset.f='';this.src=o}else{this.remove()}">`;
   AM.precioTxt = p => (AM.esMXN(p) ? AM.money(p.precio) : 'US' + AM.money(p.precio));
   AM.precioM2 = p => (p.m2 > 0 && p.precio > 0 && AM.esMXN(p)) ? p.precio / p.m2 : null;
   // Un mismo código EB puede estar publicado en venta Y en renta (dos anuncios distintos):
@@ -153,7 +163,7 @@
     return `
   <div class="card" data-eb="${AM.esc(AM.clave(p))}">
     <a class="card-media" href="${url}" ${p.foto ? 'style="background:#0f1f3d"' : ''} aria-label="Ver ficha: ${AM.esc(p.titulo)}">
-      ${AM.iconHouse()}${p.foto ? `<img src="${AM.esc(p.foto)}" alt="" loading="lazy" onerror="this.remove()">` : ''}
+      ${AM.iconHouse()}${p.foto ? AM.fotoImg(p.foto, 720, 480, '', 'loading="lazy"') : ''}
       <span class="card-op">${AM.esc(p.operacion)}</span>
       <span class="card-tipo">${AM.esc(p.tipo)}</span>
     </a>

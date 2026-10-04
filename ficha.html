@@ -109,7 +109,7 @@
     raiz.innerHTML = `
     <div class="ficha-top">
       <div class="ficha-foto" ${p.foto ? 'style="background:#0f1f3d"' : ''}>
-        ${AM.iconHouse()}${p.foto ? `<img src="${AM.esc(p.foto)}" alt="${AM.esc(p.titulo)}" onerror="this.remove()">` : ''}
+        ${AM.iconHouse()}${p.foto ? AM.fotoImg(p.foto, 1200, 800, p.titulo) : ''}
         <span class="card-op">${AM.esc(p.operacion)}</span>
         ${p.foto ? '' : '<span class="ficha-sinfoto">Foto próximamente</span>'}
       </div>

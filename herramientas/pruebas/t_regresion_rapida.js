@@ -40,6 +40,20 @@ const fs = require('fs');
   ok(desfasadas.length === 0, 'FAQ visible = FAQ de Google (' + faq.mainEntity.length + ' preguntas)' + (desfasadas.length ? ' DESFASADAS: ' + desfasadas.map(q => q.name).join(' | ') : ''));
   ok(/Tlajomulco/.test(home) && /Más de 7,000/.test(home) && !/Más de 5,000/.test(home), 'la portada menciona los 5 municipios (incluye Tlajomulco) y "Más de 7,000"');
   ok(data.length > 7000, `el inventario publicado supera las 7,000 fichas (${data.length})`);
+  // fotos grandes con respaldo a la miniatura
+  const conFoto = data.find(p => p.foto);
+  const wf = await T.abrir('ficha.html', '?eb=' + conFoto.eb + '&op=' + (conFoto.operacion === 'RENTA' ? 'R' : 'V'), errores);
+  const img = wf.document.querySelector('.ficha-foto img');
+  ok(img && /width=1200/.test(img.src) && /height=800/.test(img.src), 'la ficha pide la foto grande (1200x800)');
+  ok(img && img.dataset.f === conFoto.foto, 'la ficha recuerda la miniatura original para respaldo');
+  img.dispatchEvent(new wf.Event('error'));
+  ok(img.src === conFoto.foto && wf.document.querySelector('.ficha-foto img') === img, 'si la grande falla, vuelve a la miniatura');
+  img.dispatchEvent(new wf.Event('error'));
+  ok(!wf.document.querySelector('.ficha-foto img'), 'si tambien falla la miniatura, se quita (queda el icono de casa)');
+  const wi = await T.abrir('index.html', '', errores);
+  const tarjeta = wi.document.querySelector('.card-media img');
+  ok(tarjeta && /width=720/.test(tarjeta.src), 'las tarjetas piden la foto a 720 px');
+
   ok(errores.length === 0, 'sin errores de JavaScript' + (errores.length ? ': ' + errores.slice(0, 2).join(' | ') : ''));
   process.exit(T.fallas ? 1 : 0);
 })();
