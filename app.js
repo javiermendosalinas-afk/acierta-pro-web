@@ -139,7 +139,7 @@ function renderStats() {
     <div><b>${base.length.toLocaleString('es-MX')}</b>${etiqueta}</div>
     <div><b>${ventas.toLocaleString('es-MX')}</b>en venta</div>
     <div><b>${rentas.toLocaleString('es-MX')}</b>en renta</div>
-    <div><b>4</b>municipios de la ZMG</div>
+    <div><b>${new Set(base.map(p => p.municipio)).size}</b>municipios de la ZMG</div>
     ${actualizado}
   `;
 }

@@ -4,8 +4,8 @@ inventario_sync.py - Sincroniza el inventario de aciertamax.com (EasyBroker)
 hacia acierta.pro. Es la UNICA fuente de datos del sitio.
 
 QUE HACE
-- Recorre aciertamax.com (venta y renta) en Guadalajara, Zapopan, Tlaquepaque
-  y Tonala. Sin pisos de precio: entra todo.
+- Recorre aciertamax.com (venta y renta) en Guadalajara, Zapopan, Tlaquepaque,
+  Tonala y Tlajomulco de Zuniga. Sin pisos de precio: entra todo.
 - Clasifica cada ficha en un SEGMENTO: "vivienda" o "comercial".
 - Guardas de precio: lo implausible NO se publica y va a un reporte para
   verificarlo con quien lo capturo; lo dudoso se publica pero se reporta.
@@ -47,6 +47,7 @@ MUNICIPIOS = {
     "zapopan": "Zapopan",
     "tlaquepaque": "Tlaquepaque",
     "tonala": "Tonalá",
+    "tlajomulco-de-zuniga": "Tlajomulco de Zúñiga",
 }
 # Como puede venir escrito el municipio en una tarjeta -> canonico
 ALIAS_MUNICIPIO = {
@@ -55,6 +56,8 @@ ALIAS_MUNICIPIO = {
     "tlaquepaque": "Tlaquepaque",
     "san pedro tlaquepaque": "Tlaquepaque",
     "tonala": "Tonalá",
+    "tlajomulco de zuniga": "Tlajomulco de Zúñiga",
+    "tlajomulco": "Tlajomulco de Zúñiga",
 }
 
 OPERACIONES = {"VENTA": "properties", "RENTA": "rentals"}
@@ -514,7 +517,7 @@ def main():
     previas = {clave(p): p for p in previo}
     municipios_ok = set(MUNICIPIOS.values())
     previo_zona = [p for p in previo if p.get("municipio") in municipios_ok]
-    quitadas_tlajomulco = sum(1 for p in previo if p.get("municipio") not in municipios_ok)
+    fuera_de_zona_previas = sum(1 for p in previo if p.get("municipio") not in municipios_ok)
 
     session = requests.Session()
     tarjetas, incompletos = [], []
@@ -661,7 +664,7 @@ def main():
         "",
         "## Contra la corrida anterior (mismos 4 municipios)",
         f"- Nuevas: {len(nuevas):,} | Bajas: {len(bajas):,} | Cambios de precio: {len(cambios_precio):,}",
-        f"- Fichas de otros municipios retiradas del sitio (p. ej. Tlajomulco): {quitadas_tlajomulco:,}",
+        f"- Fichas de otros municipios retiradas del sitio: {fuera_de_zona_previas:,}",
         "",
         "## Calidad",
         f"- Precios BLOQUEADOS (no publicados, verificar con el originador): {len(bloqueadas)}",

@@ -1,9 +1,9 @@
 # Acierta Max
 
-> Acierta Max es una inmobiliaria con operación en la Zona Metropolitana de Guadalajara (Guadalajara, Zapopan, Tlaquepaque y Tonalá), México, con más de 20 años de experiencia ejecutiva en el equipo directivo. Es socio certificado de AMPI (Asociación Mexicana de Profesionales Inmobiliarios).
+> Acierta Max es una inmobiliaria con operación en la Zona Metropolitana de Guadalajara (Guadalajara, Zapopan, Tlaquepaque, Tonalá y Tlajomulco de Zúñiga), México, con más de 20 años de experiencia ejecutiva en el equipo directivo. Es socio certificado de AMPI (Asociación Mexicana de Profesionales Inmobiliarios).
 
 ## Qué ofrece
-- Más de 5,000 propiedades en venta y renta en Guadalajara, Zapopan, Tlaquepaque y Tonalá, consolidadas de múltiples fuentes y actualizadas periódicamente. Vivienda (casas, departamentos y terrenos) y, en una sección aparte, inmuebles comerciales (locales, oficinas, bodegas y terrenos comerciales).
+- Más de 7,000 propiedades en venta y renta en la Zona Metropolitana de Guadalajara, consolidadas de múltiples fuentes y actualizadas periódicamente. Vivienda (casas, departamentos y terrenos) y, en una sección aparte, inmuebles comerciales (locales, oficinas, bodegas y terrenos comerciales).
 - Acompañamiento durante todo el proceso de compra, venta o renta: precalificación de crédito e Infonavit, búsqueda guiada, oferta y documentación, selección de notario y cierre — no solo la publicación de anuncios.
 - Simulador de crédito hipotecario (bancario, Infonavit, Cofinavit).
 - Estudio de inversión inmobiliaria: compara el rendimiento esperado de una propiedad (renta + plusvalía) contra CETES, en una zona que el usuario dibuja en el mapa.

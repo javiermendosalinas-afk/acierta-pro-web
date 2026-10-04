@@ -129,7 +129,7 @@
 
   // ── Render: variables ────────────────────────────────────
   function opciones(lista, actual) { return lista.map(([v, t]) => `<option value="${AM.esc(v)}" ${String(actual) === String(v) ? 'selected' : ''}>${AM.esc(t)}</option>`).join(''); }
-  const MUNI = [['', 'Toda la ZMG'], ['Guadalajara', 'Guadalajara'], ['Zapopan', 'Zapopan'], ['Tlaquepaque', 'Tlaquepaque'], ['Tonalá', 'Tonalá']];
+  const MUNI = [['', 'Toda la ZMG'], ['Guadalajara', 'Guadalajara'], ['Zapopan', 'Zapopan'], ['Tlajomulco de Zúñiga', 'Tlajomulco'], ['Tlaquepaque', 'Tlaquepaque'], ['Tonalá', 'Tonalá']];
   const TIPOS = [['', 'Cualquiera'], ['casa', 'Casa'], ['departamento', 'Departamento'], ['terreno', 'Terreno'], ['local', 'Local comercial'], ['oficina', 'Oficina'], ['bodega', 'Bodega / nave'], ['edificio', 'Edificio']];
   const RECS = [['', 'Cualquiera'], ['1', '1 o más'], ['2', '2 o más'], ['3', '3 o más'], ['4', '4 o más'], ['5', '5 o más']];
 

@@ -85,7 +85,9 @@ ok(S.sanear_m2(caso2) is None and caso2["m2"] == 120.0, "m2 normales no se tocan
 
 print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")
-ok(S.normalizar_municipio("Tlajomulco de Zúñiga", "zapopan") is None, "Tlajomulco queda fuera de zona")
+ok(S.normalizar_municipio("Tlajomulco de Zúñiga", "tlajomulco-de-zuniga") == "Tlajomulco de Zúñiga", "Tlajomulco de Zúñiga es parte de la zona")
+ok(S.normalizar_municipio("Tlajomulco", "zapopan") == "Tlajomulco de Zúñiga", "'Tlajomulco' tambien se reconoce")
+ok(S.normalizar_municipio("El Salto", "zapopan") is None, "un municipio fuera de los 5 queda fuera de zona")
 ok(S.normalizar_municipio("", "tonala") == "Tonalá", "sin municipio en tarjeta usa el de la URL")
 u = "https://assets.easybroker.com/property_images/1/2/EB-X.jpg?height=300&version=9&width=450"
 ok(S.foto_con_tamano(u, 1200, 800) == "https://assets.easybroker.com/property_images/1/2/EB-X.jpg?height=800&version=9&width=1200", "reescribe width/height conservando version")
@@ -93,12 +95,12 @@ prev = {("EB-WX1234","VENTA"): {"niveles": 2, "foto": "https://viejo/foto.jpg"}}
 tt = dict(t[0]); tt["operacion"]="VENTA"; tt["slug_municipio"]="tlaquepaque"; tt["foto"]=None
 fila, _ = S.construir_fila(tt, prev)
 ok(fila["niveles"] == 2 and fila["foto"] == "https://viejo/foto.jpg", "conserva niveles y foto de la corrida anterior cuando el listado no la trae")
-tt2 = dict(t[0]); tt2["operacion"]="VENTA"; tt2["slug_municipio"]="zapopan"; tt2["municipio_tarjeta"]="Tlajomulco de Zúñiga"
+tt2 = dict(t[0]); tt2["operacion"]="VENTA"; tt2["slug_municipio"]="zapopan"; tt2["municipio_tarjeta"]="El Salto"
 fila2, motivo = S.construir_fila(tt2, {})
-ok(fila2 is None and motivo == "fuera de zona", "una tarjeta de Tlajomulco se descarta")
+ok(fila2 is None and motivo == "fuera de zona", "una tarjeta de otro municipio (El Salto) se descarta")
 
 print("── CORRIDA COMPLETA SIMULADA (con frenos)")
-SLUG = {"Guadalajara":"guadalajara","Zapopan":"zapopan","Tlaquepaque":"tlaquepaque","Tonalá":"tonala"}
+SLUG = {"Guadalajara":"guadalajara","Zapopan":"zapopan","Tlaquepaque":"tlaquepaque","Tonalá":"tonala","Tlajomulco de Zúñiga":"tlajomulco-de-zuniga"}
 def tarjeta(eb, op, mun, tipo, precio, m2, foto="http://f/x.jpg", titulo="Prop", moneda="MXN", mun_tarj=None):
     return {"href": f"https://www.aciertamax.com/property/{eb}", "precio": precio, "moneda": moneda, "m2": m2, "recamaras": 3,
             "banos": 2.0, "colonia": "Col", "municipio_tarjeta": mun_tarj if mun_tarj is not None else mun, "tipo": tipo, "titulo": titulo,
@@ -124,18 +126,19 @@ combos = {("VENTA","zapopan"): [
     tarjeta("EB-N1","VENTA","Zapopan","oficina",900_000,40),
     tarjeta("EB-B1","VENTA","Zapopan","casa",31_500_000_000,508),
     tarjeta("EB-F1","VENTA","Zapopan","casa",2_000_000,90,foto=None),
-    tarjeta("EB-X1","VENTA","Zapopan","casa",2_000_000,90,mun_tarj="Tlajomulco de Zúñiga"),
+    tarjeta("EB-X1","VENTA","Zapopan","casa",2_000_000,90,mun_tarj="El Salto"),
     tarjeta("EB-A1","VENTA","Zapopan","casa",3_000_000,100),
-] + [tarjeta(f"EB-OK{i}","VENTA","Zapopan","departamento",2_000_000+i,60) for i in range(40)]}
+] + [tarjeta(f"EB-OK{i}","VENTA","Zapopan","departamento",2_000_000+i,60) for i in range(40)],
+    ("VENTA","tlajomulco-de-zuniga"): [tarjeta("EB-TJ1","VENTA","Tlajomulco de Zúñiga","casa",1_200_000,80)]}
 d, code, out = correr(combos, previo)
 data = json.load(open(os.path.join(d, "data.json"), encoding="utf-8"))
 ebs = {p["eb"] for p in data}
 ok(code == 0, f"la corrida termina bien (codigo {code})")
-esperado = {"EB-A1", "EB-N1"} | {f"EB-OK{i}" for i in range(40)}
+esperado = {"EB-A1", "EB-N1", "EB-TJ1"} | {f"EB-OK{i}" for i in range(40)}
 ok(ebs == esperado, f"publica solo lo valido (sin la bloqueada, la sin foto, la fuera de zona ni la duplicada): {len(ebs)} fichas")
 ok(next(p for p in data if p["eb"]=="EB-N1")["segmento"] == "comercial" and next(p for p in data if p["eb"]=="EB-A1")["segmento"] == "vivienda", "cada ficha lleva su segmento")
 ok(next(p for p in data if p["eb"]=="EB-A1")["niveles"] == 2, "conserva 'niveles' de la corrida anterior")
-ok(not any("Tlajomulco" in p["municipio"] for p in data), "Tlajomulco ya no esta en el sitio")
+ok(any("Tlajomulco" in p["municipio"] for p in data) and not any("Salto" in p["municipio"] for p in data), "Tlajomulco se conserva y El Salto no entra")
 ok(set(data[0].keys()) >= {"municipio","operacion","precio","titulo","tipo","recamaras","banos","m2","niveles","eb","liga","foto","lat","lon","colonia","segmento"}, "mantiene todas las llaves que usa el sitio")
 an = open(os.path.join(d,"reportes","inventario","anomalias_precio.csv"), encoding="utf-8").read()
 ok("EB-B1" in an and "BLOQUEADA" in an, "la ficha con precio imposible queda en el reporte de anomalias")

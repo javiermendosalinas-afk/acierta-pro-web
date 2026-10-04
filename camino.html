@@ -107,7 +107,7 @@
       listo: () => !!S.cuando, auto: true, migaja: () => ({ ya: 'Lo antes posible', '1a3': '1 a 3 meses', mas3: 'Más adelante' }[S.cuando] || '') },
     { id: 'zona', titulo: '¿En qué zona te gustaría?',
       html: () => `<div class="cam-campos"><label for="c_municipio">Municipio</label>
-        <select id="c_municipio" data-k="municipio"><option value="">Elige uno</option>${['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá'].map(m => `<option ${S.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}<option value="cualquiera" ${S.municipio === 'cualquiera' ? 'selected' : ''}>Aún no lo sé / cualquiera</option></select>
+        <select id="c_municipio" data-k="municipio"><option value="">Elige uno</option>${['Guadalajara', 'Zapopan', 'Tlajomulco de Zúñiga', 'Tlaquepaque', 'Tonalá'].map(m => `<option ${S.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}<option value="cualquiera" ${S.municipio === 'cualquiera' ? 'selected' : ''}>Aún no lo sé / cualquiera</option></select>
         <label for="c_colonia">Colonia o referencia <span class="muted">(opcional)</span></label>
         <input type="text" id="c_colonia" data-k="colonia" maxlength="60" placeholder="Ej. Providencia, cerca del Andares…" value="${AM.esc(S.colonia)}"></div>
         <div class="cam-dato" id="cuentaZona"></div>

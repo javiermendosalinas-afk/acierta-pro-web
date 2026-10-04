@@ -11,10 +11,11 @@ const fs = require('fs');
   ok(d.querySelector('#segToggle button.active').dataset.seg === 'vivienda', 'por defecto abre en Vivienda');
   ok(w.eval('filtered.length') === nViv, `Vivienda por defecto: ${nViv} fichas, ninguna comercial (resultado: ${w.eval('filtered.length')})`);
   ok(w.eval('filtered.every(p => AM.segDe(p) === "vivienda")'), 'ninguna ficha comercial aparece en la vista de vivienda');
-  ok(!d.querySelector('#fMunicipio option[value^="Tlajomulco"]'), 'Tlajomulco ya no aparece en el filtro de municipio');
+  const munis = [...d.querySelectorAll('#fMunicipio option')].map(o => o.value).filter(Boolean);
+  ok(munis.length === 5 && munis.includes('Tlajomulco de Zúñiga') && munis.includes('Tlaquepaque') && munis.includes('Tonalá'), `el filtro de municipio tiene los 5: ${munis.join(', ')}`);
   const tiposViv = [...d.querySelectorAll('#fTipo option')].map(o => o.value);
   ok(tiposViv.includes('casa') && tiposViv.includes('departamento') && !tiposViv.includes('bodega'), `tipos de vivienda: ${tiposViv.join(',')}`);
-  ok(/propiedades de vivienda/.test(d.getElementById('statsStrip').textContent) && /4\s*municipios/.test(d.getElementById('statsStrip').textContent), 'la franja de cifras habla de vivienda y de 4 municipios');
+  ok(/propiedades de vivienda/.test(d.getElementById('statsStrip').textContent) && /5\s*municipios/.test(d.getElementById('statsStrip').textContent), 'la franja de cifras habla de vivienda y de 5 municipios');
 
   // el filtro "Casa" ahora incluye casas en condominio
   const cond = data.filter(p => p.tipo === 'casa en condominio' && segDe(p) === 'vivienda').length;

@@ -3,7 +3,7 @@
 ## Inventario (`inventario_sync.py`)
 Trae el inventario de **aciertamax.com** (EasyBroker) y publica `data.json`, la única fuente de datos del sitio.
 
-- Municipios: Guadalajara, Zapopan, Tlaquepaque y Tonalá. Venta y renta. Sin pisos de precio.
+- Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonalá y Tlajomulco de Zúñiga. Venta y renta. Sin pisos de precio.
 - Cada ficha lleva `segmento`: `vivienda` o `comercial` (los tipos "por decidir" se quedan en vivienda).
 - **Guardas de precio**: lo imposible (p. ej. casa de 508 m² a $31,500 millones) NO se publica y queda en
   `reportes/inventario/anomalias_precio.csv` para verificarlo con quien lo capturó en EasyBroker. Lo dudoso se

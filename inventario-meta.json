@@ -1,12 +1,13 @@
 {
- "actualizado": "2026-10-04T16:57:10+00:00",
- "total": 5950,
+ "actualizado": "2026-10-04T17:02:07+00:00",
+ "total": 7197,
  "por_segmento": {
-  "comercial": 1466,
-  "vivienda": 4484
+  "comercial": 1728,
+  "vivienda": 5469
  },
  "municipios": [
   "Guadalajara",
+  "Tlajomulco de Zúñiga",
   "Tlaquepaque",
   "Tonalá",
   "Zapopan"
