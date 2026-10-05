@@ -476,55 +476,65 @@
     if (existente && existente.folio) return Promise.resolve(existente);
     return caminoCfg().then(cfg => new Promise(resolve => {
       const host = document.createElement('div'); host.innerHTML = modalContactoHTML(opts.motivo, cfg.coaches); document.body.appendChild(host);
-      let verificado = false, verifTelDe = '', estado = '', codigo = '';
+      let verificado = false, verifTelDe = '', estado = '', codigo = '', liga = '', timer = null, desde = 0, revisando = false;
       const $ = id => document.getElementById(id);
-      const cerrar = lead => { host.remove(); resolve(lead); };
+      const parar = () => { if (timer) { clearInterval(timer); timer = null; } };
+      const cerrar = lead => { parar(); document.removeEventListener('visibilitychange', alVolver); window.removeEventListener('focus', alVolver); host.remove(); resolve(lead); };
 
+      // Verificación invertida (4-oct-2026): el cliente nos manda "Mi código
+      // Acierta es 1234" desde su WhatsApp y la ventana avanza sola.
       function verifHTML() {
         const wa = $('amWa').value.trim();
         if (!telOk(wa)) return '';
         if (verificado && verifTelDe === wa) return '<div class="cam-verif-ok">✅ WhatsApp verificado</div>';
-        if (estado === 'enviando') return '<div class="cam-verif-txt">Enviando código…</div>';
-        if (estado === 'confirmando') return '<div class="cam-verif-txt">Confirmando…</div>';
-        if (estado === 'enviado' || estado === 'error') {
-          return `<div class="cam-verif"><p class="cam-verif-txt">Te mandamos un código de 2 dígitos por WhatsApp.</p>
-            <div class="cam-verif-fila"><input type="text" id="amCodigoWA" inputmode="numeric" maxlength="2" placeholder="00" value="${AM.esc(codigo)}">
-            <button type="button" class="btn-sec" id="amBtnConfirmarWA">Confirmar</button></div>
-            ${estado === 'error' ? `<p class="cam-verif-error">${AM.esc(errorVerif)}</p>` : ''}
-            <button type="button" class="cam-verif-reenviar" id="amBtnReenviarWA">Reenviar código</button></div>`;
+        if (estado === 'preparando') return '<div class="cam-verif-txt">Preparando…</div>';
+        if (estado === 'esperando') {
+          return `<div class="cam-verif"><p class="cam-verif-txt">Toca <strong>Abrir WhatsApp</strong> y envía el mensaje que ya viene escrito (código <strong>${AM.esc(codigo)}</strong>), sin cambiarlo. Esta ventana avanza sola cuando lo recibamos.</p>
+            <a class="btn-sec cam-verif-wa" id="amLnkAbrirWA" href="${AM.esc(liga)}" target="_blank" rel="noopener">Abrir WhatsApp</a>
+            <p class="cam-verif-txt muted">Esperando tu mensaje…</p>
+            ${errorVerif ? `<p class="cam-verif-error">${AM.esc(errorVerif)}</p>` : ''}
+            <button type="button" class="cam-verif-reenviar" id="amBtnReenviarWA">Generar el mensaje otra vez</button></div>`;
         }
-        return '<button type="button" class="btn-sec" id="amBtnEnviarWA">Enviar código de verificación</button>';
+        return `<button type="button" class="btn-sec" id="amBtnEnviarWA">Verificar por WhatsApp</button>${errorVerif ? `<p class="cam-verif-error">${AM.esc(errorVerif)}</p>` : ''}`;
       }
       let errorVerif = '';
-      const pintarVerif = () => { $('amVerifWA').innerHTML = verifHTML(); };
+      const pintarVerif = () => { const el = $('amVerifWA'); if (el) el.innerHTML = verifHTML(); };
+      async function llamar(ruta, cuerpo) {
+        try {
+          const cfg = await caminoCfg();
+          const r = await fetch(cfg.endpoint + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
+          const j = await r.json().catch(() => ({}));
+          return { ok: r.ok && j.ok, j };
+        } catch (e) { return { ok: false, j: { error: 'No pudimos conectar. Revisa tu internet.' } }; }
+      }
+      async function revisar() {
+        if (estado !== 'esperando' || revisando) return;
+        if (Date.now() - desde > 15 * 60 * 1000) { parar(); estado = ''; errorVerif = 'El código venció. Vuelve a verificar.'; pintarVerif(); return; }
+        revisando = true;
+        const wa = $('amWa').value.trim();
+        const r = await llamar('/verificar/estado', { whatsapp: wa });
+        revisando = false;
+        if (r.ok && r.j.verificado && estado === 'esperando' && wa === $('amWa').value.trim()) {
+          parar(); verificado = true; verifTelDe = wa; estado = ''; errorVerif = ''; pintarVerif();
+        }
+      }
+      function alVolver() { if (!document.hidden) revisar(); }
+      document.addEventListener('visibilitychange', alVolver);
+      window.addEventListener('focus', alVolver);
       async function enviarCodigo() {
-        estado = 'enviando'; pintarVerif();
-        try {
-          const cfg = await caminoCfg();
-          const r = await fetch(cfg.endpoint + '/verificar/enviar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ whatsapp: $('amWa').value.trim() }) });
-          const j = await r.json().catch(() => ({}));
-          if (r.ok && j.ok) { estado = 'enviado'; codigo = ''; } else { estado = ''; errorVerif = (j && j.error) || 'No pudimos enviar el código.'; }
-        } catch (e) { estado = ''; errorVerif = 'No pudimos conectar. Revisa tu internet.'; }
+        parar(); estado = 'preparando'; errorVerif = ''; pintarVerif();
+        const wa = $('amWa').value.trim();
+        const r = await llamar('/verificar/iniciar', { whatsapp: wa });
+        if (r.ok && r.j.verificado) { verificado = true; verifTelDe = wa; estado = ''; }
+        else if (r.ok && r.j.liga) { estado = 'esperando'; codigo = r.j.codigo || ''; liga = r.j.liga; desde = Date.now(); timer = setInterval(revisar, 3000); }
+        else { estado = ''; errorVerif = (r.j && r.j.error) || 'No pudimos preparar la verificación. Intenta de nuevo.'; }
         pintarVerif();
       }
-      async function confirmarCodigo() {
-        estado = 'confirmando'; pintarVerif();
-        try {
-          const cfg = await caminoCfg();
-          const r = await fetch(cfg.endpoint + '/verificar/confirmar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ whatsapp: $('amWa').value.trim(), codigo }) });
-          const j = await r.json().catch(() => ({}));
-          if (r.ok && j.ok) { verificado = true; verifTelDe = $('amWa').value.trim(); estado = ''; }
-          else { estado = 'error'; errorVerif = (j && j.error) || 'Código incorrecto.'; }
-        } catch (e) { estado = 'error'; errorVerif = 'No pudimos conectar. Revisa tu internet.'; }
-        pintarVerif();
-      }
-      $('amWa').addEventListener('input', () => { if ($('amWa').value.trim() !== verifTelDe) { verificado = false; estado = ''; } pintarVerif(); });
+      $('amWa').addEventListener('input', () => { if ($('amWa').value.trim() !== verifTelDe) { verificado = false; parar(); estado = ''; errorVerif = ''; } pintarVerif(); });
       host.addEventListener('click', e => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.id === 'amBtnEnviarWA' || b.id === 'amBtnReenviarWA') enviarCodigo();
-        else if (b.id === 'amBtnConfirmarWA') confirmarCodigo();
       });
-      host.addEventListener('input', e => { if (e.target.id === 'amCodigoWA') { codigo = e.target.value.replace(/\D/g, '').slice(0, 2); e.target.value = codigo; } });
 
       document.getElementById('amModalCerrar').addEventListener('click', () => cerrar(null));
       document.getElementById('amModalSaltar').addEventListener('click', () => cerrar(null));
@@ -535,7 +545,7 @@
         const consent = document.getElementById('amConsent').checked;
         if (nombre.length < 2) { err.textContent = 'Escribe tu nombre.'; err.style.display = 'block'; return; }
         if (!telOk(wa)) { err.textContent = 'Escribe tu WhatsApp a 10 dígitos.'; err.style.display = 'block'; return; }
-        if (!verificado || verifTelDe !== wa) { err.textContent = 'Primero confirma tu WhatsApp con el código que te enviamos.'; err.style.display = 'block'; return; }
+        if (!verificado || verifTelDe !== wa) { err.textContent = 'Primero verifica tu WhatsApp con el botón «Verificar por WhatsApp».'; err.style.display = 'block'; return; }
         if (!consent) { err.textContent = 'Necesitamos tu consentimiento para guardar tus datos y contactarte.'; err.style.display = 'block'; return; }
         err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Guardando…';
         try {
