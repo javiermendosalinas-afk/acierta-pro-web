@@ -33,6 +33,12 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Sus términos y condiciones no se pudieron leer; robots.txt permite las fichas. Ritmo pausado (3 hilos, 0.6 s).
 - La API de NeoJaus (USD 29/mes) solo da acceso al inventario propio: no sirve para traer la bolsa.
 
+## 2c. Sitio de la bolsa: bolsa.aciertamax.com (repo aciertamax-bolsa)
+- Front-end copiado de acierta.pro (buscador, ficha, mapa, comparador) sin blog, Pulso, simulador, proceso, Verifica ni portal; nada enlaza a acierta.pro. CNAME `bolsa.aciertamax.com`.
+- Su workflow «Actualizar bolsa» (diario 07:00 GDL) trae `herramientas/neojaus/neojaus.json` de acierta-pro-web y lo publica como data.json con ligas a bolsa.aciertamax.com (freno si viene casi vacío).
+- MAX carga acierta.pro + bolsa (sin repetir las gemelas con EasyBroker) y acepta formularios de bolsa.aciertamax.com.
+- Pendiente de Javier: activar GitHub Pages en el repo (Settings → Pages, el token no tiene ese permiso) y crear el CNAME `bolsa` → `javiermendosalinas-afk.github.io` en el DNS de aciertamax.com. Después, si quiere, un dominio propio de GoDaddy.
+
 ## 3. Sitio
 - Portada (`index.html` + `app.js`): selector **Vivienda | Comercial** (también `?seg=comercial`), tipos por grupo (Casa incluye casa en condominio), rangos de precio por segmento y operación, sugerencias de colonia, fecha de actualización.
 - Inversión, proceso, camino y mapa trabajan **solo con vivienda** (`AM.soloVivienda`); el mapa acepta `?seg=comercial`. Helpers en `js/comun.js` (`AM.segDe`, `AM.fotoImg`...).
