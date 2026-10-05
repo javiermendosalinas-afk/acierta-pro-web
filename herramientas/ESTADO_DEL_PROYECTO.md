@@ -40,6 +40,13 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Envío: PDF directo por WhatsApp si el chat del cliente está abierto; si no, plantilla `seguimiento_cliente` con liga (Drive público en la carpeta del cliente o liga de respaldo del servidor). Copia al coach y a Javier; queda en la hoja de Actividad y en ULTIMA_ACCION del CRM.
 - Pie de la carta: NOM-247-SE-2021 y "contratos de adhesión registrados ante PROFECO" como texto (sin logo de PROFECO ni NOM); logos AMPI, NAR y CONOCER (Javier: EC0110.02, folio D-0027837023, "Dirección General certificada").
 
+## 3c. Pulso Inmobiliario acierta.pro (suscripción, oct-2026)
+- `pulso.html` (indexable, en sitemap): adelanto con cifras y gráficas, formulario (nombre, WhatsApp, correo opcional, intereses, consentimiento) y luego botón a WhatsApp con "PULSO ####". Invitación en el menú y una sección de la portada y al final de cada artículo del blog.
+- MAX: `/api/pulso/suscribir` guarda pendiente; al recibir "PULSO" (con o sin código) activa, manda bienvenida + PDF de la edición vigente (sesión abierta, sin plantilla) y marca el contacto en Wati con `pulso=si` y `pulso_intereses`. "BAJA PULSO" cancela (`pulso=no`). Hoja de Sheets "Suscriptores Pulso". Los mensajes automáticos del Pulso y de la verificación no se copian a Javier (`wati_send_text(..., copiar=False)`).
+- Ediciones: `pulso/ediciones.json` (la que tenga `"vigente": true`); PDFs en `assets/pulso/`. Publicar una edición nueva = subir PDF + editar el JSON; MAX la toma sola (caché de 1 h).
+- Envíos semanales: Javier usa "Transmisiones masivas" de Wati filtrando por el atributo `pulso = si` con una plantilla de Marketing (pendiente de crear: `pulso_semanal`).
+- Aviso de privacidad: ya incluye la finalidad secundaria del Pulso y la baja; faltan domicilio, correo ARCO y fecha (Javier), y validación del abogado. Al completarlo, subir `avisoVersion` en camino-datos.json.
+
 ## 4. Archivo para ChatGPT (publicidad en Instagram)
 - `inventario-chatgpt.xlsx` / `.csv`: 34 columnas (clave EB, filtros, textos para imagen, foto grande, liga de WhatsApp con la clave, hashtags, `apto_para_publicar`, `nota_calidad`). Se regenera solo cada mes.
 - Instrucciones para pegar en el GPT: `herramientas/chatgpt/instrucciones-chatgpt.txt` (4,806 caracteres; límite de ChatGPT 8,000). Diccionario y ejemplos reales: `herramientas/chatgpt/diccionario-y-ejemplos.md`.

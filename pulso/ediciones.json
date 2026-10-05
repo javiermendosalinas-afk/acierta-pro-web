@@ -1,0 +1,16 @@
+{
+  "_nota": "Ediciones del Pulso Inmobiliario. MAX envía la que tenga \"vigente\": true a quien escriba PULSO. Para publicar una nueva: sube el PDF a assets/pulso/, agrega la edición arriba y pasa \"vigente\" a la nueva.",
+  "ediciones": [
+    {
+      "numero": "01",
+      "fecha": "2026-10",
+      "titulo": "Pulso Inmobiliario acierta.pro · Edición 01 · Octubre 2026",
+      "tema": "Dos cambios que redefinen cómo elegimos vivienda: mercado hipotecario + inteligencia artificial",
+      "archivo": "Pulso_Inmobiliario_acierta_pro_01.pdf",
+      "url": "https://acierta.pro/assets/pulso/pulso-01-octubre-2026.pdf",
+      "pdf_raw": "https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/assets/pulso/pulso-01-octubre-2026.pdf",
+      "portada": "/assets/pulso/pulso-01-p1.jpg",
+      "vigente": true
+    }
+  ]
+}
