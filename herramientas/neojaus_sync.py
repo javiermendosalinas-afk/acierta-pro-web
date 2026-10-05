@@ -1,10 +1,10 @@
 """Inventario compartido de NeoJaus (bolsa AMPI) -> data.json de acierta.pro.
 
-Javier (socio AMPI Guadalajara) está autorizado a promover el inventario de la bolsa;
-en AMPI todos comparten comisión. Se toma de NeoJaus solo lo que:
-  - está activo, en Jalisco y en los 5 municipios de la ZMG (según los datos de la
-    ficha, no la dirección: la dirección a veces dice otro municipio), y
-  - comparte comisión (exclusivity.shared_commission).
+NeoJaus es la bolsa de AMPI, MIO, PAIS y la Cámara de Comercio: todo lo que se publica
+ahí es para compartir comisión entre socios (Javier lo confirmó, oct-2026), así que se
+toma todo lo que está activo, en Jalisco y en los 5 municipios de la ZMG (según los
+datos de la ficha, no la dirección: la dirección a veces dice otro municipio).
+La clave NJ- y url_fuente sirven para localizar al originador cuando haya cliente.
 
 Funcionamiento:
   1. Lee el mapa del sitio (sitemap) con todas las fichas y su fecha de modificación.
@@ -49,6 +49,7 @@ HEADERS = dict(S.HEADERS)
 TRABAJADORES = 3
 PAUSA = 0.6            # por trabajador: ~4-5 fichas por segundo en total
 DIST_DUPLICADO_M = 80
+VERSION_FILTRO = 2      # v2: ya no se exige shared_commission; las 'fuera' de v1 se vuelven a revisar
 TOLERANCIA_PRECIO = 0.03
 
 TIPO_POR_CLAVE = {      # respaldo si el título no trae el tipo
@@ -140,8 +141,7 @@ def leer_ficha(url):
     loc = p.get("location") or {}
     estado = (loc.get("mexican_state") or loc.get("state") or "").lower()
     municipio = S.ALIAS_MUNICIPIO.get(S.sin_acentos(loc.get("municipality") or "").lower()) if loc.get("municipality") else None
-    comparte = bool((p.get("exclusivity") or {}).get("shared_commission"))
-    if estado != "jalisco" or not municipio or not comparte:
+    if estado != "jalisco" or not municipio:
         return "fuera", []
     og = re.search(r'<meta[^>]+property="og:title"[^>]+content="([^"]*)"', r.text)
     tipo = _tipo(og.group(1) if og else "", p.get("property_type"))
@@ -262,7 +262,9 @@ def main():
         print("[FRENO] El sitemap vino incompleto: se conservan las fichas de NeoJaus de la corrida anterior.")
         sitemap = {}
 
-    pendientes = [u for u, lm in sitemap.items() if u not in cache or cache[u].get("lm") != lm or cache[u].get("estado") == "error"]
+    pendientes = [u for u, lm in sitemap.items() if u not in cache or cache[u].get("lm") != lm
+                  or cache[u].get("estado") == "error"
+                  or (cache[u].get("estado") == "fuera" and cache[u].get("v") != VERSION_FILTRO)]
     # primero las que probablemente son de la ZMG (más útiles si el tiempo no alcanza)
     zmg = re.compile(r"zapopan|guadalajara|tlaquepaque|tonala|tlajomulco|jalisco", re.I)
     pendientes.sort(key=lambda u: 0 if zmg.search(u) else 1)
@@ -286,7 +288,7 @@ def main():
                 estado, regs = hecho.result()
             except Exception:
                 estado, regs = "error", []
-            cache[u] = {"lm": sitemap.get(u, ""), "estado": estado, "regs": regs}
+            cache[u] = {"lm": sitemap.get(u, ""), "estado": estado, "regs": regs, "v": VERSION_FILTRO}
             cont[estado] += 1
             revisadas += 1
             if revisadas % 500 == 0:
@@ -327,12 +329,19 @@ def main():
         por_muni.setdefault((e["municipio"], e["operacion"]), []).append(e)
     nj_final, dup_eb, dup_nj = [], 0, 0
     nj_por_muni = {}
+    for e in eb:                      # se recalculan en cada corrida
+        e.pop("tambien_en", None)
     for r in publicables:
-        if es_duplicado(r, por_muni.get((r["municipio"], r["operacion"]), [])):
+        gemela = es_duplicado(r, por_muni.get((r["municipio"], r["operacion"]), []))
+        if not gemela:
+            gemela = es_duplicado(r, nj_por_muni.get((r["municipio"], r["operacion"]), []))
+            if gemela:
+                dup_nj += 1
+        else:
             dup_eb += 1
-            continue
-        if es_duplicado(r, nj_por_muni.get((r["municipio"], r["operacion"]), [])):
-            dup_nj += 1
+        if gemela:
+            # Se muestra una sola ficha, pero se guarda la otra clave para hallar al originador
+            gemela.setdefault("tambien_en", []).append({"clave": r["eb"], "url": r["url_fuente"]})
             continue
         nj_por_muni.setdefault((r["municipio"], r["operacion"]), []).append(r)
         nj_final.append(r)
@@ -345,8 +354,8 @@ def main():
         f"# NeoJaus (bolsa AMPI) - corrida {ahora:%Y-%m-%d}",
         "",
         f"- Fichas en el sitemap de NeoJaus: {len(sitemap):,} · revisadas en esta corrida: {revisadas:,} · pendientes: {faltan:,}",
-        f"- Resultado de lo revisado: {dict(cont)} (ok = ZMG, activa y comparte comisión)",
-        f"- Registros ZMG que comparten comisión: {len(unicos):,} · bloqueados por precio o sin foto: {len(bloqueadas):,}",
+        f"- Resultado de lo revisado: {dict(cont)} (ok = activa y en la ZMG)",
+        f"- Registros activos en la ZMG: {len(unicos):,} · bloqueados por precio o sin foto: {len(bloqueadas):,}",
         f"- Duplicados quitados: {dup_eb:,} ya estaban en EasyBroker · {dup_nj:,} repetidos dentro de NeoJaus",
         f"- **Fichas de NeoJaus publicadas: {len(nj_final):,}** · por segmento {dict(por_seg)} · por municipio {dict(por_mun)}",
         f"- Total del inventario (EasyBroker + NeoJaus): {len(salida):,}",

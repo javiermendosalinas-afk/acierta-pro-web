@@ -68,8 +68,10 @@ data = json.load(open(os.path.join(tmp, "data.json")))
 nj = {(d["eb"], d["operacion"]): d for d in data if d.get("fuente") == "neojaus"}
 ok(("NJ-10A01", "VENTA") in nj, "entra una casa de Zapopan activa que comparte comisión")
 ok(("NJ-10A02", "VENTA") in nj and ("NJ-10A02", "RENTA") in nj, "una ficha en venta y renta genera dos registros")
-ok(("NJ-10A03", "VENTA") not in nj, "se descarta el duplicado de una ficha de EasyBroker (a <80 m y precio ±3%)")
-ok(("NJ-10A04", "VENTA") not in nj, "no entra la que no comparte comisión")
+ok(("NJ-10A03", "VENTA") not in nj, "no se repite la ficha que ya está en EasyBroker (a <80 m y precio ±3%)")
+gem = [d for d in data if d["eb"] == "EB-AAA111"][0]
+ok(gem.get("tambien_en") == [{"clave": "NJ-10A03", "url": "https://neojaus.com/propiedades/duplicada-de-eb-3"}], "pero la ficha de EasyBroker guarda la clave NJ y su liga para hallar al originador")
+ok(("NJ-10A04", "VENTA") in nj, "entra aunque la ficha no marque comisión compartida (NeoJaus es para compartir)")
 ok(("NJ-10A05", "VENTA") not in nj, "no entra la de otro estado")
 ok(("NJ-10A06", "VENTA") not in nj, "no entra la inactiva")
 ok(("NJ-10A07", "VENTA") not in nj, "precio por m² sin superficie: no se publica (no se inventa el total)")
@@ -94,6 +96,16 @@ with contextlib.redirect_stdout(io.StringIO()):
 ok(not [u for u in llamadas if "/propiedades/" in u], "la segunda corrida no vuelve a abrir fichas sin cambios (solo lee el sitemap)")
 data2 = json.load(open(os.path.join(tmp, "data.json")))
 ok(len([d for d in data2 if d.get("fuente") == "neojaus"]) == len(nj), "y conserva las mismas fichas de NeoJaus")
+ok(len([d for d in data2 if d["eb"] == "EB-AAA111"][0].get("tambien_en", [])) == 1, "la clave relacionada no se duplica entre corridas")
+# una caché de la versión anterior (filtro de comisión) se vuelve a revisar
+c = json.load(gzip.open(os.path.join(tmp, "herramientas", "neojaus", "cache.json.gz"), "rt"))
+for v in c.values():
+    if v["estado"] == "fuera": v.pop("v", None)
+with gzip.open(os.path.join(tmp, "herramientas", "neojaus", "cache.json.gz"), "wt") as fh: json.dump(c, fh)
+llamadas.clear()
+with contextlib.redirect_stdout(io.StringIO()):
+    N.main()
+ok(len([u for u in llamadas if "/propiedades/" in u]) == sum(1 for v in c.values() if v["estado"] == "fuera"), "las fichas descartadas con el filtro anterior se vuelven a revisar una vez")
 shutil.rmtree(tmp)
 print(f"\nFALLAS: {fallas}")
 sys.exit(1 if fallas else 0)

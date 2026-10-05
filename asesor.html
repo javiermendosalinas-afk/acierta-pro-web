@@ -64,6 +64,17 @@
   </section>
 
   <div id="asApp" hidden>
+    <!-- Buscar originador -->
+    <section class="as-card">
+      <h2>Buscar al originador por clave</h2>
+      <p class="as-muted">Escribe la clave de una propiedad (EB-… o NJ-…) para ver quién la publicó.</p>
+      <div class="as-fila">
+        <div><input type="text" id="asOrigClave" placeholder="Ej. NJ-10D65 o EB-XB4792" autocomplete="off"></div>
+        <div style="flex:0 0 auto"><button class="as-btn claro" id="asOrigBuscar">Buscar</button></div>
+      </div>
+      <div id="asOrigRes"></div>
+    </section>
+
     <!-- 2. Cliente -->
     <section class="as-card">
       <h2>1. Cliente</h2>
@@ -296,6 +307,28 @@
     pintarProps();
     msg('asMsg', faltan.length ? `Propuesta cargada. No encontré: ${faltan.join(', ')}.` : 'Propuesta cargada. Revisa los textos y genera la vista previa.', faltan.length ? 'error' : 'ok');
   }
+
+  // ── Originador ──
+  function buscarOriginador() {
+    const clave = $('asOrigClave').value.trim().toUpperCase().replace(/\s+/g, '');
+    const cont = $('asOrigRes');
+    if (!/^(EB|NJ)-[A-Z0-9]{4,8}$/.test(clave)) { cont.innerHTML = '<p class="as-msg error">Escribe una clave completa, por ejemplo NJ-10D65 o EB-XB4792.</p>'; return; }
+    if (!INV.length) { cont.innerHTML = '<p class="as-muted">Cargando inventario, intenta en unos segundos.</p>'; return; }
+    const hallados = INV.filter(p => p.eb === clave || (p.tambien_en || []).some(x => x.clave === clave));
+    if (!hallados.length) { cont.innerHTML = `<p class="as-msg error">${esc(clave)} no está en el inventario actual (puede haberse vendido, rentado o despublicado).</p>`; return; }
+    cont.innerHTML = hallados.map(p => {
+      const ligas = [];
+      if (p.fuente === 'neojaus') ligas.push(`<a href="${esc(p.url_fuente)}" target="_blank" rel="noopener">Publicación original en NeoJaus (${esc(p.eb)}) ↗</a> <span class="as-muted">— con tu sesión de NeoJaus abierta ves al asesor que la publicó.</span>`);
+      else ligas.push(`<a href="${esc(p.liga)}" target="_blank" rel="noopener">Ficha en aciertamax.com (${esc(p.eb)}) ↗</a> <span class="as-muted">— en tu panel de EasyBroker busca la clave para ver la inmobiliaria y su contacto.</span>`);
+      (p.tambien_en || []).forEach(x => ligas.push(`<a href="${esc(x.url)}" target="_blank" rel="noopener">También publicada en NeoJaus (${esc(x.clave)}) ↗</a>`));
+      return `<div class="as-cliente-info"><strong>${esc(p.titulo || p.tipo)}</strong><br>
+        ${esc(p.operacion === 'RENTA' ? 'Renta' : 'Venta')} · ${money(p.precio)}${p.operacion === 'RENTA' ? ' al mes' : ''} · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}<br>
+        ${ligas.join('<br>')}<br>
+        <a href="ficha.html?eb=${encodeURIComponent(p.eb)}&op=${p.operacion === 'RENTA' ? 'R' : 'V'}" target="_blank" rel="noopener">Ficha en acierta.pro ↗</a></div>`;
+    }).join('');
+  }
+  $('asOrigBuscar').addEventListener('click', buscarOriginador);
+  $('asOrigClave').addEventListener('keydown', e => { if (e.key === 'Enter') buscarOriginador(); });
 
   // ── Cliente ──
   async function buscarCliente() {
