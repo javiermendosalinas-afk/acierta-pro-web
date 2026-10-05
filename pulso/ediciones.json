@@ -1,5 +1,5 @@
 {
-  "_nota": "Ediciones del Pulso Inmobiliario. MAX envía la que tenga \"vigente\": true a quien escriba PULSO. Para publicar una nueva: sube el PDF a assets/pulso/, agrega la edición arriba y pasa \"vigente\" a la nueva.",
+  "_nota": "Ediciones del Pulso Inmobiliario. MAX envía por WhatsApp la que tenga \"vigente\": true a quien escriba PULSO. Para publicar una nueva: sube el PDF a assets/pulso/, agrega la edición arriba, pasa \"vigente\" a la nueva y pon \"enviar_correo\": true para que MAX la mande por correo a los suscriptores activos (una sola vez a cada uno, máximo 400 por día). La 01 no se envía por correo masivo: ya va en el correo de bienvenida.",
   "ediciones": [
     {
       "numero": "01",
@@ -10,7 +10,8 @@
       "url": "https://acierta.pro/assets/pulso/pulso-01-octubre-2026.pdf",
       "pdf_raw": "https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/assets/pulso/pulso-01-octubre-2026.pdf",
       "portada": "/assets/pulso/pulso-01-p1.jpg",
-      "vigente": true
+      "vigente": true,
+      "enviar_correo": false
     }
   ]
 }
