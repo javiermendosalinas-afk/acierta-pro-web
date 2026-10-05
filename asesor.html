@@ -132,7 +132,14 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
   let API = '', TOKEN = sessionStorage.getItem('as_token') || '', COACH = sessionStorage.getItem('as_nombre') || '';
-  let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '', VIO_EN_SITIO = false;
+  let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '', VIO_EN_SITIO = false, BOLSA = null;
+  // Bolsa NeoJaus: no se publica en acierta.pro; solo se consulta para hallar al originador
+  const URL_BOLSA = 'https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/herramientas/neojaus/neojaus.json';
+  async function cargarBolsa() {
+    if (BOLSA) return BOLSA;
+    try { const r = await fetch(URL_BOLSA); BOLSA = r.ok ? await r.json() : []; } catch (e) { BOLSA = []; }
+    return BOLSA;
+  }
 
   async function cfg() {
     const r = await fetch('camino-datos.json'); const j = await r.json();
@@ -309,22 +316,26 @@
   }
 
   // ── Originador ──
-  function buscarOriginador() {
+  async function buscarOriginador() {
     const clave = $('asOrigClave').value.trim().toUpperCase().replace(/\s+/g, '');
     const cont = $('asOrigRes');
     if (!/^(EB|NJ)-[A-Z0-9]{4,8}$/.test(clave)) { cont.innerHTML = '<p class="as-msg error">Escribe una clave completa, por ejemplo NJ-10D65 o EB-XB4792.</p>'; return; }
     if (!INV.length) { cont.innerHTML = '<p class="as-muted">Cargando inventario, intenta en unos segundos.</p>'; return; }
-    const hallados = INV.filter(p => p.eb === clave || (p.tambien_en || []).some(x => x.clave === clave));
+    if (clave.startsWith('NJ-')) cont.innerHTML = '<p class="as-muted">Buscando en la bolsa NeoJaus…</p>';
+    const bolsa = clave.startsWith('NJ-') ? await cargarBolsa() : [];
+    const hallados = INV.concat(bolsa).filter(p => p.eb === clave || (p.tambien_en || []).some(x => x.clave === clave));
     if (!hallados.length) { cont.innerHTML = `<p class="as-msg error">${esc(clave)} no está en el inventario actual (puede haberse vendido, rentado o despublicado).</p>`; return; }
     cont.innerHTML = hallados.map(p => {
       const ligas = [];
       if (p.fuente === 'neojaus') ligas.push(`<a href="${esc(p.url_fuente)}" target="_blank" rel="noopener">Publicación original en NeoJaus (${esc(p.eb)}) ↗</a> <span class="as-muted">— con tu sesión de NeoJaus abierta ves al asesor que la publicó.</span>`);
       else ligas.push(`<a href="${esc(p.liga)}" target="_blank" rel="noopener">Ficha en aciertamax.com (${esc(p.eb)}) ↗</a> <span class="as-muted">— en tu panel de EasyBroker busca la clave para ver la inmobiliaria y su contacto.</span>`);
-      (p.tambien_en || []).forEach(x => ligas.push(`<a href="${esc(x.url)}" target="_blank" rel="noopener">También publicada en NeoJaus (${esc(x.clave)}) ↗</a>`));
+      (p.tambien_en || []).forEach(x => ligas.push(x.clave.startsWith('NJ-')
+        ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">También publicada en NeoJaus (${esc(x.clave)}) ↗</a>`
+        : `<a href="${esc(x.url)}" target="_blank" rel="noopener">También publicada en EasyBroker (${esc(x.clave)}) ↗</a>`));
       return `<div class="as-cliente-info"><strong>${esc(p.titulo || p.tipo)}</strong><br>
         ${esc(p.operacion === 'RENTA' ? 'Renta' : 'Venta')} · ${money(p.precio)}${p.operacion === 'RENTA' ? ' al mes' : ''} · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}<br>
         ${ligas.join('<br>')}<br>
-        <a href="ficha.html?eb=${encodeURIComponent(p.eb)}&op=${p.operacion === 'RENTA' ? 'R' : 'V'}" target="_blank" rel="noopener">Ficha en acierta.pro ↗</a></div>`;
+        ${p.fuente === 'neojaus' ? '<span class="as-muted">Inventario de la bolsa NeoJaus (no se publica en acierta.pro).</span>' : `<a href="ficha.html?eb=${encodeURIComponent(p.eb)}&op=${p.operacion === 'RENTA' ? 'R' : 'V'}" target="_blank" rel="noopener">Ficha en acierta.pro ↗</a>`}</div>`;
     }).join('');
   }
   $('asOrigBuscar').addEventListener('click', buscarOriginador);

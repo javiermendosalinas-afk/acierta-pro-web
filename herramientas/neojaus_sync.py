@@ -1,4 +1,11 @@
-"""Inventario compartido de NeoJaus (bolsa AMPI) -> data.json de acierta.pro.
+"""Inventario compartido de NeoJaus (bolsa AMPI) -> herramientas/neojaus/neojaus.json.
+
+DECISIÓN DE JAVIER (5-oct-2026): el inventario de NeoJaus NO se publica en acierta.pro;
+va a un sitio aparte. Este script solo escribe su propio archivo y, en data.json de
+acierta.pro, (1) quita cualquier ficha de NeoJaus y (2) anota en las fichas de EasyBroker
+que también están en NeoJaus la clave NJ y su liga (`tambien_en`), solo para que el
+portal de coaches encuentre al originador. El archivo de ChatGPT, el CSV y la meta de
+acierta.pro se regeneran solo con EasyBroker.
 
 NeoJaus es la bolsa de AMPI, MIO, PAIS y la Cámara de Comercio: todo lo que se publica
 ahí es para compartir comisión entre socios (Javier lo confirmó, oct-2026), así que se
@@ -12,8 +19,8 @@ Funcionamiento:
      herramientas/neojaus/cache.json.gz). La primera corrida abre todas; si se acaba el
      tiempo, guarda el avance y la siguiente corrida continúa.
   3. Aplica las mismas reglas que EasyBroker (segmento, guardas de precio, foto).
-  4. Quita duplicados contra EasyBroker (misma operación, a menos de 80 m y precio a ±3%).
-  5. Escribe data.json = EasyBroker + NeoJaus, el CSV, el archivo de ChatGPT y el resumen.
+  4. Marca gemelas con EasyBroker (misma operación, a menos de 80 m y precio a ±3%).
+  5. Escribe neojaus.json (todas las de NeoJaus) y deja data.json solo con EasyBroker.
 
 Respeta robots.txt de neojaus.com (solo prohíbe /cdn-cgi/) y va a ritmo pausado.
 Uso:  python herramientas/neojaus_sync.py [--max-minutos 300] [--max-fichas N] [--sin-escribir]
@@ -172,7 +179,7 @@ def leer_ficha(url):
             "titulo": (p.get("name") or "").strip(), "tipo": tipo,
             "recamaras": p.get("rooms") or None, "banos": p.get("bathrooms"),
             "m2": float(m2) if m2 else None, "niveles": p.get("floors"),
-            "eb": nj, "liga": f"{S.SITIO}/ficha.html?eb={nj}&op={'V' if operacion == 'VENTA' else 'R'}",
+            "eb": nj, "liga": None,     # la pone el sitio de la bolsa (no acierta.pro)
             "foto": foto, "lat": coords.get("lat"), "lon": coords.get("lng"),
             "colonia": loc.get("neighborhood") or "", "fuente": "neojaus", "url_fuente": url,
         }
@@ -321,33 +328,31 @@ def main():
             unicos.append(r)
     publicables, bloqueadas = aplicar_reglas(unicos)
 
-    # fusión con EasyBroker
+    # gemelas con EasyBroker (solo se anotan; las de NeoJaus van todas a su propio archivo)
     data = S.cargar_previo(S.RUTA_DATA)
+    quitadas_de_acierta = sum(1 for d in data if d.get("fuente") == "neojaus")
     eb = [d for d in data if d.get("fuente") != "neojaus"]
     por_muni = {}
     for e in eb:
+        e.pop("tambien_en", None)
         por_muni.setdefault((e["municipio"], e["operacion"]), []).append(e)
     nj_final, dup_eb, dup_nj = [], 0, 0
     nj_por_muni = {}
-    for e in eb:                      # se recalculan en cada corrida
-        e.pop("tambien_en", None)
     for r in publicables:
-        gemela = es_duplicado(r, por_muni.get((r["municipio"], r["operacion"]), []))
-        if not gemela:
-            gemela = es_duplicado(r, nj_por_muni.get((r["municipio"], r["operacion"]), []))
-            if gemela:
-                dup_nj += 1
-        else:
-            dup_eb += 1
-        if gemela:
-            # Se muestra una sola ficha, pero se guarda la otra clave para hallar al originador
-            gemela.setdefault("tambien_en", []).append({"clave": r["eb"], "url": r["url_fuente"]})
+        gemela_nj = es_duplicado(r, nj_por_muni.get((r["municipio"], r["operacion"]), []))
+        if gemela_nj:              # la misma propiedad publicada dos veces dentro de NeoJaus
+            dup_nj += 1
+            gemela_nj.setdefault("tambien_en", []).append({"clave": r["eb"], "url": r["url_fuente"]})
             continue
+        gemela_eb = es_duplicado(r, por_muni.get((r["municipio"], r["operacion"]), []))
+        if gemela_eb:
+            dup_eb += 1
+            gemela_eb.setdefault("tambien_en", []).append({"clave": r["eb"], "url": r["url_fuente"]})
+            r = dict(r, tambien_en=[{"clave": gemela_eb["eb"], "url": gemela_eb.get("liga")}])
         nj_por_muni.setdefault((r["municipio"], r["operacion"]), []).append(r)
         nj_final.append(r)
 
-    salida = eb + nj_final
-    salida.sort(key=lambda f: (f["operacion"], f["municipio"], -(f["precio"] or 0)))
+    nj_final.sort(key=lambda f: (f["operacion"], f["municipio"], -(f["precio"] or 0)))
     por_seg = Counter(f.get("segmento") for f in nj_final)
     por_mun = Counter(f["municipio"] for f in nj_final)
     resumen = [
@@ -356,9 +361,9 @@ def main():
         f"- Fichas en el sitemap de NeoJaus: {len(sitemap):,} · revisadas en esta corrida: {revisadas:,} · pendientes: {faltan:,}",
         f"- Resultado de lo revisado: {dict(cont)} (ok = activa y en la ZMG)",
         f"- Registros activos en la ZMG: {len(unicos):,} · bloqueados por precio o sin foto: {len(bloqueadas):,}",
-        f"- Duplicados quitados: {dup_eb:,} ya estaban en EasyBroker · {dup_nj:,} repetidos dentro de NeoJaus",
-        f"- **Fichas de NeoJaus publicadas: {len(nj_final):,}** · por segmento {dict(por_seg)} · por municipio {dict(por_mun)}",
-        f"- Total del inventario (EasyBroker + NeoJaus): {len(salida):,}",
+        f"- Gemelas: {dup_eb:,} también están en EasyBroker (se conservan en la bolsa y se anotan) · {dup_nj:,} repetidas dentro de NeoJaus (se muestra una)",
+        f"- **Fichas de la bolsa NeoJaus: {len(nj_final):,}** · por segmento {dict(por_seg)} · por municipio {dict(por_mun)}",
+        f"- acierta.pro sigue solo con EasyBroker: {len(eb):,} fichas" + (f" (se quitaron {quitadas_de_acierta:,} fichas de NeoJaus que había)" if quitadas_de_acierta else ""),
     ]
     texto = "\n".join(resumen)
     print("\n" + texto)
@@ -372,19 +377,20 @@ def main():
         return
     with open(RUTA_NJ, "w", encoding="utf-8") as fh:
         json.dump(nj_final, fh, ensure_ascii=False, separators=(",", ":"))
+    # acierta.pro: solo EasyBroker (con la anotación tambien_en para el portal de coaches)
     with open(S.RUTA_DATA, "w", encoding="utf-8") as fh:
-        json.dump(salida, fh, ensure_ascii=False, separators=(",", ":"))
-    S.escribir_csv(S.RUTA_CSV, salida)
-    S.escribir_chatgpt(salida, ahora.strftime("%Y-%m-%d"))
-    meta = {}
-    if os.path.exists(S.RUTA_META):
-        with open(S.RUTA_META, encoding="utf-8") as fh:
-            meta = json.load(fh)
-    meta.update({"total": len(salida), "por_segmento": dict(Counter(f.get("segmento") for f in salida)),
-                 "por_fuente": {"easybroker": len(eb), "neojaus": len(nj_final)}})
-    with open(S.RUTA_META, "w", encoding="utf-8") as fh:
-        json.dump(meta, fh, ensure_ascii=False, indent=1)
-
+        json.dump(eb, fh, ensure_ascii=False, separators=(",", ":"))
+    if quitadas_de_acierta:
+        S.escribir_csv(S.RUTA_CSV, eb)
+        S.escribir_chatgpt(eb, ahora.strftime("%Y-%m-%d"))
+        meta = {}
+        if os.path.exists(S.RUTA_META):
+            with open(S.RUTA_META, encoding="utf-8") as fh:
+                meta = json.load(fh)
+        meta.pop("por_fuente", None)
+        meta.update({"total": len(eb), "por_segmento": dict(Counter(f.get("segmento") for f in eb))})
+        with open(S.RUTA_META, "w", encoding="utf-8") as fh:
+            json.dump(meta, fh, ensure_ascii=False, indent=1)
 
 if __name__ == "__main__":
     main()

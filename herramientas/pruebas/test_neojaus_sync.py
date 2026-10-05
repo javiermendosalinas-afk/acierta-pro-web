@@ -65,10 +65,12 @@ sys.argv = ["neojaus_sync.py"]
 with contextlib.redirect_stdout(io.StringIO()):
     N.main()
 data = json.load(open(os.path.join(tmp, "data.json")))
-nj = {(d["eb"], d["operacion"]): d for d in data if d.get("fuente") == "neojaus"}
+bolsa = json.load(open(os.path.join(tmp, "herramientas", "neojaus", "neojaus.json")))
+nj = {(d["eb"], d["operacion"]): d for d in bolsa}
+ok(not any(d.get("fuente") == "neojaus" or d["eb"].startswith("NJ-") for d in data), "acierta.pro (data.json) queda SOLO con EasyBroker; quita fichas de NeoJaus que hubiera")
 ok(("NJ-10A01", "VENTA") in nj, "entra una casa de Zapopan activa que comparte comisión")
 ok(("NJ-10A02", "VENTA") in nj and ("NJ-10A02", "RENTA") in nj, "una ficha en venta y renta genera dos registros")
-ok(("NJ-10A03", "VENTA") not in nj, "no se repite la ficha que ya está en EasyBroker (a <80 m y precio ±3%)")
+ok(nj.get(("NJ-10A03", "VENTA"), {}).get("tambien_en") == [{"clave": "EB-AAA111", "url": "https://www.aciertamax.com/property/x"}], "la gemela de EasyBroker se conserva en la bolsa y anota su clave EB")
 gem = [d for d in data if d["eb"] == "EB-AAA111"][0]
 ok(gem.get("tambien_en") == [{"clave": "NJ-10A03", "url": "https://neojaus.com/propiedades/duplicada-de-eb-3"}], "pero la ficha de EasyBroker guarda la clave NJ y su liga para hallar al originador")
 ok(("NJ-10A04", "VENTA") in nj, "entra aunque la ficha no marque comisión compartida (NeoJaus es para compartir)")
@@ -81,12 +83,13 @@ ok(tr.get("precio") == 750000 and tr.get("tipo") == "terreno", "precio por m² c
 t = nj.get(("NJ-10A09", "RENTA"), {})
 ok(t.get("municipio") == "Tlajomulco de Zúñiga" and t.get("tipo") == "departamento", "municipio y tipo correctos (Tlajomulco, departamento)")
 c = nj.get(("NJ-10A01", "VENTA"), {})
-ok(c.get("liga", "").startswith("https://acierta.pro/ficha.html?eb=NJ-10A01") and "neojaus" in c.get("url_fuente", ""), "la liga pública es la ficha de acierta.pro (no la de la otra inmobiliaria)")
+ok(not c.get("liga") and "neojaus" in c.get("url_fuente", ""), "ninguna ficha de NeoJaus apunta a acierta.pro; guarda la liga del originador")
 ok(c.get("foto") == "https://cdn.neojaus.com/properties/u10A01/a.webp", "foto del CDN de NeoJaus")
-ok(not any(k.startswith("_") for d in data for k in d), "no se filtran campos internos al sitio")
-ok(any(d["eb"] == "EB-AAA111" for d in data) and not any(d["eb"] == "NJ-OLD" for d in data), "conserva EasyBroker y reemplaza las NJ anteriores")
+ok(not any(k.startswith("_") for d in data + bolsa for k in d), "no se filtran campos internos")
+ok(any(d["eb"] == "EB-AAA111" for d in data), "conserva EasyBroker en acierta.pro")
 meta = json.load(open(os.path.join(tmp, "inventario-meta.json")))
-ok(meta.get("por_fuente", {}).get("neojaus") == len(nj) and meta["por_fuente"]["easybroker"] == 1, "inventario-meta registra las fuentes")
+ok(meta.get("total") == 1 and "por_fuente" not in meta, "la meta de acierta.pro cuenta solo EasyBroker")
+ok(os.path.exists(os.path.join(tmp, "inventario-chatgpt.csv")) and "NJ-" not in open(os.path.join(tmp, "inventario-chatgpt.csv"), encoding="utf-8").read(), "el archivo de ChatGPT se regenera sin NeoJaus")
 cache = json.load(gzip.open(os.path.join(tmp, "herramientas", "neojaus", "cache.json.gz"), "rt"))
 ok(len(cache) == len(paginas) + 1200, "la caché guarda el estado de cada ficha revisada")
 # segunda corrida: no vuelve a abrir fichas sin cambios
@@ -95,7 +98,7 @@ with contextlib.redirect_stdout(io.StringIO()):
     N.main()
 ok(not [u for u in llamadas if "/propiedades/" in u], "la segunda corrida no vuelve a abrir fichas sin cambios (solo lee el sitemap)")
 data2 = json.load(open(os.path.join(tmp, "data.json")))
-ok(len([d for d in data2 if d.get("fuente") == "neojaus"]) == len(nj), "y conserva las mismas fichas de NeoJaus")
+ok(len(json.load(open(os.path.join(tmp, "herramientas", "neojaus", "neojaus.json")))) == len(nj), "y conserva las mismas fichas de NeoJaus")
 ok(len([d for d in data2 if d["eb"] == "EB-AAA111"][0].get("tambien_en", [])) == 1, "la clave relacionada no se duplica entre corridas")
 # una caché de la versión anterior (filtro de comisión) se vuelve a revisar
 c = json.load(gzip.open(os.path.join(tmp, "herramientas", "neojaus", "cache.json.gz"), "rt"))
