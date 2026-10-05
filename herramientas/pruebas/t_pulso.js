@@ -30,7 +30,7 @@ const fs = require('fs');
   ok(/PULSO 4821/.test(d.querySelector('.pu-listo').textContent) && $('puDescarga'), 'da la alternativa de escribir el código y la descarga inmediata');
   ok(fs.existsSync(T.RAIZ + '/assets/pulso/pulso-01-octubre-2026.pdf'), 'el PDF de la edición 01 está publicado');
   const ed = JSON.parse(fs.readFileSync(T.RAIZ + '/pulso/ediciones.json', 'utf8')).ediciones.filter(e => e.vigente);
-  ok(ed.length === 1 && /pulso-01-octubre-2026\.pdf$/.test(ed[0].pdf_raw), 'hay exactamente una edición vigente y apunta al PDF publicado');
+  ok(ed.length === 1 && /pulso-01-octubre-2026\.pdf(\?v=\d+)?$/.test(ed[0].pdf_raw), 'hay exactamente una edición vigente y apunta al PDF publicado');
   const home = fs.readFileSync(T.RAIZ + '/index.html', 'utf8'), blog = fs.readFileSync(T.RAIZ + '/blog/colores-del-ano-2026-comex.html', 'utf8');
   ok(/href="pulso\.html"/.test(home) && /pulso-cta/.test(home) && /pulso-cta/.test(blog), 'invitación al Pulso en la portada (menú y sección) y en los artículos');
   ok(/pulso\.html/.test(fs.readFileSync(T.RAIZ + '/sitemap.xml', 'utf8')), 'la página está en el sitemap');
