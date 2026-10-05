@@ -8,10 +8,11 @@
       "tema": "Dos cambios que redefinen cómo elegimos vivienda: mercado hipotecario + inteligencia artificial",
       "archivo": "Pulso_Inmobiliario_acierta_pro_01.pdf",
       "url": "https://acierta.pro/assets/pulso/pulso-01-octubre-2026.pdf",
-      "pdf_raw": "https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/assets/pulso/pulso-01-octubre-2026.pdf",
+      "pdf_raw": "https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/assets/pulso/pulso-01-octubre-2026.pdf?v=2",
       "portada": "/assets/pulso/pulso-01-p1.jpg",
       "vigente": true,
-      "enviar_correo": false
+      "enviar_correo": false,
+      "version_pdf": 2
     }
   ]
 }
