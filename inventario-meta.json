@@ -1,9 +1,9 @@
 {
  "actualizado": "2026-10-04T20:57:30+00:00",
- "total": 9970,
+ "total": 16117,
  "por_segmento": {
-  "comercial": 2098,
-  "vivienda": 7872
+  "comercial": 3268,
+  "vivienda": 12849
  },
  "municipios": [
   "Guadalajara",
@@ -12,5 +12,9 @@
   "Tonalá",
   "Zapopan"
  ],
- "foto_grande_ok": true
+ "foto_grande_ok": true,
+ "por_fuente": {
+  "easybroker": 9970,
+  "neojaus": 6147
+ }
 }
