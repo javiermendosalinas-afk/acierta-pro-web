@@ -1,8 +1,8 @@
 # NeoJaus (bolsa AMPI) - corrida 2026-10-05
 
-- Fichas en el sitemap de NeoJaus: 29,761 · revisadas en esta corrida: 29,761 · pendientes: 0
-- Resultado de lo revisado: {'ok': 12106, 'fuera': 17612, 'baja': 43} (ok = ZMG, activa y comparte comisión)
-- Registros ZMG que comparten comisión: 12,327 · bloqueados por precio o sin foto: 186
-- Duplicados quitados: 4,961 ya estaban en EasyBroker · 1,033 repetidos dentro de NeoJaus
-- **Fichas de NeoJaus publicadas: 6,147** · por segmento {'vivienda': 4977, 'comercial': 1170} · por municipio {'Zapopan': 2786, 'Guadalajara': 1694, 'Tonalá': 191, 'Tlaquepaque': 371, 'Tlajomulco de Zúñiga': 1105}
-- Total del inventario (EasyBroker + NeoJaus): 16,117
+- Fichas en el sitemap de NeoJaus: 29,761 · revisadas en esta corrida: 17,612 · pendientes: 0
+- Resultado de lo revisado: {'fuera': 15928, 'ok': 1684} (ok = activa y en la ZMG)
+- Registros activos en la ZMG: 14,041 · bloqueados por precio o sin foto: 213
+- Gemelas: 3,700 también están en EasyBroker (se conservan en la bolsa y se anotan) · 2,802 repetidas dentro de NeoJaus (se muestra una)
+- **Fichas de la bolsa NeoJaus: 11,026** · por segmento {'comercial': 2039, 'vivienda': 8987} · por municipio {'Guadalajara': 3224, 'Tlajomulco de Zúñiga': 1801, 'Tlaquepaque': 637, 'Tonalá': 279, 'Zapopan': 5085}
+- acierta.pro sigue solo con EasyBroker: 9,970 fichas
