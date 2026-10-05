@@ -1,57 +1,18 @@
-# Diagnóstico de claves EB faltantes
+# Diagnóstico 2 de claves EB
 
-Claves: EB-XB4792, EB-XA9606, EB-WV3319, EB-XD2631, EB-VY4454, EB-WP7537, EB-WV5084
+## Búsqueda por clave (/properties?search[query]=)
 
-## 1. Búsqueda directa por clave
+- EB-XB4792: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XB4792&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-XA9606: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XA9606&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-WV3319: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WV3319&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-XD2631: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XD2631&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-VY4454: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-VY4454&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-WP7537: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WP7537&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-WV5084: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WV5084&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
 
-- https://www.aciertamax.com/search?q=EB-XB4792 → error
-- https://www.aciertamax.com/search_text?search_text=EB-XB4792 → HTTP 200, final https://www.aciertamax.com/search_text?search_text=EB-XB4792, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-XB4792 → HTTP 200, final https://www.aciertamax.com/properties?search%5Bquery%5D=EB-XB4792, clave en página: True, tarjetas: 18
-- https://www.aciertamax.com/property/eb-xb4792 → HTTP 404, final https://www.aciertamax.com/property/eb-xb4792, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-XB4792 → HTTP 404, final https://www.aciertamax.com/renta?search%5Bquery%5D=EB-XB4792, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/search?q=EB-XA9606 → error
-- https://www.aciertamax.com/search_text?search_text=EB-XA9606 → HTTP 429, final https://www.aciertamax.com/search_text?search_text=EB-XA9606, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-XA9606 → HTTP 200, final https://www.aciertamax.com/properties?search%5Bquery%5D=EB-XA9606, clave en página: True, tarjetas: 18
-- https://www.aciertamax.com/property/eb-xa9606 → HTTP 404, final https://www.aciertamax.com/property/eb-xa9606, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-XA9606 → HTTP 404, final https://www.aciertamax.com/renta?search%5Bquery%5D=EB-XA9606, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/search?q=EB-WV3319 → error
-- https://www.aciertamax.com/search_text?search_text=EB-WV3319 → HTTP 429, final https://www.aciertamax.com/search_text?search_text=EB-WV3319, clave en página: False, tarjetas: 0
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-WV3319 → error
-- https://www.aciertamax.com/property/eb-wv3319 → error
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-WV3319 → error
-- https://www.aciertamax.com/search?q=EB-XD2631 → error
-- https://www.aciertamax.com/search_text?search_text=EB-XD2631 → error
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-XD2631 → error
-- https://www.aciertamax.com/property/eb-xd2631 → error
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-XD2631 → error
-- https://www.aciertamax.com/search?q=EB-VY4454 → error
-- https://www.aciertamax.com/search_text?search_text=EB-VY4454 → error
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-VY4454 → error
-- https://www.aciertamax.com/property/eb-vy4454 → error
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-VY4454 → error
-- https://www.aciertamax.com/search?q=EB-WP7537 → error
-- https://www.aciertamax.com/search_text?search_text=EB-WP7537 → error
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-WP7537 → error
-- https://www.aciertamax.com/property/eb-wp7537 → error
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-WP7537 → error
-- https://www.aciertamax.com/search?q=EB-WV5084 → error
-- https://www.aciertamax.com/search_text?search_text=EB-WV5084 → error
-- https://www.aciertamax.com/properties?search%5Bquery%5D=EB-WV5084 → error
-- https://www.aciertamax.com/property/eb-wv5084 → error
-- https://www.aciertamax.com/renta?search%5Bquery%5D=EB-WV5084 → error
+## Totales de listados
 
-## 2. Listados de renta
-
-- renta/zapopan orden=price-desc: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-- renta/zapopan orden=price-asc: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-- renta/zapopan orden=por defecto: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-- renta/guadalajara orden=price-desc: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-- renta/guadalajara orden=price-asc: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-- renta/guadalajara orden=por defecto: 0 claves en 0 páginas; el sitio dice: ; de las buscadas aparecen: ninguna
-
-## 3. Formularios y enlaces del sitio
-
-- form action=/search_text method=get campos=['search[text]', 'commit']
-- form action=/search_text method=get campos=['search[text]', 'commit']
-- form action=/search_text method=get campos=['search[text]', 'commit']
-- rutas: ['/', '/about', '/contact', '/index', '/properties', '/rentals']
+- https://www.aciertamax.com/rentals: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/rentals?page=2&amp;web_page=rentals']
+- https://www.aciertamax.com/properties: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/properties?page=2&amp;web_page=properties']
+- https://www.aciertamax.com/renta/mexico/jalisco/zapopan: HTTP 404 · (sin total visible) · tarjetas pág. 1: 0 · enlace a pág. 2: []
+- https://www.aciertamax.com/renta/mexico/jalisco/guadalajara: HTTP 404 · (sin total visible) · tarjetas pág. 1: 0 · enlace a pág. 2: []
