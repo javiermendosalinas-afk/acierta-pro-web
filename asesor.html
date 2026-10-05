@@ -76,6 +76,10 @@
         <div><label for="asNombre">Nombre del cliente (como aparecerá en la carta)</label><input type="text" id="asNombre" maxlength="80"></div>
         <div style="flex:0 0 160px"><label for="asFolio">Folio</label><input type="text" id="asFolio" maxlength="40"></div>
       </div>
+      <div class="as-fila">
+        <div><label for="asTrato">Trato en la carta</label><select id="asTrato"><option value="usted">De usted</option><option value="tu">De tú</option></select></div>
+        <div><label for="asGenero">Saludo</label><select id="asGenero"><option value="">Estimado(a)</option><option value="f">Estimada</option><option value="m">Estimado</option></select></div>
+      </div>
       <label for="asCriterios">Lo que busca el cliente</label>
       <input type="text" id="asCriterios" maxlength="300" placeholder="Ej. compra de casa en Zapopan, de $3 a $5 millones, mínimo 3 recámaras">
       <label for="asNota">Lo que platicaron (aparece en la carta)</label>
@@ -117,7 +121,7 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
   let API = '', TOKEN = sessionStorage.getItem('as_token') || '', COACH = sessionStorage.getItem('as_nombre') || '';
-  let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '';
+  let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '', VIO_EN_SITIO = false;
 
   async function cfg() {
     const r = await fetch('camino-datos.json'); const j = await r.json();
@@ -179,6 +183,7 @@
       });
       Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
       $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
+      cargarPreparada();
     } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
   }
   const plural = (n, s) => `${n} ${s}${Number(n) === 1 ? '' : (s.endsWith('n') ? 'es' : 's')}`;
@@ -244,13 +249,53 @@
     if (q.length < 3 || !INV.length) { cont.hidden = true; return; }
     const res = INV.filter(p => norm(p.eb) === q || norm(p.eb).includes(q) || norm(p.colonia).includes(q) || norm(p.titulo).includes(q)).slice(0, 30);
     cont.hidden = false;
-    cont.innerHTML = res.length ? res.map((p, k) => `<button type="button" data-k="${INV.indexOf(p)}"><strong>${esc(p.eb)}</strong> · ${esc(p.operacion === 'RENTA' ? 'Renta' : 'Venta')} · ${esc(p.tipo)} · ${money(p.precio)} · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}</button>`).join('')
-      : '<div class="as-muted" style="padding:8px 12px">Sin resultados</div>';
+    const clave = $('asBuscarEB').value.trim().toUpperCase().replace(/\s+/g, '');
+    const esEB = /^EB-[A-Z0-9]{5,8}$/.test(clave) && !INV.some(p => p.eb === clave);
+    cont.innerHTML = (res.length ? res.map((p, k) => `<button type="button" data-k="${INV.indexOf(p)}"><strong>${esc(p.eb)}</strong> · ${esc(p.operacion === 'RENTA' ? 'Renta' : 'Venta')} · ${esc(p.tipo)} · ${money(p.precio)} · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}</button>`).join('')
+      : (esEB ? '' : '<div class="as-muted" style="padding:8px 12px">Sin resultados</div>'))
+      + (esEB ? `<button type="button" data-eb="${esc(clave)}"><strong>${esc(clave)}</strong> no está en el inventario del sitio · <u>Buscarla en EasyBroker</u></button>` : '');
   });
-  $('asSugerencias').addEventListener('click', e => {
-    const b = e.target.closest('button[data-k]'); if (!b) return;
-    agregar(INV[+b.dataset.k]); $('asBuscarEB').value = ''; $('asSugerencias').hidden = true;
+  async function traerDeEasyBroker(eb, operacion) {
+    const r = await post('/propiedad', { token: TOKEN, eb, operacion: operacion || '' });
+    return r.ok ? r.j.propiedad : null;
+  }
+  $('asSugerencias').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-k], button[data-eb]'); if (!b) return;
+    if (b.dataset.k) { agregar(INV[+b.dataset.k]); $('asBuscarEB').value = ''; $('asSugerencias').hidden = true; return; }
+    b.disabled = true; b.textContent = 'Buscando en EasyBroker…';
+    const p = await traerDeEasyBroker(b.dataset.eb);
+    if (p) { agregar(p); $('asBuscarEB').value = ''; $('asSugerencias').hidden = true; }
+    else { b.textContent = `No encontré ${b.dataset.eb} en EasyBroker. Revisa la clave.`; }
   });
+
+  // ── Propuesta preparada (enlace con #p=...) ──
+  // Claude o Javier pueden preparar una propuesta completa y abrirla aquí ya llena;
+  // el coach solo revisa, ajusta y envía. Los datos viajan en el enlace (después de #),
+  // no se guardan en el sitio.
+  async function cargarPreparada() {
+    const m = location.hash.match(/^#p=([A-Za-z0-9_-]+)/); if (!m) return;
+    let d;
+    try {
+      const b64 = m[1].replace(/-/g, '+').replace(/_/g, '/');
+      d = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    } catch (e) { msg('asMsg', 'El enlace de la propuesta no es válido.', 'error'); return; }
+    history.replaceState(null, '', location.pathname);
+    const cli = d.cliente || {};
+    $('asNombre').value = cli.nombre || ''; $('asWa').value = cli.whatsapp || ''; $('asFolio').value = cli.folio || '';
+    $('asCriterios').value = d.criterios || ''; $('asNota').value = d.nota || '';
+    if (d.trato) $('asTrato').value = d.trato; if (d.genero !== undefined) $('asGenero').value = d.genero;
+    VIO_EN_SITIO = !!d.vio_en_sitio;
+    let faltan = [];
+    for (const it of (d.propiedades || [])) {
+      let p = INV.find(x => x.eb === it.eb && (!it.operacion || x.operacion === it.operacion)) || await traerDeEasyBroker(it.eb, it.operacion);
+      if (!p) { faltan.push(it.eb); continue; }
+      agregar(p);
+      const k = PROPS.findIndex(x => x.eb === p.eb);
+      if (k >= 0) { if (it.resumen) PROPS[k].resumen = it.resumen; if (it.ventajas) PROPS[k].ventajas = [].concat(it.ventajas).join('\n'); }
+    }
+    pintarProps();
+    msg('asMsg', faltan.length ? `Propuesta cargada. No encontré: ${faltan.join(', ')}.` : 'Propuesta cargada. Revisa los textos y genera la vista previa.', faltan.length ? 'error' : 'ok');
+  }
 
   // ── Cliente ──
   async function buscarCliente() {
@@ -269,6 +314,7 @@
     if (!$('asCriterios').value && c.operacion) $('asCriterios').value = (c.operacion.toUpperCase() === 'RENTA' ? 'renta' : 'compra') + ' de ';
     let agregadas = 0;
     (c.propiedades || []).forEach(eb => { const p = INV.find(x => x.eb === eb); if (p) { agregar(p); agregadas++; } });
+    VIO_EN_SITIO = agregadas > 0;
     $('asClienteInfo').innerHTML = `<div class="as-cliente-info">
       <strong>${esc(c.nombre)}</strong> · Folio ${esc(c.folio)} · Coach: ${esc(c.vendedor || '—')}${c.concluido ? ' · <em>expediente concluido</em>' : ''}<br>
       ${(c.propiedades || []).length ? `Propiedades que ha visto: ${c.propiedades.map(esc).join(', ')} (${agregadas} agregadas abajo)` : 'Aún no tiene propiedades registradas.'}
@@ -280,7 +326,7 @@
   // ── Generar ──
   function cuerpo(modo) {
     return {
-      token: TOKEN, modo, anexo: $('asAnexo').checked,
+      token: TOKEN, modo, anexo: $('asAnexo').checked, trato: $('asTrato').value, genero: $('asGenero').value, vio_en_sitio: VIO_EN_SITIO,
       cliente: { nombre: $('asNombre').value.trim(), whatsapp: $('asWa').value.trim(), folio: $('asFolio').value.trim() },
       criterios: $('asCriterios').value.trim(), nota: $('asNota').value.trim(),
       propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4) })),
