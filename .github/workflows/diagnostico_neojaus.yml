@@ -1,0 +1,32 @@
+name: Diagnostico NeoJaus
+
+# Revisa la estructura publica de neojaus.com (solo lectura). Se lanza cambiando
+# herramientas/diagnostico/neojaus.txt.
+on:
+  push:
+    paths:
+      - 'herramientas/diagnostico/neojaus.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  diagnosticar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests
+      - run: python herramientas/diagnostico/neojaus_diag.py
+      - name: Guardar resultado
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add reportes/diagnostico/neojaus.md
+          git commit -m "Diagnostico NeoJaus" || echo "sin cambios"
+          git pull --rebase -q || true
+          git push
