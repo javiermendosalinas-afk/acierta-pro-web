@@ -631,4 +631,36 @@
       (Math.abs(a.precio - p.precio) - Math.abs(b.precio - p.precio)));
     return c.slice(0, n);
   };
+
+  // ── Inventario: EasyBroker (data.json) + réplica blindada de la bolsa NeoJaus ──
+  // La bolsa vive en inmobiliaria.pro (origen). acierta.pro solo la replica y NUNCA
+  // depende de ella: si bolsa-config.json la apaga, si tarda, falla o viene rara,
+  // acierta.pro sigue solo con EasyBroker, sin errores.
+  AM.MUNIS_ZMG = ['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga'];
+  let _invEB = null, _bolsa = null;
+  AM.inventarioEB = () => _invEB || (_invEB = fetch('data.json').then(r => { if (!r.ok) throw new Error('data.json ' + r.status); return r.json(); }));
+  AM.bolsaValida = p => !!p && /^NJ-[A-Z0-9]{3,10}$/.test(p.eb || '') && (p.operacion === 'VENTA' || p.operacion === 'RENTA') &&
+    Number.isFinite(p.precio) && p.precio > 0 && AM.MUNIS_ZMG.includes(p.municipio) && /^https:\/\//.test(p.foto || '') &&
+    (p.segmento === 'vivienda' || p.segmento === 'comercial') &&
+    !(p.tambien_en || []).some(x => /^EB-/.test(x.clave || ''));   // si también está en EasyBroker, ya se muestra esa
+  AM.cargarBolsa = () => _bolsa || (_bolsa = (async () => {
+    try {
+      const cr = await fetch('bolsa-config.json', { cache: 'no-cache' });
+      const cfg = cr.ok ? await cr.json() : null;
+      if (!cfg || cfg.activa !== true || !cfg.url) return [];
+      const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const reloj = setTimeout(() => ctrl && ctrl.abort(), cfg.espera_ms || 6000);
+      try {
+        const r = await fetch(cfg.url, ctrl ? { signal: ctrl.signal } : {});
+        if (!r.ok) return [];
+        const d = await r.json();
+        if (!Array.isArray(d) || d.length < (cfg.minimo || 50)) return [];
+        const buenas = d.filter(AM.bolsaValida);
+        if (buenas.length < d.length * (cfg.proporcion_minima || 0.6)) return [];   // paquete raro: se ignora completo
+        return buenas.slice(0, cfg.maximo || 20000).map(p => Object.assign({}, p, {
+          fuente: 'neojaus', liga: 'https://acierta.pro/ficha.html?eb=' + encodeURIComponent(p.eb) + '&op=' + p.operacion }));
+      } finally { clearTimeout(reloj); }
+    } catch (e) { return []; }
+  })());
+  AM.inventario = () => Promise.all([AM.inventarioEB(), AM.cargarBolsa()]).then(([eb, bolsa]) => eb.concat(bolsa));
 })();

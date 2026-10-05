@@ -167,7 +167,7 @@
   }
 
   if (!eb) { noEncontrada('Falta el código de la propiedad en la dirección.'); return; }
-  fetch('data.json').then(r => r.json()).then(todas => {
+  AM.inventario().then(todas => {
     const p = todas.find(x => x.eb === eb && (!op || x.operacion === op)) || todas.find(x => x.eb === eb);
     if (!p) { noEncontrada('El código ' + eb + ' ya no está en nuestro inventario. Puede haberse rentado o vendido.'); return; }
     pintar(p, todas);

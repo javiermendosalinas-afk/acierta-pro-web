@@ -417,8 +417,7 @@ document.getElementById('btnMas').addEventListener('click', pintarPagina);
   poner('fPrecioMax', q.get('precioMax')); poner('fRecamaras', q.get('recamaras'));
 })();
 
-fetch('data.json')
-  .then(r => r.json())
+AM.inventario()
   .then(data => { const seg = AM.segActual(); ALL_PROPS = data.filter(p => AM.segDe(p) === seg); actualizarResultados(); })
   .catch(() => {
     document.getElementById('panelCount').textContent = 'No se pudo cargar el inventario.';

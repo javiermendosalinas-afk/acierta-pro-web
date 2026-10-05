@@ -1,0 +1,9 @@
+{
+ "activa": true,
+ "url": "https://raw.githubusercontent.com/javiermendosalinas-afk/aciertamax-bolsa/main/data.json",
+ "espera_ms": 6000,
+ "minimo": 50,
+ "proporcion_minima": 0.6,
+ "maximo": 20000,
+ "nota": "Réplica de la bolsa NeoJaus (origen: inmobiliaria.pro). Para quitarla de acierta.pro al instante: \"activa\": false."
+}

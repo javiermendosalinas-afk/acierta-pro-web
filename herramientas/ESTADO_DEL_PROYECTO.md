@@ -33,6 +33,12 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Sus términos y condiciones no se pudieron leer; robots.txt permite las fichas. Ritmo pausado (3 hilos, 0.6 s).
 - La API de NeoJaus (USD 29/mes) solo da acceso al inventario propio: no sirve para traer la bolsa.
 
+## 2b-bis. Réplica blindada de la bolsa en acierta.pro (decisión de Javier, 5-oct-2026)
+- inmobiliaria.pro es el ORIGEN del inventario NeoJaus; acierta.pro solo lo REPLICA en el navegador y nunca depende de él.
+- `js/comun.js`: `AM.inventarioEB()` (data.json, siempre), `AM.cargarBolsa()` (lee `bolsa-config.json` → url de data.json de aciertamax-bolsa en raw.githubusercontent; espera máx. 6 s; descarta fichas sin clave NJ válida, precio, municipio ZMG, foto https o segmento, y las gemelas de EB; ignora el paquete completo si trae < 50 o si menos del 60% son válidas) y `AM.inventario()` = EB + bolsa. La portada pinta EB de inmediato y suma la bolsa al llegar; ficha, mapa y comparar usan `AM.inventario()`.
+- **Interruptor**: `bolsa-config.json` → `"activa": false` quita NeoJaus de acierta.pro al instante (sin tocar código).
+- data.json, CSV, archivo de ChatGPT, sitemap y meta de acierta.pro siguen SOLO con EasyBroker. Prueba: `herramientas/pruebas/t_bolsa_replica.js`.
+
 ## 2c. Sitio de la bolsa: inmobiliaria.pro (repo aciertamax-bolsa)
 - Front-end copiado de acierta.pro (buscador, ficha, mapa, comparador) sin blog, Pulso, simulador, proceso, Verifica ni portal; nada enlaza a acierta.pro. CNAME `inmobiliaria.pro`.
 - Su workflow «Actualizar bolsa» (diario 07:00 GDL) trae `herramientas/neojaus/neojaus.json` de acierta-pro-web y lo publica como data.json con ligas a inmobiliaria.pro (freno si viene casi vacío).

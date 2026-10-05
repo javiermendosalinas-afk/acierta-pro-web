@@ -185,13 +185,20 @@ document.getElementById('fTexto').addEventListener('input', () => {
 
 aplicarSegmentoEnPantalla();
 fetch('inventario-meta.json').then(r => r.ok ? r.json() : null).catch(() => null)
-  .then(meta => { META = meta; return fetch('data.json'); })
-  .then(r => r.json())
+  .then(meta => { META = meta; return AM.inventarioEB(); })
   .then(data => {
     ALL_PROPS = data;
     renderStats();
     armarColonias();
     applyFilters();
+    // la bolsa NeoJaus se agrega cuando llega; si no llega, no pasa nada
+    AM.cargarBolsa().then(bolsa => {
+      if (!bolsa.length) return;
+      ALL_PROPS = data.concat(bolsa);
+      renderStats();
+      armarColonias();
+      applyFilters();
+    });
   })
   .catch(() => {
     grid.innerHTML = `<div class="empty-state"><h3>No se pudo cargar el inventario</h3><p>Intenta recargar la página.</p></div>`;

@@ -200,7 +200,7 @@
     } catch (e) { console.error('mapa comparar:', e); const el = document.getElementById('mapaCmp'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
   }
 
-  fetch('data.json').then(r => r.json()).then(d => { TODAS = d; pintar(); })
+  AM.inventario().then(d => { TODAS = d; pintar(); })
     .catch(e => { console.error('comparar:', e); raiz.innerHTML = '<div class="ficha-card"><h2>No se pudo mostrar la comparación</h2><p>Recarga la página; si sigue igual, avísanos por WhatsApp.</p></div>'; });
 })();
 </script>
