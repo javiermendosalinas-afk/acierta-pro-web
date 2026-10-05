@@ -636,12 +636,12 @@
   // La bolsa vive en inmobiliaria.pro (origen). acierta.pro solo la replica y NUNCA
   // depende de ella: si bolsa-config.json la apaga, si tarda, falla o viene rara,
   // acierta.pro sigue solo con EasyBroker, sin errores.
-  AM.MUNIS_ZMG = ['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga'];
+  AM.MUNIS_ZMG = ['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga', 'El Salto'];
   let _invEB = null, _bolsa = null;
   AM.inventarioEB = () => _invEB || (_invEB = fetch('data.json').then(r => { if (!r.ok) throw new Error('data.json ' + r.status); return r.json(); }));
   AM.bolsaValida = p => !!p && /^NJ-[A-Z0-9]{3,10}$/.test(p.eb || '') && (p.operacion === 'VENTA' || p.operacion === 'RENTA') &&
     Number.isFinite(p.precio) && p.precio > 0 && AM.MUNIS_ZMG.includes(p.municipio) && /^https:\/\//.test(p.foto || '') &&
-    (p.segmento === 'vivienda' || p.segmento === 'comercial') &&
+    (p.segmento === 'vivienda' || p.segmento === 'comercial') && (p.municipio !== 'El Salto' || p.segmento === 'comercial') &&
     !(p.tambien_en || []).some(x => /^EB-/.test(x.clave || ''));   // si también está en EasyBroker, ya se muestra esa
   AM.cargarBolsa = () => _bolsa || (_bolsa = (async () => {
     try {

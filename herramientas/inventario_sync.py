@@ -48,7 +48,9 @@ MUNICIPIOS = {
     "tlaquepaque": "Tlaquepaque",
     "tonala": "Tonalá",
     "tlajomulco-de-zuniga": "Tlajomulco de Zúñiga",
+    "el-salto": "El Salto",            # SOLO segmento comercial (corredor industrial: bodegas, naves)
 }
+MUNICIPIOS_SOLO_COMERCIAL = {"El Salto"}
 # Como puede venir escrito el municipio en una tarjeta -> canonico
 ALIAS_MUNICIPIO = {
     "guadalajara": "Guadalajara",
@@ -58,6 +60,7 @@ ALIAS_MUNICIPIO = {
     "tonala": "Tonalá",
     "tlajomulco de zuniga": "Tlajomulco de Zúñiga",
     "tlajomulco": "Tlajomulco de Zúñiga",
+    "el salto": "El Salto",
 }
 
 OPERACIONES = {"VENTA": "properties", "RENTA": "rentals"}
@@ -525,6 +528,8 @@ def construir_fila(t, previas):
     if municipio is None:
         return None, "fuera de zona"
     seg, razon = clasificar_segmento(t["tipo"], t["titulo"])
+    if municipio in MUNICIPIOS_SOLO_COMERCIAL and seg != "comercial":
+        return None, "fuera de zona"      # El Salto: solo bodegas, naves, terrenos y locales
     fila = {
         "municipio": municipio, "operacion": t["operacion"], "precio": t["precio"],
         "titulo": t["titulo"], "tipo": t["tipo"], "recamaras": t["recamaras"],
@@ -618,7 +623,7 @@ GRUPOS_TIPO = {   # igual que AM.GRUPOS_TIPO en js/comun.js
 ETIQUETA_HASHTAG_TIPO = {"casa": "Casa", "departamento": "Departamento", "terreno": "Terreno",
                          "local": "LocalComercial", "oficina": "Oficina", "bodega": "Bodega", "edificio": "Edificio"}
 HASHTAG_MUNICIPIO = {"Guadalajara": "Guadalajara", "Zapopan": "Zapopan", "Tlaquepaque": "Tlaquepaque",
-                     "Tonalá": "Tonala", "Tlajomulco de Zúñiga": "Tlajomulco"}
+                     "Tonalá": "Tonala", "Tlajomulco de Zúñiga": "Tlajomulco", "El Salto": "ElSalto"}
 RANGOS_VENTA = [(1e6, "Menos de $1 millón"), (2e6, "$1 a $2 millones"), (3e6, "$2 a $3 millones"),
                 (5e6, "$3 a $5 millones"), (8e6, "$5 a $8 millones"), (12e6, "$8 a $12 millones"),
                 (20e6, "$12 a $20 millones"), (40e6, "$20 a $40 millones")]
@@ -632,7 +637,7 @@ COLUMNAS_CHATGPT = [
     ("segmento", "vivienda o comercial. Son clientes distintos: no se mezclan en una publicación."),
     ("tipo", "Tipo tal como lo captura EasyBroker (casa, departamento, terreno, local comercial, bodega industrial...)."),
     ("grupo_tipo", "Tipo agrupado para filtrar: casa, departamento, terreno, local, oficina, bodega, edificio."),
-    ("municipio", "Guadalajara, Zapopan, Tlaquepaque, Tonalá o Tlajomulco de Zúñiga."),
+    ("municipio", "Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco de Zúñiga o El Salto (solo comercial)."),
     ("colonia", "Colonia o zona, tal como viene del anuncio."),
     ("titulo_anuncio", "Título original del anuncio en EasyBroker (sirve de referencia; no es obligatorio usarlo)."),
     ("precio", "Precio numérico (total). En renta es por mes."),
@@ -846,7 +851,7 @@ def escribir_xlsx(ruta, registros, fecha):
     lineas = [
         f"Inventario de Acierta Max para publicidad · actualizado el {fecha}",
         "Fuente: aciertamax.com (EasyBroker). Se actualiza el día 3 de cada mes.",
-        "Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonalá y Tlajomulco de Zúñiga.",
+        "Municipios: Guadalajara, Zapopan, San Pedro Tlaquepaque, Tonalá y Tlajomulco de Zúñiga; El Salto solo en comercial.",
         "Usar los filtros de la fila de encabezados (segmento, operación, municipio, tipo, rango_precio...).",
         "Publicar solo filas con apto_para_publicar = si. Las marcadas 'revisar' tienen una duda en el precio.",
         "La clave codigo_eb (EB-XXXXXX) debe ir siempre en el texto: así Wati identifica la propiedad.",

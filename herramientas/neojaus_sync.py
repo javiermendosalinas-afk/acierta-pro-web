@@ -231,6 +231,8 @@ def aplicar_reglas(regs):
     for f in regs:
         f = dict(f)
         f["segmento"], _ = S.clasificar_segmento(f["tipo"], f["titulo"])
+        if f["municipio"] in S.MUNICIPIOS_SOLO_COMERCIAL and f["segmento"] != "comercial":
+            continue                      # El Salto: solo comercial
         if f.get("banos") is not None and f["banos"] > S.BANOS_MAX_CREIBLE:
             f["banos"] = None
         if f.get("recamaras") is not None and f["recamaras"] > S.RECAMARAS_MAX_CREIBLE:
@@ -292,7 +294,7 @@ def main():
                   or cache[u].get("estado") == "error"
                   or (cache[u].get("estado") == "fuera" and cache[u].get("v") != VERSION_FILTRO)]
     # primero las que probablemente son de la ZMG (más útiles si el tiempo no alcanza)
-    zmg = re.compile(r"zapopan|guadalajara|tlaquepaque|tonala|tlajomulco|jalisco", re.I)
+    zmg = re.compile(r"zapopan|guadalajara|tlaquepaque|tonala|tlajomulco|salto|jalisco", re.I)
     pendientes.sort(key=lambda u: 0 if zmg.search(u) else 1)
     if args.max_fichas:
         pendientes = pendientes[:args.max_fichas]

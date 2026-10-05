@@ -33,6 +33,9 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Sus términos y condiciones no se pudieron leer; robots.txt permite las fichas. Ritmo pausado (3 hilos, 0.6 s).
 - La API de NeoJaus (USD 29/mes) solo da acceso al inventario propio: no sirve para traer la bolsa.
 
+## Municipios (oct-2026)
+- Guadalajara, Zapopan, Tlaquepaque, Tonalá y Tlajomulco de Zúñiga completos; **El Salto solo segmento comercial** (corredor industrial: bodegas, naves, terrenos industriales/comerciales, locales). Regla en `MUNICIPIOS_SOLO_COMERCIAL` (inventario_sync.py), aplicada también en neojaus_sync.py, en `AM.bolsaValida` y en los selectores de municipio de acierta.pro e inmobiliaria.pro.
+
 ## 2b-bis. Réplica blindada de la bolsa en acierta.pro (decisión de Javier, 5-oct-2026)
 - inmobiliaria.pro es el ORIGEN del inventario NeoJaus; acierta.pro solo lo REPLICA en el navegador y nunca depende de él.
 - `js/comun.js`: `AM.inventarioEB()` (data.json, siempre), `AM.cargarBolsa()` (lee `bolsa-config.json` → url de data.json de aciertamax-bolsa en raw.githubusercontent; espera máx. 6 s; descarta fichas sin clave NJ válida, precio, municipio ZMG, foto https o segmento, y las gemelas de EB; ignora el paquete completo si trae < 50 o si menos del 60% son válidas) y `AM.inventario()` = EB + bolsa. La portada pinta EB de inmediato y suma la bolsa al llegar; ficha, mapa y comparar usan `AM.inventario()`.

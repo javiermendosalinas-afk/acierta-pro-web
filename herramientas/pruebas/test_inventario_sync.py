@@ -183,7 +183,13 @@ print("── MUNICIPIO / FOTO / FILA")
 ok(S.normalizar_municipio("San Pedro Tlaquepaque", "tlaquepaque") == "Tlaquepaque", "San Pedro Tlaquepaque -> Tlaquepaque")
 ok(S.normalizar_municipio("Tlajomulco de Zúñiga", "tlajomulco-de-zuniga") == "Tlajomulco de Zúñiga", "Tlajomulco de Zúñiga es parte de la zona")
 ok(S.normalizar_municipio("Tlajomulco", "zapopan") == "Tlajomulco de Zúñiga", "'Tlajomulco' tambien se reconoce")
-ok(S.normalizar_municipio("El Salto", "zapopan") is None, "un municipio fuera de los 5 queda fuera de zona")
+ok(S.normalizar_municipio("Juanacatlán", "zapopan") is None, "un municipio fuera de la zona queda fuera")
+ok(S.normalizar_municipio("El Salto", "el-salto") == "El Salto", "El Salto se reconoce (corredor industrial)")
+_ts = {"municipio_tarjeta": "El Salto", "slug_municipio": "el-salto", "tipo": "casa", "titulo": "Casa en El Salto", "precio": 1e6,
+       "recamaras": 2, "banos": 1, "m2": 80, "codigo_eb": "EB-S1", "href": "x", "foto": "f", "lat": 1, "lon": 1, "colonia": "Centro", "operacion": "VENTA"}
+ok(S.construir_fila(_ts, {})[0] is None, "El Salto: la vivienda queda fuera")
+_ts.update(tipo="bodega industrial", titulo="Bodega en El Salto")
+ok((S.construir_fila(_ts, {})[0] or {}).get("segmento") == "comercial", "El Salto: las bodegas entran como comercial")
 ok(S.normalizar_municipio("", "tonala") == "Tonalá", "sin municipio en tarjeta usa el de la URL")
 u = "https://assets.easybroker.com/property_images/1/2/EB-X.jpg?height=300&version=9&width=450"
 ok(S.foto_con_tamano(u, 1200, 800) == "https://assets.easybroker.com/property_images/1/2/EB-X.jpg?height=800&version=9&width=1200", "reescribe width/height conservando version")
@@ -193,7 +199,7 @@ fila, _ = S.construir_fila(tt, prev)
 ok(fila["niveles"] == 2 and fila["foto"] == "https://viejo/foto.jpg", "conserva niveles y foto de la corrida anterior cuando el listado no la trae")
 tt2 = dict(t[0]); tt2["operacion"]="VENTA"; tt2["slug_municipio"]="zapopan"; tt2["municipio_tarjeta"]="El Salto"
 fila2, motivo = S.construir_fila(tt2, {})
-ok(fila2 is None and motivo == "fuera de zona", "una tarjeta de otro municipio (El Salto) se descarta")
+ok(fila2 is None and motivo == "fuera de zona", "una tarjeta de vivienda en El Salto se descarta (El Salto es solo comercial)")
 
 print("── TOPE DE 100 PAGINAS DE EASYBROKER (doble pasada)")
 class _Resp:
@@ -265,7 +271,7 @@ esperado = {"EB-A1", "EB-N1", "EB-TJ1"} | {f"EB-OK{i}" for i in range(40)}
 ok(ebs == esperado, f"publica solo lo valido (sin la bloqueada, la sin foto, la fuera de zona ni la duplicada): {len(ebs)} fichas")
 ok(next(p for p in data if p["eb"]=="EB-N1")["segmento"] == "comercial" and next(p for p in data if p["eb"]=="EB-A1")["segmento"] == "vivienda", "cada ficha lleva su segmento")
 ok(next(p for p in data if p["eb"]=="EB-A1")["niveles"] == 2, "conserva 'niveles' de la corrida anterior")
-ok(any("Tlajomulco" in p["municipio"] for p in data) and not any("Salto" in p["municipio"] for p in data), "Tlajomulco se conserva y El Salto no entra")
+ok(any("Tlajomulco" in p["municipio"] for p in data) and not any("Salto" in p["municipio"] for p in data), "Tlajomulco se conserva y la vivienda de El Salto no entra")
 ok(set(data[0].keys()) >= {"municipio","operacion","precio","titulo","tipo","recamaras","banos","m2","niveles","eb","liga","foto","lat","lon","colonia","segmento"}, "mantiene todas las llaves que usa el sitio")
 an = open(os.path.join(d,"reportes","inventario","anomalias_precio.csv"), encoding="utf-8").read()
 ok("EB-B1" in an and "BLOQUEADA" in an, "la ficha con precio imposible queda en el reporte de anomalias")

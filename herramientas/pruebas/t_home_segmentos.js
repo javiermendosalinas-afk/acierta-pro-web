@@ -12,7 +12,7 @@ const fs = require('fs');
   ok(w.eval('filtered.length') === nViv, `Vivienda por defecto: ${nViv} fichas, ninguna comercial (resultado: ${w.eval('filtered.length')})`);
   ok(w.eval('filtered.every(p => AM.segDe(p) === "vivienda")'), 'ninguna ficha comercial aparece en la vista de vivienda');
   const munis = [...d.querySelectorAll('#fMunicipio option')].map(o => o.value).filter(Boolean);
-  ok(munis.length === 5 && munis.includes('Tlajomulco de Zúñiga') && munis.includes('Tlaquepaque') && munis.includes('Tonalá'), `el filtro de municipio tiene los 5: ${munis.join(', ')}`);
+  ok(munis.length === 6 && munis.includes('Tlajomulco de Zúñiga') && munis.includes('Tlaquepaque') && munis.includes('Tonalá') && munis.includes('El Salto'), `el filtro de municipio tiene los 5 de la ZMG más El Salto (comercial): ${munis.join(', ')}`);
   const tiposViv = [...d.querySelectorAll('#fTipo option')].map(o => o.value);
   ok(tiposViv.includes('casa') && tiposViv.includes('departamento') && !tiposViv.includes('bodega'), `tipos de vivienda: ${tiposViv.join(',')}`);
   ok(/propiedades de vivienda/.test(d.getElementById('statsStrip').textContent) && /5\s*municipios/.test(d.getElementById('statsStrip').textContent), 'la franja de cifras habla de vivienda y de 5 municipios');
