@@ -46,6 +46,7 @@ const resp = (j, status = 200, extra = {}) => Object.assign({ ok: status < 400, 
   const vista = llamadas.find(l => l[0] === '/propuesta' && l[1].modo === 'vista');
   ok(vista && vista[1].token === 'TOK' && vista[1].propiedades.length === 3 && vista[1].propiedades[0].ventajas[0] === 'Cerca de escuelas', 'la vista previa manda token, propiedades y las ventajas editadas');
   ok(d.querySelector('iframe.as-vista'), 'muestra el PDF dentro de la página');
+  ok(vista[1].anexo === true && $('asAnexo').checked, 'por defecto anexa la ficha completa de cada propiedad');
   $('asEnviar').click(); await T.espera(200);
   ok(/Enviado/.test($('asMsg').textContent), 'al enviar confirma la entrega al cliente y la copia al coach');
   ok(errores.length === 0, 'sin errores de JavaScript' + (errores.length ? ' -> ' + errores.slice(0, 2).join(' | ') : ''));

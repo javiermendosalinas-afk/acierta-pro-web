@@ -96,6 +96,9 @@
     <!-- 4. Generar -->
     <section class="as-card">
       <h2>3. Revisar y enviar</h2>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:0 0 12px">
+        <input type="checkbox" id="asAnexo" checked style="width:auto"> Anexar la ficha completa de cada propiedad (fotos, datos, amenidades y descripción)
+      </label>
       <div class="as-acciones-final">
         <button class="as-btn claro" id="asVista">Vista previa del PDF</button>
         <button class="as-btn rojo" id="asEnviar">Enviar al cliente por WhatsApp</button>
@@ -277,7 +280,7 @@
   // ── Generar ──
   function cuerpo(modo) {
     return {
-      token: TOKEN, modo,
+      token: TOKEN, modo, anexo: $('asAnexo').checked,
       cliente: { nombre: $('asNombre').value.trim(), whatsapp: $('asWa').value.trim(), folio: $('asFolio').value.trim() },
       criterios: $('asCriterios').value.trim(), nota: $('asNota').value.trim(),
       propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4) })),
