@@ -28,6 +28,20 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install requests beautifulsoup4 pillow openpyxl
+      - name: Limpiar NeoJaus de acierta.pro y publicarlo de inmediato
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "inventario-bot"
+          git config user.email "inventario-bot@users.noreply.github.com"
+          git pull -q --rebase || true
+          python -u herramientas/neojaus_sync.py --solo-limpiar
+          git add data.json inventario.csv inventario-meta.json inventario-chatgpt.csv inventario-chatgpt.xlsx 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "acierta.pro solo con EasyBroker (sin NeoJaus)"
+            git push && gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
+          fi
+
       - name: Leer NeoJaus
         run: python -u herramientas/neojaus_sync.py --max-minutos 300
       - name: Publicar cambios

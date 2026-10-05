@@ -258,7 +258,26 @@ def main():
     ap.add_argument("--max-minutos", type=float, default=300)
     ap.add_argument("--max-fichas", type=int, default=0, help="limita fichas a revisar (prueba)")
     ap.add_argument("--sin-escribir", action="store_true", help="no toca data.json (prueba)")
+    ap.add_argument("--solo-limpiar", action="store_true",
+                    help="solo quita de acierta.pro (data.json, CSV, ChatGPT, meta) cualquier ficha de NeoJaus y termina")
     args = ap.parse_args()
+    if args.solo_limpiar:
+        data = S.cargar_previo(S.RUTA_DATA)
+        eb = [d for d in data if d.get("fuente") != "neojaus" and not str(d.get("eb", "")).startswith("NJ-")]
+        if len(eb) == len(data):
+            print("acierta.pro no tiene fichas de NeoJaus: nada que limpiar")
+            return
+        with open(S.RUTA_DATA, "w", encoding="utf-8") as fh:
+            json.dump(eb, fh, ensure_ascii=False, separators=(",", ":"))
+        S.escribir_csv(S.RUTA_CSV, eb)
+        S.escribir_chatgpt(eb, datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+        meta = json.load(open(S.RUTA_META, encoding="utf-8")) if os.path.exists(S.RUTA_META) else {}
+        meta.pop("por_fuente", None)
+        meta.update({"total": len(eb), "por_segmento": dict(Counter(f.get("segmento") for f in eb))})
+        with open(S.RUTA_META, "w", encoding="utf-8") as fh:
+            json.dump(meta, fh, ensure_ascii=False, indent=1)
+        print(f"Se quitaron {len(data) - len(eb):,} fichas de NeoJaus de acierta.pro; quedan {len(eb):,} de EasyBroker")
+        return
     inicio = time.time()
     ahora = datetime.now(timezone.utc)
     os.makedirs(DIR, exist_ok=True)
