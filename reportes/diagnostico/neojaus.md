@@ -1,288 +1,279 @@
-# Diagnóstico 2 de neojaus.com
+# Diagnóstico 3 de neojaus.com: estructura de datos de la ficha
 
-- sitemap-1: 20000 fichas; lastmod ejemplos: ['2026-09-30T17:29:31+00:00', '2026-09-29T22:01:24+00:00']; ejemplos: ['https://neojaus.com/propiedades/departamento-en-pre-venta-en-versalles-puerto-vallarta-2-rec-5753180863', 'https://neojaus.com/propiedades/bodega-comercial-en-renta-en-santa-cruz-del-valle-santa-cruz-del-valle-santa-cruz-del-valle-0719282449', 'https://neojaus.com/propiedades/oportunidad-de-terreno-en-michoacan-1926159325']
-- sitemap-2: 9761 fichas; lastmod ejemplos: ['2026-09-23T12:42:01+00:00', '2026-09-26T02:03:02+00:00']; ejemplos: ['https://neojaus.com/propiedades/hotel-en-renta-en-insurgentes-sur-0167321940', 'https://neojaus.com/propiedades/casa-en-venta-coto-bastin-2597303480', 'https://neojaus.com/propiedades/penthouse-en-preventa-mdy-puerto-vallarta-the-ocean-republic-4979461694']
-- sitemap-3: HTTP 403
-- TOTAL fichas en sitemaps: 29761
-- Con municipio de la ZMG en la URL: {'tonala': 80, 'zapopan': 2875, 'guadalajara': 1795, 'tlaquepaque': 375, 'tlajomulco': 852} (total 5977)
-- Con 'jalisco' en la URL: 1794
-- /propiedades ld+json: no
-- /propiedades __NEXT_DATA__: sí, 56563 caracteres
-- paginación vista: []
-
-## Fichas de muestra
-### https://neojaus.com/propiedades/terreno-en-venta-tonala-en-prolongacin-gigantes-8055393808
-- HTTP 200; contiene: {'AMPI Guadalajara': False, 'comisión': False, 'share_commission': False, 'shared_commission': True, 'latitude': False, '"lat"': True, 'geo': False, 'Agencia ': False, 'cdn.neojaus.com/properties': True, 'no está disponible': False}
-- __NEXT_DATA__ (inicio): `{"props":{"pageProps":{"property":{"amenities":{},"appears":64,"apt_floor":null,"apt_total_floors":null,"assigned_to":"14a9a1e743eb4db2bea9b32d40e79047","bathrooms":null,"can_verify":false,"cat":"[tel]T04:05:41.370845+00:00","construction_area":null,"construction_year":null,"construction_year_opt":null,"created_by":"14a9a1e743eb4db2bea9b32d40e79047","ctr":48.44,"description":"Venta de terreno en esquina, excelente ubicación, en el municipio de Tonala Jalisco \n\n$2,968 pesos metro2.  \nTotal $26'300,000 de pesos. \n\nProlongación gigantes polígono frac 1, colonia Rinconada del paraíso, en Tonala Jalisco C.P #45616\n\nMedidas 8,864 metros \nFrente 57.50 metros aprox\nFondo 163 metros aprox \n\n\nTerreno plano para uso mixto, (no se vende subdividido) \n\nCuenta con drenaje y todos los servicios.\n\nA 3 minutos de bodega aurrera Matatlán, Marinela Bimbo, periférico oriente.","exclusivity":`
+## https://neojaus.com/propiedades/propiedad-en-venta-calle-miguel-alemn-150-palmira-45234-zapopan-jal-mxico-0167222293
+- claves de pageProps: ['property', 'agencyFetchInfo', 'host', 'url', 'isGoogleBot']
 ```
-
-Terreno en venta en Rinconada, Tonalá.
-Compartir con mis datos
-+5
-1
-/
-9
-Compartir con mis datos
-2
-/
-9
-Compartir con mis datos
-3
-/
-9
-Compartir con mis datos
-4
-/
-9
-Compartir con mis datos
-5
-/
-9
-Compartir con mis datos
-6
-/
-9
-Compartir con mis datos
-7
-/
-9
-Compartir con mis datos
-8
-/
-9
-Compartir con mis datos
-9
-/
-9
-Compartir con mis datos
-En venta
-MXN $26,300,000
-Moneda
-Terreno
-Prolongacion Gigantes, FRAC 1, Rinconada, Tonalá.
-8,864 m2
-(
-163
-m x 
-57.5
-m) 
-de terreno
-TERRENO EN VENTA TONALA EN PROLONGACIÓN GIGANTES
-Venta de terreno en esquina, excelente ubicación, en el municipio de Tonala Jalisco
+property: dict(46)
+property.amenities: dict(1)
+property.amenities.garden = True
+property.appears = 29
+property.apt_floor = None
+property.apt_total_floors = None
+property.assigned_to = '275c6244aacb434a87c10971790c26fa'
+property.bathrooms = None
+property.can_verify = False
+property.cat = '2026-06-16T01:36:01.140432+00:00'
+property.construction_area = None
+property.construction_year = None
+property.construction_year_opt = 'first_use'
+property.created_by = '275c6244aacb434a87c10971790c26fa'
+property.ctr = 79.31
+property.description = 'Venta de Terreno en Miguel Alemán , Colonia La PalmiraTe ofrecemos un
+property.exclusivity: dict(4)
+property.exclusivity.conditions = None
+property.exclusivity.has_exclusivity = None
+property.exclusivity.shared_commission = True
+property.exclusivity.shares_half = None
+property.floors = None
+property.from_agent = '275c6244aacb434a87c10971790c26fa'
+property.half_bathrooms = None
+property.images: list(40)
+property.inquiries = 0
+property.internal_key = None
+property.is_active = True
+property.is_from_agent = True
+property.is_liked = False
+property.is_renta = False
+property.is_venta = True
+property.land: dict(4)
+property.land.area = None
+property.land.front = None
+property.land.side = None
+property.land.unit = 'm2'
+property.likes = 0
+property.location: dict(10)
+property.location.coords: dict(2)
+property.location.coords.lat = 20.593784
+property.location.coords.lng = -103.426613
+property.location.country = 'MX'
+property.location.mexican_state = 'jalisco'
+property.location.municipality = 'Zapopan'
+property.location.neighborhood = 'Palmira'
+property.location.number_ext = '150'
+property.location.number_int = None
+property.location.state = 'jalisco'
+property.location.street = 'Calle Miguel Alemán'
+property.location.zip = '45234'
+property.monthly_maintenance_fee = None
+property.months_of_rent_deposit = None
+property.name = «oculto»
+property.needs_ija = False
+property.nj_uid = '10D65'
+property.ordered_images: list(40)
+property.ordered_images[0].order = 0
+property.ordered_images[0].url = '1781573762-152578.webp'
+property.other_links: dict(2)
+property.other_links.matterport = None
+property.other_links.youtube = None
+property.owner = '275c6244aacb434a87c10971790c26fa'
+property.parking_spots = None
+property.pricing: dict(2)
+property.pricing.rents = None
+property.pricing.sales: dict(6)
+property.pricing.sales.based_on = 'valor_total'
+property.pricing.sales.commission: dict(3)
+property.pricing.sales.commission.commission_type = None
+property.pricing.sales.commission.currency_type = None
+property.pricing.sales.commission.value = None
+property.pricing.sales.currency_type = 'mxn'
+property.pricing.sales.formatted_price = 'MXN $110,000,000'
+property.pricing.sales.original_price = 'MXN $110,000,000'
+property.pricing.sales.price = 110000000
+property.property_type = 'land'
+property.rooms = 0
+property.shares = 0
+property.slug = 'propiedad-en-venta-calle-miguel-alemn-150-palmira-45234-zapopan-jal-m
+property.uat = '2026-09-23T12:40:22.413398+00:00'
+property.uid = '002cc33c56e94c489dadf983d6ba46bd'
+property.views = 23
+agencyFetchInfo = None
+host = 'neojaus.com'
+url = '/propiedades/propiedad-en-venta-calle-miguel-alemn-150-palmira-45234-
+isGoogleBot = False
 ```
-### https://neojaus.com/propiedades/propiedad-en-venta-calle-miguel-alemn-150-palmira-45234-zapopan-jal-mxico-0167222293
-- HTTP 200; contiene: {'AMPI Guadalajara': False, 'comisión': False, 'share_commission': False, 'shared_commission': True, 'latitude': False, '"lat"': True, 'geo': False, 'Agencia ': False, 'cdn.neojaus.com/properties': True, 'no está disponible': False}
-- __NEXT_DATA__ (inicio): `{"props":{"pageProps":{"property":{"amenities":{"garden":true},"appears":29,"apt_floor":null,"apt_total_floors":null,"assigned_to":"275c6244aacb434a87c10971790c26fa","bathrooms":null,"can_verify":false,"cat":"[tel]T01:36:01.140432+00:00","construction_area":null,"construction_year":null,"construction_year_opt":"first_use","created_by":"275c6244aacb434a87c10971790c26fa","ctr":79.31,"description":"Venta de Terreno en Miguel Alemán , Colonia La PalmiraTe ofrecemos un amplio terreno de 10,000 metros cuadrados ubicado en una zona estratégica de Guadalajara, rodeado de bodegas comerciales e industriales, lo lo que puede ofrecer grandes oportunidades para proyectos industriales o comerciales y que brinda un gran potencial para diferentes tipos de proyectos. La propiedad cuenta con una excelente infraestructura, ideal tanto para uso residencial como para inversión.Características del TerrenoTerr`
+## https://neojaus.com/propiedades/casa-en-venta-en-bugambilia-ciudad-bugambilia-zapopan-2090917706
+- claves de pageProps: ['property', 'agencyFetchInfo', 'host', 'url', 'isGoogleBot']
 ```
-
-Terreno en venta en Palmira, Zapopan.
-Compartir con mis datos
-+36
-1
-/
-40
-Compartir con mis datos
-2
-/
-40
-Compartir con mis datos
-3
-/
-40
-Compartir con mis datos
-4
-/
-40
-Compartir con mis datos
-5
-/
-40
-Compartir con mis datos
-6
-/
-40
-Compartir con mis datos
-7
-/
-40
-Compartir con mis datos
-8
-/
-40
-Compartir con mis datos
-9
-/
-40
-Compartir con mis datos
-10
-/
-40
-Compartir con mis datos
-11
-/
-40
-Compartir con mis datos
-12
-/
-40
-Compartir con mis datos
-13
-/
-40
-Compartir con mis datos
-14
-/
-40
-Compartir con mis datos
-15
-/
-40
-Compartir con mis datos
-16
-/
-40
-Compartir con mis datos
-17
-/
-40
-Compartir con mis dat
+property: dict(46)
+property.amenities: dict(6)
+property.amenities.controlled_access_entry = True
+property.amenities.gym = True
+property.amenities.kids_playground = True
+property.amenities.multiple_uses_terrace = True
+property.amenities.pool = True
+property.amenities.security_247 = True
+property.appears = 465
+property.apt_floor = 1
+property.apt_total_floors = 1
+property.assigned_to = '8576357eb4314facb8fa451d1faf8417'
+property.bathrooms = 4
+property.can_verify = False
+property.cat = '2025-07-09T19:55:17.581992+00:00'
+property.construction_area = 410
+property.construction_year = 2025
+property.construction_year_opt = None
+property.created_by = '8576357eb4314facb8fa451d1faf8417'
+property.ctr = 3.66
+property.description = 'AMPLIA Y MODERNARESIDENCIA CONTERMINADOS FINOS,AMPLIOS ESPACIOS, CONM
+property.exclusivity: dict(4)
+property.exclusivity.conditions = None
+property.exclusivity.has_exclusivity = None
+property.exclusivity.shared_commission = True
+property.exclusivity.shares_half = None
+property.floors = 1
+property.from_agent = '8576357eb4314facb8fa451d1faf8417'
+property.half_bathrooms = 2
+property.images: list(33)
+property.inquiries = 0
+property.internal_key = None
+property.is_active = True
+property.is_from_agent = True
+property.is_liked = False
+property.is_renta = False
+property.is_venta = True
+property.land: dict(4)
+property.land.area = 490
+property.land.front = None
+property.land.side = None
+property.land.unit = 'm2'
+property.likes = 0
+property.location: dict(10)
+property.location.coords: dict(2)
+property.location.coords.lat = 20.60249
+property.location.coords.lng = -103.446905
+property.location.country = 'MX'
+property.location.mexican_state = 'jalisco'
+property.location.municipality = 'Zapopan'
+property.location.neighborhood = 'Ciudad Bugambilia'
+property.location.number_ext = 'SEGUNDA '
+property.location.number_int = None
+property.location.state = 'jalisco'
+property.location.street = 'Bugambilia'
+property.location.zip = '45237'
+property.monthly_maintenance_fee = None
+property.months_of_rent_deposit = 0
+property.name = «oculto»
+property.needs_ija = False
+property.nj_uid = '4D4A'
+property.ordered_images: list(33)
+property.ordered_images[0].order = 0
+property.ordered_images[0].url = '1752090917-761615.webp'
+property.other_links: dict(2)
+property.other_links.matterport = None
+property.other_links.youtube = None
+property.owner = '8576357eb4314facb8fa451d1faf8417'
+property.parking_spots = 3
+property.pricing: dict(2)
+property.pricing.rents = None
+property.pricing.sales: dict(6)
+property.pricing.sales.based_on = 'valor_total'
+property.pricing.sales.commission: dict(3)
+property.pricing.sales.commission.commission_type = None
+property.pricing.sales.commission.currency_type = None
+property.pricing.sales.commission.value = None
+property.pricing.sales.currency_type = 'mxn'
+property.pricing.sales.formatted_price = 'MXN $11,000,000'
+property.pricing.sales.original_price = 'MXN $11,000,000'
+property.pricing.sales.price = 11000000
+property.property_type = 'house'
+property.rooms = 4
+property.shares = 1
+property.slug = 'casa-en-venta-en-bugambilia-ciudad-bugambilia-zapopan-2090917706'
+property.uat = '2025-07-09T19:55:25.709581+00:00'
+property.uid = '009f277da0404227b738301f40afa61b'
+property.views = 17
+agencyFetchInfo = None
+host = 'neojaus.com'
+url = '/propiedades/casa-en-venta-en-bugambilia-ciudad-bugambilia-zapopan-20
+isGoogleBot = False
 ```
-### https://neojaus.com/propiedades/bodega-comercial-en-renta-en-valentin-gomez-farias-doctor-valentn-gmez-farias-guadalajara-4660355873
-- HTTP 200; contiene: {'AMPI Guadalajara': False, 'comisión': False, 'share_commission': False, 'shared_commission': True, 'latitude': False, '"lat"': True, 'geo': False, 'Agencia ': False, 'cdn.neojaus.com/properties': True, 'no está disponible': False}
-- __NEXT_DATA__ (inicio): `{"props":{"pageProps":{"property":{"amenities":{"controlled_access_entry":true,"gym":true,"kids_playground":true,"multiple_uses_terrace":true,"pool":true,"security_247":true,"step_free_entryway":true},"appears":31,"apt_floor":1,"apt_total_floors":1,"assigned_to":"adff[tel]b18917428c50e915d5","bathrooms":null,"can_verify":false,"cat":"[tel]T18:59:15.402947+00:00","construction_area":115,"construction_year":null,"construction_year_opt":null,"created_by":"adff[tel]b18917428c50e915d5","ctr":19.35,"description":"Casa antigua sobre calle Gomez Farias muy cerca de San\nJuan de Dios (5 cuadras) rodeado de estacionamientos\npublico, entre calles Matamoros y Clavel, la casa es de un\nsolo nivel, en buen estado, ideal para oficinas, despachos,\nalmacenar. 10.00 mts aprox frente por 14.00 mts de fondo","exclusivity":{"conditions":null,"has_exclusivity":true,"shared_commission":true,"shares_half":tru`
+## https://neojaus.com/propiedades/local-en-renta-colinas-de-san-javier-pb10-58m2-guadalajara-jalisco-7210637479
+- claves de pageProps: ['property', 'agencyFetchInfo', 'host', 'url', 'isGoogleBot']
 ```
-
-Bodega Comercial en renta en Doctor Valentín Gómez Farias, Guadalajara.
-Compartir con mis datos
-+5
-1
-/
-9
-Compartir con mis datos
-2
-/
-9
-Compartir con mis datos
-3
-/
-9
-Compartir con mis datos
-4
-/
-9
-Compartir con mis datos
-5
-/
-9
-Compartir con mis datos
-6
-/
-9
-Compartir con mis datos
-7
-/
-9
-Compartir con mis datos
-8
-/
-9
-Compartir con mis datos
-9
-/
-9
-Compartir con mis datos
-En renta
-MXN $14,000/mes
-Moneda
-Bodega Comercial
-Valentin Gomez Farias, 342, Doctor Valentín Gómez Farias, Guadalajara.
-115
- m2 de construcción
-141 m2
-(
-10
-m x 
-14
-m) 
-de terreno
-1
- piso
-Bodega Comercial en renta en valentin gome
-```
-### https://neojaus.com/propiedades/casa-nueva-venta-vitana-residencial-zapopan-0828501054
-- HTTP 200; contiene: {'AMPI Guadalajara': False, 'comisión': False, 'share_commission': False, 'shared_commission': True, 'latitude': False, '"lat"': True, 'geo': False, 'Agencia ': False, 'cdn.neojaus.com/properties': True, 'no está disponible': False}
-- __NEXT_DATA__ (inicio): `{"props":{"pageProps":{"property":{"amenities":{},"appears":6,"apt_floor":null,"apt_total_floors":null,"assigned_to":"516afcdb9512414db4a0af83e01c31b2","bathrooms":3,"can_verify":false,"cat":"[tel]T04:21:41.972215+00:00","construction_area":160,"construction_year":null,"construction_year_opt":"first_use","created_by":"516afcdb9512414db4a0af83e01c31b2","ctr":66.67,"description":"Excelente casa nueva a estrenar dentro de Condominio Vitana Residencial, colindante al bosque.\n\nTerminados de lujo, acabados premium, amplios espacios bien distribuidos, carpinteria fina, plafones con iluminacion indirecta, granito y marmol, cocina en acero inoxidable con hornos, aires acondicionados en la casa, amplios closets, piso ceramico en gran formato, escalera principal con pisos de marmol, canceles de vidrio templado y barandal de acero inoxidable, canceleria de aluminio, puerta principal de madera soli`
-```
-
-Casa en venta en Vitana Residencial, Zapopan.
-Compartir con mis datos
-+36
-1
-/
-40
-Compartir con mis datos
-2
-/
-40
-Compartir con mis datos
-3
-/
-40
-Compartir con mis datos
-4
-/
-40
-Compartir con mis datos
-5
-/
-40
-Compartir con mis datos
-6
-/
-40
-Compartir con mis datos
-7
-/
-40
-Compartir con mis datos
-8
-/
-40
-Compartir con mis datos
-9
-/
-40
-Compartir con mis datos
-10
-/
-40
-Compartir con mis datos
-11
-/
-40
-Compartir con mis datos
-12
-/
-40
-Compartir con mis datos
-13
-/
-40
-Compartir con mis datos
-14
-/
-40
-Compartir con mis datos
-15
-/
-40
-Compartir con mis datos
-16
-/
-40
-Compartir con mis datos
-17
-/
-40
-Compartir con
+property: dict(46)
+property.amenities: dict(0)
+property.appears = 80
+property.apt_floor = None
+property.apt_total_floors = None
+property.assigned_to = 'efb4bd51a8194fc5b457390149a7062d'
+property.bathrooms = None
+property.can_verify = False
+property.cat = '2025-06-03T22:03:14.643267+00:00'
+property.construction_area = 58.58
+property.construction_year = 1995
+property.construction_year_opt = None
+property.created_by = 'efb4bd51a8194fc5b457390149a7062d'
+property.ctr = 32.5
+property.description = 'Excelente local en planta baja de la plaza. Se ubica sobre el pasillo
+property.exclusivity: dict(4)
+property.exclusivity.conditions = None
+property.exclusivity.has_exclusivity = None
+property.exclusivity.shared_commission = True
+property.exclusivity.shares_half = None
+property.floors = None
+property.from_agent = 'efb4bd51a8194fc5b457390149a7062d'
+property.half_bathrooms = 1
+property.images: list(6)
+property.inquiries = 0
+property.internal_key = None
+property.is_active = True
+property.is_from_agent = True
+property.is_liked = False
+property.is_renta = True
+property.is_venta = False
+property.land: dict(4)
+property.land.area = None
+property.land.front = None
+property.land.side = None
+property.land.unit = None
+property.likes = 0
+property.location: dict(10)
+property.location.coords: dict(2)
+property.location.coords.lat = 20.708633
+property.location.coords.lng = -103.405809
+property.location.country = 'MX'
+property.location.mexican_state = 'jalisco'
+property.location.municipality = 'Zapopan'
+property.location.neighborhood = 'Colinas De San Javier'
+property.location.number_ext = None
+property.location.number_int = None
+property.location.state = 'jalisco'
+property.location.street = 'Acueducto'
+property.location.zip = '44660'
+property.monthly_maintenance_fee = None
+property.months_of_rent_deposit = None
+property.name = «oculto»
+property.needs_ija = False
+property.nj_uid = '1491'
+property.ordered_images: list(6)
+property.ordered_images[0].order = 0
+property.ordered_images[0].url = '1748988196-078899.webp'
+property.other_links: dict(2)
+property.other_links.matterport = None
+property.other_links.youtube = 'https://youtube.com/watch?v=1ROwhyi4p8s'
+property.owner = 'efb4bd51a8194fc5b457390149a7062d'
+property.parking_spots = None
+property.pricing: dict(2)
+property.pricing.rents: dict(6)
+property.pricing.rents.based_on = 'valor_total'
+property.pricing.rents.commission: dict(3)
+property.pricing.rents.commission.commission_type = 'percentaje'
+property.pricing.rents.commission.currency_type = 'mxn'
+property.pricing.rents.commission.value = None
+property.pricing.rents.currency_type = 'mxn'
+property.pricing.rents.formatted_price = 'MXN $20,503/mes'
+property.pricing.rents.original_price = 'MXN $20,503/mes'
+property.pricing.rents.price = 20503
+property.pricing.sales = None
+property.property_type = 'local_comercial'
+property.rooms = None
+property.shares = 0
+property.slug = 'local-en-renta-colinas-de-san-javier-pb10-58m2-guadalajara-jalisco-72
+property.uat = '2026-09-24T02:05:31.454779+00:00'
+property.uid = '0186c0e27a8548418803b59e325f7692'
+property.views = 26
+agencyFetchInfo = None
+host = 'neojaus.com'
+url = '/propiedades/local-en-renta-colinas-de-san-javier-pb10-58m2-guadalaja
+isGoogleBot = False
 ```
