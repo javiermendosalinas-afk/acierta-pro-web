@@ -21,7 +21,7 @@ class Cargador extends ResourceLoader {
   }
 }
 
-T.abrir = async function (pagina, query = '', errores = []) {
+T.abrir = async function (pagina, query = '', errores = [], interceptar = null) {
   const html = fs.readFileSync(path.join(RAIZ, pagina), 'utf8');
   const vc = new VirtualConsole();
   vc.on('jsdomError', e => errores.push(String(e.message || e)));
@@ -30,7 +30,8 @@ T.abrir = async function (pagina, query = '', errores = []) {
     url: ORIGEN + pagina + query, runScripts: 'dangerously', resources: new Cargador(),
     pretendToBeVisual: true, virtualConsole: vc,
     beforeParse(w) {
-      w.fetch = (u) => {
+      w.fetch = (u, op) => {
+        if (interceptar) { const r = interceptar(String(u), op || {}); if (r) return Promise.resolve(r); }
         const p = new URL(u, w.location.href);
         if (p.origin === 'https://acierta.pro') {
           const ruta = path.join(RAIZ, decodeURIComponent(p.pathname));

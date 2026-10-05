@@ -33,6 +33,13 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Blog: 29 artículos (4 semanas de contenido, octubre 2026), todos en sitemap y en el índice del blog. Recordatorio L–S 9:00 am en Google Calendar.
 - Portadas de Canva: las 24 de octubre ya están publicadas (`assets/blog/<slug>.jpg` vertical y `<slug>-og.jpg` 1200×630, metas og/twitter, JSON-LD y sitemap de imágenes). Para portadas nuevas: exportar de Canva como `<slug>.jpg` y correr `python3 herramientas/blog/portadas.py <carpeta>`.
 
+## 3b. Portal del coach y propuesta en PDF (4-oct-2026)
+- `asesor.html` (no enlazada, `noindex`): el coach entra con su contraseña, busca al cliente por WhatsApp en el CRM AIDA, elige hasta 12 propiedades (resumen y ventajas se proponen con datos reales y el coach los edita) y genera la carta PDF con mapa.
+- Servidor (aciertamax-webhook): `/api/asesor/usuarios|login|cliente|propuesta|pdf/<id>`; PDF en `propuesta.py` (fpdf2 + staticmap/OpenStreetMap, fuentes y logos en `recursos/`).
+- Contraseñas: variables de Render `CLAVE_ASESOR_JAVIER`, `_UBALDO`, `_LETICIA`, `_GLORIA`, `_PAOLA` (sin variable, ese coach no entra). Nunca en archivos.
+- Envío: PDF directo por WhatsApp si el chat del cliente está abierto; si no, plantilla `seguimiento_cliente` con liga (Drive público en la carpeta del cliente o liga de respaldo del servidor). Copia al coach y a Javier; queda en la hoja de Actividad y en ULTIMA_ACCION del CRM.
+- Pie de la carta: NOM-247-SE-2021 y "contratos de adhesión registrados ante PROFECO" como texto (sin logo de PROFECO ni NOM); logos AMPI, NAR y CONOCER (Javier: EC0110.02, folio D-0027837023, "Dirección General certificada").
+
 ## 4. Archivo para ChatGPT (publicidad en Instagram)
 - `inventario-chatgpt.xlsx` / `.csv`: 34 columnas (clave EB, filtros, textos para imagen, foto grande, liga de WhatsApp con la clave, hashtags, `apto_para_publicar`, `nota_calidad`). Se regenera solo cada mes.
 - Instrucciones para pegar en el GPT: `herramientas/chatgpt/instrucciones-chatgpt.txt` (4,806 caracteres; límite de ChatGPT 8,000). Diccionario y ejemplos reales: `herramientas/chatgpt/diccionario-y-ejemplos.md`.

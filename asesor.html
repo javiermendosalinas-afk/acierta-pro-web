@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Portal del coach | Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--cream); }
+  .as-wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+  .as-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .as-top img { height: 38px; }
+  .as-card { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .as-card h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--navy); }
+  .as-card label { display: block; font-weight: 600; font-size: .9rem; margin: 10px 0 4px; }
+  .as-card input, .as-card select, .as-card textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--gray-light); border-radius: 10px; font: inherit; }
+  .as-card textarea { min-height: 70px; resize: vertical; }
+  .as-fila { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .as-fila > * { flex: 1 1 200px; }
+  .as-btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 18px; border-radius: 10px; border: 0; font-weight: 700; cursor: pointer; background: var(--navy); color: #fff; font: inherit; font-weight: 700; }
+  .as-btn.rojo { background: var(--red); }
+  .as-btn.claro { background: #fff; color: var(--navy); border: 1px solid var(--gray-light); }
+  .as-btn:disabled { opacity: .55; cursor: wait; }
+  .as-msg { margin-top: 10px; font-size: .92rem; }
+  .as-msg.error { color: var(--red-dark); }
+  .as-msg.ok { color: #157347; }
+  .as-muted { color: var(--gray); font-size: .88rem; }
+  .as-cliente-info { background: var(--cream); border-radius: 10px; padding: 12px; margin-top: 12px; font-size: .92rem; }
+  .as-cliente-info details { margin-top: 6px; }
+  .as-cliente-info pre { white-space: pre-wrap; font: inherit; font-size: .85rem; max-height: 220px; overflow: auto; }
+  .as-prop { display: grid; grid-template-columns: 150px 1fr; gap: 14px; border: 1px solid var(--gray-light); border-radius: 12px; padding: 12px; margin-top: 12px; }
+  .as-prop img { width: 150px; height: 100px; object-fit: cover; border-radius: 8px; background: var(--cream); }
+  .as-prop h3 { font-size: .98rem; margin: 0 0 2px; }
+  .as-prop .as-precio { color: var(--red); font-weight: 700; }
+  .as-prop .as-acciones { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .as-prop .as-acciones button { padding: 5px 10px; font-size: .82rem; }
+  .as-num { display: inline-block; background: var(--red); color: #fff; border-radius: 6px; padding: 0 8px; margin-right: 6px; font-weight: 700; }
+  .as-sugerencias { margin-top: 6px; max-height: 260px; overflow: auto; border: 1px solid var(--gray-light); border-radius: 10px; }
+  .as-sugerencias button { display: block; width: 100%; text-align: left; padding: 8px 12px; background: #fff; border: 0; border-bottom: 1px solid var(--gray-light); cursor: pointer; font: inherit; font-size: .88rem; }
+  .as-sugerencias button:hover { background: var(--cream); }
+  .as-acciones-final { display: flex; gap: 10px; flex-wrap: wrap; }
+  iframe.as-vista { width: 100%; height: 75vh; border: 1px solid var(--gray-light); border-radius: 10px; margin-top: 12px; background: #fff; }
+  @media (max-width: 600px) { .as-prop { grid-template-columns: 1fr; } .as-prop img { width: 100%; height: 170px; } }
+</style>
+</head>
+<body>
+<div class="as-wrap">
+  <div class="as-top">
+    <img src="assets/logo/acierta-max-logo.png" alt="Acierta Max">
+    <div id="asSesion" class="as-muted"></div>
+  </div>
+
+  <!-- 1. Acceso -->
+  <section class="as-card" id="asLogin">
+    <h2>Portal del coach</h2>
+    <p class="as-muted">Arma y envía a tu cliente una propuesta personalizada en PDF, con mapa y fichas.</p>
+    <div class="as-fila">
+      <div><label for="asUsuario">Coach</label><select id="asUsuario"><option value="">Cargando…</option></select></div>
+      <div><label for="asClave">Contraseña</label><input type="password" id="asClave" autocomplete="current-password"></div>
+      <div style="flex:0 0 auto"><button class="as-btn" id="asEntrar">Entrar</button></div>
+    </div>
+    <div class="as-msg" id="asLoginMsg"></div>
+  </section>
+
+  <div id="asApp" hidden>
+    <!-- 2. Cliente -->
+    <section class="as-card">
+      <h2>1. Cliente</h2>
+      <div class="as-fila">
+        <div><label for="asWa">WhatsApp del cliente (10 dígitos)</label><input type="tel" id="asWa" inputmode="numeric" maxlength="20"></div>
+        <div style="flex:0 0 auto"><button class="as-btn claro" id="asBuscar">Buscar en el CRM</button></div>
+      </div>
+      <div id="asClienteInfo"></div>
+      <div class="as-fila">
+        <div><label for="asNombre">Nombre del cliente (como aparecerá en la carta)</label><input type="text" id="asNombre" maxlength="80"></div>
+        <div style="flex:0 0 160px"><label for="asFolio">Folio</label><input type="text" id="asFolio" maxlength="40"></div>
+      </div>
+      <label for="asCriterios">Lo que busca el cliente</label>
+      <input type="text" id="asCriterios" maxlength="300" placeholder="Ej. compra de casa en Zapopan, de $3 a $5 millones, mínimo 3 recámaras">
+      <label for="asNota">Lo que platicaron (aparece en la carta)</label>
+      <textarea id="asNota" maxlength="900" placeholder="Ej. me comentaste que buscas estar cerca de escuelas y necesitas espacio para trabajar desde casa"></textarea>
+    </section>
+
+    <!-- 3. Propiedades -->
+    <section class="as-card">
+      <h2>2. Propiedades sugeridas <span class="as-muted" id="asCuenta"></span></h2>
+      <label for="asBuscarEB">Agregar por clave EB, colonia o título</label>
+      <input type="text" id="asBuscarEB" placeholder="Ej. EB-WH6158 o Valle Real" autocomplete="off">
+      <div class="as-sugerencias" id="asSugerencias" hidden></div>
+      <p class="as-muted" id="asInvMsg">Cargando inventario…</p>
+      <div id="asProps"></div>
+      <p class="as-muted">El resumen y las ventajas se proponen solos con los datos de la ficha. Revísalos y ajústalos: <strong>no prometas amenidades que no estén confirmadas</strong>.</p>
+    </section>
+
+    <!-- 4. Generar -->
+    <section class="as-card">
+      <h2>3. Revisar y enviar</h2>
+      <div class="as-acciones-final">
+        <button class="as-btn claro" id="asVista">Vista previa del PDF</button>
+        <button class="as-btn rojo" id="asEnviar">Enviar al cliente por WhatsApp</button>
+      </div>
+      <div class="as-msg" id="asMsg"></div>
+      <div id="asVistaCont"></div>
+    </section>
+  </div>
+</div>
+
+<script src="js/comun.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
+  let API = '', TOKEN = sessionStorage.getItem('as_token') || '', COACH = sessionStorage.getItem('as_nombre') || '';
+  let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '';
+
+  async function cfg() {
+    const r = await fetch('camino-datos.json'); const j = await r.json();
+    API = j.endpoint.replace(/\/api\/camino\/?$/, '/api/asesor');
+  }
+  async function post(ruta, cuerpo, crudo) {
+    const r = await fetch(API + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
+    if (crudo) return r;
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    if (r.status === 401 && ruta !== '/login') salir('Tu sesión venció. Vuelve a entrar.');
+    return { ok: r.ok && j.ok, status: r.status, j };
+  }
+  function msg(id, texto, tipo) { const el = $(id); el.textContent = texto || ''; el.className = 'as-msg' + (tipo ? ' ' + tipo : ''); }
+
+  // ── Acceso ──
+  async function cargarUsuarios() {
+    try {
+      const r = await post('/usuarios', {});
+      const activos = (r.j.usuarios || []).filter(u => u.activo);
+      $('asUsuario').innerHTML = activos.length
+        ? '<option value="">Elige tu nombre</option>' + activos.map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)}</option>`).join('')
+        : '<option value="">Ningún coach tiene contraseña configurada</option>';
+    } catch (e) { $('asUsuario').innerHTML = '<option value="">No se pudo conectar</option>'; }
+  }
+  async function entrar() {
+    const usuario = $('asUsuario').value, clave = $('asClave').value;
+    if (!usuario || !clave) { msg('asLoginMsg', 'Elige tu nombre y escribe tu contraseña.', 'error'); return; }
+    $('asEntrar').disabled = true; msg('asLoginMsg', 'Entrando…');
+    const r = await post('/login', { usuario, clave });
+    $('asEntrar').disabled = false;
+    if (!r.ok) { msg('asLoginMsg', (r.j && r.j.error) || 'No se pudo entrar.', 'error'); return; }
+    TOKEN = r.j.token; COACH = r.j.nombre;
+    sessionStorage.setItem('as_token', TOKEN); sessionStorage.setItem('as_nombre', COACH);
+    $('asClave').value = ''; mostrarApp();
+  }
+  function salir(texto) {
+    TOKEN = ''; sessionStorage.removeItem('as_token'); sessionStorage.removeItem('as_nombre');
+    $('asApp').hidden = true; $('asLogin').hidden = false; $('asSesion').innerHTML = '';
+    msg('asLoginMsg', texto || '', texto ? 'error' : '');
+  }
+  function mostrarApp() {
+    $('asLogin').hidden = true; $('asApp').hidden = false;
+    $('asSesion').innerHTML = `${esc(COACH)} · <a href="#" id="asSalir">Salir</a>`;
+    $('asSalir').addEventListener('click', e => { e.preventDefault(); salir(); });
+    if (!INV.length) cargarInventario();
+  }
+
+  // ── Inventario y borradores ──
+  const grupo = p => `${p.municipio}|${p.tipo}|${p.operacion}`;
+  const mediana = a => { const s = a.slice().sort((x, y) => x - y); const m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : 0; };
+  async function cargarInventario() {
+    try {
+      const r = await fetch('data.json'); INV = await r.json();
+      const pm2 = {}, m2 = {};
+      INV.forEach(p => {
+        if (p.moneda && p.moneda !== 'MXN') return;
+        if (p.precio && p.m2) (pm2[grupo(p)] = pm2[grupo(p)] || []).push(p.precio / p.m2);
+        if (p.m2) (m2[grupo(p)] = m2[grupo(p)] || []).push(p.m2);
+      });
+      Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
+      $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
+    } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
+  }
+  const plural = (n, s) => `${n} ${s}${Number(n) === 1 ? '' : (s.endsWith('n') ? 'es' : 's')}`;
+  function borrador(p) {
+    const tipo = (p.tipo || 'propiedad'); const op = p.operacion === 'RENTA' ? 'en renta' : 'en venta';
+    const datos = [];
+    if (p.recamaras) datos.push(plural(p.recamaras, 'recámara'));
+    if (p.banos) datos.push(plural(p.banos, 'baño'));
+    if (p.m2) datos.push(`${Number(p.m2).toLocaleString('es-MX')} m²`);
+    let resumen = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} ${op} en ${[p.colonia, p.municipio].filter(Boolean).join(', ')}`;
+    resumen += datos.length ? `, con ${datos.length > 1 ? datos.slice(0, -1).join(', ') + ' y ' + datos[datos.length - 1] : datos[0]}.` : '.';
+    const v = [], med = MEDIANAS[grupo(p)];
+    if (med && med.n >= 8 && p.precio && p.m2 && (!p.moneda || p.moneda === 'MXN')) {
+      const dif = 1 - (p.precio / p.m2) / med.pm2;
+      if (dif >= 0.08) v.push(`Precio por m² ${Math.round(dif * 100)}% por debajo de la mediana de ${tipo}s ${op} en ${p.municipio}`);
+      if (med.m2 && p.m2 >= med.m2 * 1.2) v.push(`Más amplia que la mayoría de su zona (${Math.round(p.m2)} m² contra ${Math.round(med.m2)} m² de la mediana)`);
+    }
+    if (Number(p.recamaras) >= 3) v.push(`Espacio para la familia: ${p.recamaras} recámaras`);
+    if (p.colonia) v.push(`Ubicada en ${p.colonia}, ${p.municipio}`);
+    return { resumen, ventajas: v.slice(0, 3) };
+  }
+  function agregar(p) {
+    if (PROPS.some(x => x.eb === p.eb && x.operacion === p.operacion)) return;
+    if (PROPS.length >= 12) { alert('Máximo 12 propiedades por propuesta.'); return; }
+    const b = borrador(p);
+    PROPS.push(Object.assign({}, p, { resumen: b.resumen, ventajas: b.ventajas.join('\n') }));
+    pintarProps();
+  }
+  function pintarProps() {
+    $('asCuenta').textContent = PROPS.length ? `(${PROPS.length})` : '';
+    $('asProps').innerHTML = PROPS.map((p, i) => `
+      <div class="as-prop" data-i="${i}">
+        <img src="${esc(p.foto || '')}" alt="" onerror="this.style.visibility='hidden'">
+        <div>
+          <h3><span class="as-num">${i + 1}</span>${esc(p.titulo || p.tipo)} <span class="as-muted">${esc(p.eb)}</span></h3>
+          <div><span class="as-precio">${money(p.precio)}${p.operacion === 'RENTA' ? ' al mes' : ''}</span> · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}</div>
+          <label>Resumen</label><textarea data-campo="resumen" maxlength="600">${esc(p.resumen)}</textarea>
+          <label>Ventajas (una por línea, máximo 4)</label><textarea data-campo="ventajas" maxlength="640">${esc(p.ventajas)}</textarea>
+          <div class="as-acciones">
+            <button class="as-btn claro" data-acc="subir" ${i === 0 ? 'disabled' : ''}>↑</button>
+            <button class="as-btn claro" data-acc="bajar" ${i === PROPS.length - 1 ? 'disabled' : ''}>↓</button>
+            <button class="as-btn claro" data-acc="quitar">Quitar</button>
+            <a class="as-btn claro" href="ficha.html?eb=${encodeURIComponent(p.eb)}&op=${p.operacion === 'RENTA' ? 'R' : 'V'}" target="_blank" rel="noopener">Ver ficha</a>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  $('asProps').addEventListener('input', e => {
+    const card = e.target.closest('.as-prop'); if (!card || !e.target.dataset.campo) return;
+    PROPS[+card.dataset.i][e.target.dataset.campo] = e.target.value;
+  });
+  $('asProps').addEventListener('click', e => {
+    const b = e.target.closest('button[data-acc]'); if (!b) return;
+    const i = +b.closest('.as-prop').dataset.i, acc = b.dataset.acc;
+    if (acc === 'quitar') PROPS.splice(i, 1);
+    if (acc === 'subir' && i > 0) [PROPS[i - 1], PROPS[i]] = [PROPS[i], PROPS[i - 1]];
+    if (acc === 'bajar' && i < PROPS.length - 1) [PROPS[i + 1], PROPS[i]] = [PROPS[i], PROPS[i + 1]];
+    pintarProps();
+  });
+  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  $('asBuscarEB').addEventListener('input', () => {
+    const q = norm($('asBuscarEB').value.trim()); const cont = $('asSugerencias');
+    if (q.length < 3 || !INV.length) { cont.hidden = true; return; }
+    const res = INV.filter(p => norm(p.eb) === q || norm(p.eb).includes(q) || norm(p.colonia).includes(q) || norm(p.titulo).includes(q)).slice(0, 30);
+    cont.hidden = false;
+    cont.innerHTML = res.length ? res.map((p, k) => `<button type="button" data-k="${INV.indexOf(p)}"><strong>${esc(p.eb)}</strong> · ${esc(p.operacion === 'RENTA' ? 'Renta' : 'Venta')} · ${esc(p.tipo)} · ${money(p.precio)} · ${esc([p.colonia, p.municipio].filter(Boolean).join(', '))}</button>`).join('')
+      : '<div class="as-muted" style="padding:8px 12px">Sin resultados</div>';
+  });
+  $('asSugerencias').addEventListener('click', e => {
+    const b = e.target.closest('button[data-k]'); if (!b) return;
+    agregar(INV[+b.dataset.k]); $('asBuscarEB').value = ''; $('asSugerencias').hidden = true;
+  });
+
+  // ── Cliente ──
+  async function buscarCliente() {
+    const wa = $('asWa').value.trim();
+    $('asBuscar').disabled = true; $('asClienteInfo').innerHTML = '<p class="as-muted">Buscando…</p>';
+    const r = await post('/cliente', { token: TOKEN, whatsapp: wa });
+    $('asBuscar').disabled = false;
+    if (!r.ok) { $('asClienteInfo').innerHTML = `<p class="as-msg error">${esc((r.j && r.j.error) || 'No se pudo buscar.')}</p>`; return; }
+    if (!r.j.encontrado) {
+      $('asClienteInfo').innerHTML = '<div class="as-cliente-info">No está en el CRM. Puedes armar la propuesta de todos modos: escribe su nombre abajo.</div>';
+      return;
+    }
+    const c = r.j;
+    if (!$('asNombre').value) $('asNombre').value = c.nombre || '';
+    $('asFolio').value = c.folio || '';
+    if (!$('asCriterios').value && c.operacion) $('asCriterios').value = (c.operacion.toUpperCase() === 'RENTA' ? 'renta' : 'compra') + ' de ';
+    let agregadas = 0;
+    (c.propiedades || []).forEach(eb => { const p = INV.find(x => x.eb === eb); if (p) { agregar(p); agregadas++; } });
+    $('asClienteInfo').innerHTML = `<div class="as-cliente-info">
+      <strong>${esc(c.nombre)}</strong> · Folio ${esc(c.folio)} · Coach: ${esc(c.vendedor || '—')}${c.concluido ? ' · <em>expediente concluido</em>' : ''}<br>
+      ${(c.propiedades || []).length ? `Propiedades que ha visto: ${c.propiedades.map(esc).join(', ')} (${agregadas} agregadas abajo)` : 'Aún no tiene propiedades registradas.'}
+      ${c.carpeta ? `<br><a href="${esc(c.carpeta)}" target="_blank" rel="noopener">Expediente en Drive</a>` : ''}
+      ${c.contexto ? `<details><summary>Ver la conversación registrada</summary><pre>${esc(c.contexto)}</pre></details>` : ''}
+    </div>`;
+  }
+
+  // ── Generar ──
+  function cuerpo(modo) {
+    return {
+      token: TOKEN, modo,
+      cliente: { nombre: $('asNombre').value.trim(), whatsapp: $('asWa').value.trim(), folio: $('asFolio').value.trim() },
+      criterios: $('asCriterios').value.trim(), nota: $('asNota').value.trim(),
+      propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4) })),
+    };
+  }
+  function validar(enviar) {
+    if ($('asNombre').value.trim().length < 2) return 'Escribe el nombre del cliente.';
+    if (enviar && !/^\d{10}$/.test($('asWa').value.replace(/\D/g, '').slice(-10))) return 'Escribe el WhatsApp del cliente a 10 dígitos.';
+    if (!PROPS.length) return 'Agrega al menos una propiedad.';
+    return '';
+  }
+  async function vistaPrevia() {
+    const err = validar(false); if (err) { msg('asMsg', err, 'error'); return; }
+    $('asVista').disabled = true; msg('asMsg', 'Generando el PDF (puede tardar unos segundos por las fotos y el mapa)…');
+    try {
+      const r = await post('/propuesta', cuerpo('vista'), true);
+      if (!r.ok) { let j = {}; try { j = await r.json(); } catch (e) {} if (r.status === 401) salir('Tu sesión venció. Vuelve a entrar.'); msg('asMsg', j.error || 'No se pudo generar el PDF.', 'error'); return; }
+      const omitidas = r.headers.get('X-Propiedades-Omitidas');
+      const blob = await r.blob(); if (vistaUrl) URL.revokeObjectURL(vistaUrl); vistaUrl = URL.createObjectURL(blob);
+      $('asVistaCont').innerHTML = `<p><a href="${vistaUrl}" target="_blank" rel="noopener">Abrir el PDF en otra pestaña</a> · <a href="${vistaUrl}" download="Propuesta_Acierta_Max.pdf">Descargar</a></p><iframe class="as-vista" src="${vistaUrl}" title="Vista previa"></iframe>`;
+      msg('asMsg', omitidas ? `Listo. Ojo: ${omitidas} ya no está en el inventario y no se incluyó.` : 'Listo. Revisa el PDF antes de enviarlo.', omitidas ? 'error' : 'ok');
+    } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
+    finally { $('asVista').disabled = false; }
+  }
+  async function enviar() {
+    const err = validar(true); if (err) { msg('asMsg', err, 'error'); return; }
+    const nombre = $('asNombre').value.trim(), wa = $('asWa').value.trim();
+    if (!confirm(`¿Enviar la propuesta con ${PROPS.length} propiedad(es) a ${nombre} (${wa}) por WhatsApp?\n\nTambién te llegará una copia a ti.`)) return;
+    $('asEnviar').disabled = true; msg('asMsg', 'Generando y enviando…');
+    try {
+      const r = await post('/propuesta', cuerpo('enviar'));
+      if (!r.ok) { msg('asMsg', (r.j && r.j.error) || 'No se pudo enviar.', 'error'); return; }
+      const j = r.j;
+      if (j.cliente_ok) msg('asMsg', j.via === 'archivo' ? '✅ Enviado: el cliente recibió el PDF por WhatsApp y a ti te llegó una copia.' : '✅ Enviado: el cliente recibió un mensaje con la liga al PDF (su chat estaba cerrado para archivos). A ti te llegó una copia.', 'ok');
+      else msg('asMsg', `⚠️ El PDF se generó pero WhatsApp no aceptó el envío al cliente. Mándale esta liga tú mismo: ${j.liga}`, 'error');
+    } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
+    finally { $('asEnviar').disabled = false; }
+  }
+
+  $('asEntrar').addEventListener('click', entrar);
+  $('asClave').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+  $('asBuscar').addEventListener('click', buscarCliente);
+  $('asVista').addEventListener('click', vistaPrevia);
+  $('asEnviar').addEventListener('click', enviar);
+  cfg().then(() => { cargarUsuarios(); if (TOKEN) mostrarApp(); });
+})();
+</script>
+</body>
+</html>
