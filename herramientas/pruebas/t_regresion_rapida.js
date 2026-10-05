@@ -38,8 +38,8 @@ const fs = require('fs');
   const visibles = home.replace(/<script[\s\S]*?<\/script>/g, '');
   const desfasadas = faq.mainEntity.filter(q => !visibles.includes(q.acceptedAnswer.text.replace(/&/g, '&amp;')) && !visibles.includes(q.acceptedAnswer.text));
   ok(desfasadas.length === 0, 'FAQ visible = FAQ de Google (' + faq.mainEntity.length + ' preguntas)' + (desfasadas.length ? ' DESFASADAS: ' + desfasadas.map(q => q.name).join(' | ') : ''));
-  ok(/Tlajomulco/.test(home) && /Más de 7,000/.test(home) && !/Más de 5,000/.test(home), 'la portada menciona los 5 municipios (incluye Tlajomulco) y "Más de 7,000"');
-  ok(data.length > 7000, `el inventario publicado supera las 7,000 fichas (${data.length})`);
+  ok(/Tlajomulco/.test(home) && /Más de 9,000/.test(home) && !/Más de [57],000/.test(home), 'la portada menciona los 5 municipios (incluye Tlajomulco) y "Más de 9,000"');
+  ok(data.length > 9000, `el inventario publicado supera las 9,000 fichas (${data.length})`);
   // fotos grandes con respaldo a la miniatura
   const conFoto = data.find(p => p.foto);
   const wf = await T.abrir('ficha.html', '?eb=' + conFoto.eb + '&op=' + (conFoto.operacion === 'RENTA' ? 'R' : 'V'), errores);
