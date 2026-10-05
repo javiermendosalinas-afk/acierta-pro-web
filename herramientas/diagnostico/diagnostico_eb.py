@@ -9,7 +9,7 @@ spec = importlib.util.spec_from_file_location("S", os.path.join(RAIZ, "herramien
 S = importlib.util.module_from_spec(spec); spec.loader.exec_module(S)
 BASE, EBS = S.BASE, [e.upper() for e in sys.argv[1:]]
 ses = requests.Session()
-out = ["# Diagnóstico 2 de claves EB", ""]
+out = ["# Diagnóstico 3 de claves EB (buscador real: /search_text?search[text]=)", ""]
 
 def get(url, pausa=6):
     for intento in range(4):
@@ -27,9 +27,9 @@ def total(html):
     m = re.search(r"([\d,\.]+)\s*(propiedades|resultados|inmuebles)", html or "", re.I)
     return m.group(0) if m else "(sin total visible)"
 
-out += ["## Búsqueda por clave (/properties?search[query]=)", ""]
+out += ["## Búsqueda por clave con el buscador del sitio", ""]
 for eb in EBS:
-    r = get(f"{BASE}/properties?search%5Bquery%5D={eb}")
+    r = get(f"{BASE}/search_text?search%5Btext%5D={eb}")
     if r is None or r.status_code != 200:
         out.append(f"- {eb}: HTTP {getattr(r, 'status_code', 'error')}"); continue
     t = S.parsear_tarjetas(r.text)
@@ -43,13 +43,15 @@ for eb in EBS:
         out.append(f"- {eb}: la clave está en la página pero ninguna tarjeta la trae como código ({len(t)} tarjetas: {[y.get('codigo_eb') for y in t][:5]}). Contexto: `{contexto[:400]}`")
 
 out += ["", "## Totales de listados", ""]
-for url in (f"{BASE}/rentals", f"{BASE}/properties", f"{BASE}/renta/mexico/jalisco/zapopan", f"{BASE}/renta/mexico/jalisco/guadalajara"):
+for url in (f"{BASE}/rentals/mexico/jalisco/zapopan", f"{BASE}/search_text?search%5Btext%5D=Virreyes", f"{BASE}/search_text?search%5Btext%5D=Royal+Country"):
     r = get(url)
     if r is None:
         out.append(f"- {url}: error"); continue
     t = S.parsear_tarjetas(r.text)
     sig = re.findall(r'href="([^"]*page=2[^"]*)"', r.text)[:1]
     out.append(f"- {url}: HTTP {r.status_code} · {total(r.text)} · tarjetas pág. 1: {len(t)} · enlace a pág. 2: {sig}")
+    for x in t[:18]:
+        out.append(f"    - {x['codigo_eb']} · {x['tipo']} · {x['colonia']}, {x['municipio_tarjeta']} · ${x['precio']} · {x['href'][-60:]}")
 
 os.makedirs(os.path.join(RAIZ, "reportes", "diagnostico"), exist_ok=True)
 open(os.path.join(RAIZ, "reportes", "diagnostico", "resultado.md"), "w", encoding="utf-8").write("\n".join(out) + "\n")
