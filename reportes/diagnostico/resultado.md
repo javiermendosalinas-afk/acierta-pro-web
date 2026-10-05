@@ -1,18 +1,71 @@
-# Diagnóstico 2 de claves EB
+# Diagnóstico 3 de claves EB (buscador real: /search_text?search[text]=)
 
-## Búsqueda por clave (/properties?search[query]=)
+## Búsqueda por clave con el buscador del sitio
 
-- EB-XB4792: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XB4792&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-XA9606: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XA9606&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-WV3319: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WV3319&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-XD2631: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-XD2631&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-VY4454: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-VY4454&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-WP7537: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WP7537&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
-- EB-WV5084: la clave está en la página pero ninguna tarjeta la trae como código (18 tarjetas: ['EB-WU8632', 'EB-XA1641', 'EB-WR6018', 'EB-WC8850', 'EB-MY6898']). Contexto: `="mg_widget mg_property-list"> <div id="mg_properties" data-frame="property-results"> <div class="row"> <div class="properties-header"> <div class="sort-by d-flex align-items-center justify-content-end"> <h6 class="mr-3">Ordenar por</h6> <form action="/properties?search%5Bquery%5D=EB-WV5084&amp;web_page=properties" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token"`
+- EB-XB4792: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-XB4792" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-XA9606: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-XA9606" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-WV3319: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-WV3319" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-XD2631: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-XD2631" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-VY4454: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-VY4454" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-WP7537: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-WP7537" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
+- EB-WV5084: la clave está en la página pero ninguna tarjeta la trae como código (0 tarjetas: []). Contexto: `ax/"></a></li> </ul> <div id="code_search_form" class="eb"> <form class="form-inline" action="/search_text" accept-charset="UTF-8" method="get"> <input size="15" autocomplete="off" placeholder="Buscar propiedades" id="menu_search_code" class="form-control" type="text" value="EB-WV5084" name="search[text]" /> <input type="submit" name="commit" value="Ir" class="input-button" /> </form> </`
 
 ## Totales de listados
 
-- https://www.aciertamax.com/rentals: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/rentals?page=2&amp;web_page=rentals']
-- https://www.aciertamax.com/properties: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/properties?page=2&amp;web_page=properties']
-- https://www.aciertamax.com/renta/mexico/jalisco/zapopan: HTTP 404 · (sin total visible) · tarjetas pág. 1: 0 · enlace a pág. 2: []
-- https://www.aciertamax.com/renta/mexico/jalisco/guadalajara: HTTP 404 · (sin total visible) · tarjetas pág. 1: 0 · enlace a pág. 2: []
+- https://www.aciertamax.com/rentals/mexico/jalisco/zapopan: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/rentals/mexico/jalisco/zapopan?page=2&amp;web_page=rentals']
+    - EB-UN2620 · terreno comercial · La Magdalena, Zapopan · $60.0 · max.com/property/terreno-en-renta-sobre-carretera-a-colotlan
+    - EB-QY8104 · terreno comercial · Nuevo México, Zapopan · $65.0 · no-en-renta-comercial-e-industrial-en-av-guadalajara-zapopan
+    - EB-TK7238 · terreno comercial · Altavista Residencial, Zapopan · $75.0 · .aciertamax.com/property/terreno-en-renta-sobre-av-altavista
+    - EB-LU7015 · bodega industrial · Indígena San Juan de Ocotán, Zapopan · $99.0 · dega-en-renta-san-juan-de-ocotan-indigena-san-juan-de-ocotan
+    - EB-PQ3324 · bodega comercial · La Magdalena, Zapopan · $107.9 · aciertamax.com/property/bodega-en-capithal-park-la-magdalena
+    - EB-SU9227 · bodega industrial · Los Molinos, Zapopan · $117.5 · rtamax.com/property/bodegas-en-parque-industrial-los-molinos
+    - EB-TE2705 · bodega industrial · El Campestre, Zapopan · $120.0 · es-en-renta-fuera-del-fracc-el-campestre-cp-45221-en-zapopan
+    - EB-XA7201 · bodega comercial · Santa Lucia, Zapopan · $120.0 · x.com/property/bodega-comercial-en-renta-santa-lucia-zapopan
+    - EB-VC3261 · bodega comercial · Ciudad Granja, Zapopan · $125.0 · ttps://www.aciertamax.com/property/bodega-en-renta-cd-granja
+    - EB-WR5115 · terreno · Hogares de Nuevo México, Zapopan · $128.0 · ww.aciertamax.com/property/terreno-en-renta-en-capital-norte
+    - EB-PH8996 · oficina · Ciudad Del Sol, Zapopan · $260.0 · /en-renta-piso-completo-zona-plaza-del-sol-ideal-corporativo
+    - EB-VE7022 · bodega comercial · Industrial los Belenes, Zapopan · $340.0 · spacios-de-almacenamiento-en-parque-industrial-belenes-norte
+    - EB-WJ8221 · oficina · Zapopan Centro, Zapopan · $380.0 · ps://www.aciertamax.com/property/oficina-corporativa-nivel-4
+    - EB-WJ8230 · oficina · Zapopan Centro, Zapopan · $390.0 · ps://www.aciertamax.com/property/oficina-corporativa-nivel-5
+    - EB-WJ8245 · oficina · Zapopan Centro, Zapopan · $400.0 · ps://www.aciertamax.com/property/oficina-corporativa-nivel-6
+    - EB-RG2417 · local comercial · Arcos de Zapopan 1a. Sección, Zapopan · $400.0 · max.com/property/exclusivo-edificio-en-el-corazon-de-zapopan
+    - EB-WJ8262 · oficina · Zapopan Centro, Zapopan · $410.0 · ps://www.aciertamax.com/property/oficina-corporativa-nivel-7
+    - EB-WJ7850 · local comercial · Zapopan Centro, Zapopan · $480.0 · iertamax.com/property/local-comercial-zapopan-centro-zapopan
+- https://www.aciertamax.com/search_text?search%5Btext%5D=Virreyes: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/search_text?page=2&amp;search%5Btext%5D=Virreyes&amp;web_page=search']
+    - EB-MY1373 · casa · Lomas de Chapultepec I Sección, Miguel Hidalgo · $None · ciertamax.com/property/gran-oportunidad-lomas-de-chapultepec
+    - EB-XD5394 · casa · Virreyes II, Chihuahua · $None · iertamax.com/property/casa-en-venta-en-virreyes-ii-3-900-000
+    - EB-QV2771 · casa · Lomas de Virreyes, Miguel Hidalgo · $None · om/property/casa-con-uso-de-suelo-mixto-lomas-de-chapultepec
+    - EB-QV2824 · casa · Lomas de Virreyes, Miguel Hidalgo · $None · ax.com/property/casa-lomas-de-chapultepec-uso-de-suelo-mixto
+    - EB-VS1752 · departamento · Virreyes Residencial, Zapopan · $None · nta-en-torre-opera-zona-puerta-de-hierro-real-acueducto-zapo
+    - EB-EQ3196 · casa · Lomas de Virreyes, Miguel Hidalgo · $None · https://www.aciertamax.com/property/estrenela-explanada
+    - EB-RS3866 · casa · Lomas de Virreyes, Miguel Hidalgo · $None · property/lomas-virreyes-1b0a669a-6a6a-4dee-b503-68c5e74f9957
+    - EB-XC5929 · casa en condominio · Virreyes Residencial, Zapopan · $None · /casa-venta-en-condominio-virreyes-375m2-4-recamaras-terraza
+    - EB-QM4052 · local comercial · Virreyes Residencial, Zapopan · $None · iertamax.com/property/locales-en-renta-en-av-naciones-unidas
+    - EB-NZ7708 · departamento · Virreyes Residencial, Zapopan · $None · ciertamax.com/property/depa-en-preventa-virreyes-residencial
+    - EB-NZ7355 · departamento · Virreyes Residencial, Zapopan · $None · ciertamax.com/property/loft-en-preventa-virreyes-residencial
+    - EB-UR5575 · casa en condominio · Cumbres, Zapopan · $None · tamax.com/property/casa-en-venta-cumbres-residencial-cumbres
+    - EB-XC6992 · departamento · Madero Sur, Tijuana · $None · .aciertamax.com/property/renta-de-departamento-en-madero-sur
+    - EB-XC5744 · departamento · Condominio Colinas Virreyes, Zapopan · $None · ax.com/property/anuva-residencial-departamento-renta-y-venta
+    - EB-UD1669 · terreno · Lomas de Chapultepec I Sección, Miguel Hidalgo · $None · n-venta-lomas-de-chapultepec-miguel-hidalgo-gran-oportunidad
+    - EB-TR4063 · terreno · Lomas de Virreyes, Miguel Hidalgo · $None · en-venta-en-lomas-de-chapultepec-a-unos-pasos-de-prado-norte
+    - EB-UU1506 · casa en condominio · Virreyes Residencial, Zapopan · $None · n-venta-virreyes-coto-9-zapopan-4-recamaras-alberca-y-jardin
+    - EB-XB8068 · departamento · Puerta de Hierro, Zapopan · $None · x.com/property/hermoso-departamento-venta-en-altitud-andares
+- https://www.aciertamax.com/search_text?search%5Btext%5D=Royal+Country: HTTP 200 · (sin total visible) · tarjetas pág. 1: 18 · enlace a pág. 2: ['/search_text?page=2&amp;search%5Btext%5D=Royal+Country&amp;web_page=search']
+    - EB-XC8041 · casa · Royal Country, Mazatlán · $None · -renta-en-royal-country-3fa44d25-83fd-40a7-8829-f9308e255d53
+    - EB-WB4741 · terreno · Royal Country, Zapopan · $None · reno-dentro-de-abadia-en-la-zona-diamante-de-zapopan-andares
+    - EB-VK8817 · departamento · Puerta de Hierro, Zapopan · $None · //www.aciertamax.com/property/landmark-reserve-renta-andares
+    - EB-WR6758 · departamento · Puerta de Hierro, Zapopan · $None · nto-en-renta-en-puerta-de-hierro-excelente-ubicacion-y-vista
+    - EB-XB1763 · casa en condominio · Royal Country, Zapopan · $None · rtamax.com/property/residencia-en-venta-abadia-royal-country
+    - EB-XB1055 · departamento · Puerta de Hierro, Zapopan · $None · .aciertamax.com/property/excelente-departamento-renta-aura-1
+    - EB-WZ5269 · departamento · Puerta de Hierro, Zapopan · $None · /www.aciertamax.com/property/legacy-tower-penthouse-en-venta
+    - EB-WX0577 · casa en condominio · Royal Country, Zapopan · $None · roperty/renta-casa-en-condominio-royal-country-royal-country
+    - EB-WW5434 · terreno · Balvanera Polo y Country Club, Corregidora · $None · no-en-venta-1000m-en-balvanera-club-de-golf-junto-al-fairway
+    - EB-WL1529 · terreno · Royal Country, Zapopan · $None · max.com/property/terreno-en-abadia-residencial-royal-country
+    - EB-WA3202 · terreno · Royal Country, Zapopan · $None · rty/terreno-en-venta-abadia-residencial-juan-palomar-y-arias
+    - EB-VT9135 · casa · Royal Country, Zapopan · $None · operty/residencia-de-autor-en-venta-o-renta-en-royal-country
+    - EB-VL8226 · terreno · San Juan de Ocotan, Zapopan · $None · perty/terrenos-en-renta-sobre-perif-norte-san-juan-de-ocotan
+    - EB-VK7395 · departamento · Puerta de Hierro, Zapopan · $None · ttps://www.aciertamax.com/property/landmark-reserve-en-renta
+    - EB-VK1332 · terreno · San Juan de Ocotan, Zapopan · $None · .aciertamax.com/property/terrenos-en-renta-sobre-perif-norte
+    - EB-VG6147 · casa en condominio · Sábalo Cerritos, Mazatlán · $None · /casa-en-renta-en-mazatlan-sinaloa-fracc-soles-area-cerritos
+    - EB-UP6629 · local en centro comercial · Residencial del Mayab, Mérida · $None · https://www.aciertamax.com/property/royal-square
+    - EB-SK0680 · casa en condominio · Royal Country, Zapopan · $None · a-oportunidad-royal-country-zapopan-12-000-000-terreno-300m2
