@@ -1,0 +1,47 @@
+name: Actualizar NeoJaus
+
+# Lee el inventario compartido de NeoJaus (bolsa AMPI) y lo agrega a data.json.
+# La actualizacion mensual ("Actualizar inventario") ya lo corre despues de EasyBroker;
+# este workflow sirve para la primera carga completa (que puede tomar varias corridas)
+# o para lanzarlo a mano: cambiar herramientas/disparar_neojaus.txt o Actions -> Run workflow.
+on:
+  push:
+    paths:
+      - 'herramientas/disparar_neojaus.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: inventario
+  cancel-in-progress: false
+
+jobs:
+  neojaus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install requests beautifulsoup4 pillow openpyxl
+      - name: Leer NeoJaus
+        run: python -u herramientas/neojaus_sync.py --max-minutos 300
+      - name: Publicar cambios
+        if: always()
+        run: |
+          git config user.name "inventario-bot"
+          git config user.email "inventario-bot@users.noreply.github.com"
+          git add data.json inventario.csv inventario-meta.json inventario-chatgpt.csv inventario-chatgpt.xlsx herramientas/neojaus reportes/inventario 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Sin cambios"; else
+            git commit -m "NeoJaus: inventario compartido AMPI $(date -u +%F)"
+            git pull --rebase -q || true
+            git push
+          fi
+      - name: Pedir publicacion del sitio
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true

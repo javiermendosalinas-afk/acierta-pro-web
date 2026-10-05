@@ -143,8 +143,8 @@
 
     ${AM.confianzaHTML()}
 
-    <p class="ficha-original">¿Quieres ver la publicación original con más fotos y descripción?
-      <a href="${AM.esc(p.liga)}" target="_blank" rel="noopener">Abrir en aciertamax.com ↗</a></p>`;
+    ${/aciertamax\.com/.test(p.liga || '') ? `<p class="ficha-original">¿Quieres ver la publicación original con más fotos y descripción?
+      <a href="${AM.esc(p.liga)}" target="_blank" rel="noopener">Abrir en aciertamax.com ↗</a></p>` : ''}`;
 
     // "Hablar con un asesor": la primera vez pide nombre y WhatsApp para asignar un asesor real
     document.getElementById('btnHablarAsesor').addEventListener('click', function (e) {

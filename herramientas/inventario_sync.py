@@ -881,6 +881,9 @@ def main():
         n = escribir_chatgpt(previo, fecha)
         print(f"Archivo para ChatGPT regenerado: {n:,} fichas -> {RUTA_CHATGPT_CSV} y {RUTA_CHATGPT_XLSX}")
         return
+    # Las fichas de NeoJaus (bolsa AMPI) las agrega después herramientas/neojaus_sync.py:
+    # aquí se ignoran para que los frenos y la comparación sean solo de EasyBroker.
+    previo = [p for p in previo if p.get("fuente") != "neojaus"]
     previas = {clave(p): p for p in previo}
     municipios_ok = set(MUNICIPIOS.values())
     previo_zona = [p for p in previo if p.get("municipio") in municipios_ok]

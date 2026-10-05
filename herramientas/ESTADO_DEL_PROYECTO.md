@@ -23,6 +23,14 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Estado de la última corrida (4-oct-2026, con doble pasada): **9,970 fichas**; Zapopan venta 3,553 (1,119 debajo de $5M), Guadalajara venta 2,026; sin avisos de tope.
 - Comandos: `--paginas-max 2 --sin-escribir` (prueba), `--reusar-data` (reaplica reglas sin rastrear), `--solo-exportar` (regenera solo el archivo de ChatGPT).
 
+## 2b. Inventario compartido de NeoJaus (bolsa AMPI, oct-2026)
+- Javier es socio de AMPI Guadalajara y está autorizado a promover la bolsa; en AMPI todos comparten comisión. NeoJaus es la plataforma de AMPI GDL (antes la bolsa estaba en EasyBroker).
+- `herramientas/neojaus_sync.py`: lee el sitemap de neojaus.com (~30 mil fichas), abre solo nuevas o modificadas (caché `herramientas/neojaus/cache.json.gz`), toma las activas, de Jalisco y de los 5 municipios **según los datos de la ficha** y con `shared_commission`; aplica las reglas de EasyBroker (segmento, precio, foto obligatoria); quita duplicados contra EasyBroker (misma operación, <80 m, precio ±3%); escribe data.json = EasyBroker + NeoJaus (`"fuente": "neojaus"`, clave `NJ-xxxxx`).
+- La liga pública de las NJ es la ficha de acierta.pro (nunca la de la otra inmobiliaria); `url_fuente` guarda la de NeoJaus. La ficha solo muestra «Abrir en aciertamax.com» para EasyBroker.
+- Corre en el workflow mensual después de EasyBroker y con su propio workflow «Actualizar NeoJaus» (`herramientas/disparar_neojaus.txt`), que retoma donde se quedó si la primera carga no alcanza en una corrida. `inventario_sync.py` ignora las NJ en sus frenos.
+- Sus términos y condiciones no se pudieron leer; robots.txt permite las fichas. Ritmo pausado (3 hilos, 0.6 s).
+- La API de NeoJaus (USD 29/mes) solo da acceso al inventario propio: no sirve para traer la bolsa.
+
 ## 3. Sitio
 - Portada (`index.html` + `app.js`): selector **Vivienda | Comercial** (también `?seg=comercial`), tipos por grupo (Casa incluye casa en condominio), rangos de precio por segmento y operación, sugerencias de colonia, fecha de actualización.
 - Inversión, proceso, camino y mapa trabajan **solo con vivienda** (`AM.soloVivienda`); el mapa acepta `?seg=comercial`. Helpers en `js/comun.js` (`AM.segDe`, `AM.fotoImg`...).

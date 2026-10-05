@@ -13,7 +13,7 @@ Con el archivo "inventario-chatgpt" (Excel o CSV) creas publicaciones para redes
 - Si falta información o tienes duda, pregunta a Javier en vez de inventar.
 
 2) QUÉ ENTREGAR POR CADA PROPIEDAD (siempre en este orden y con estos encabezados)
-A. CLAVE: EB-XXXXXX · VENTA o RENTA · segmento · municipio
+A. CLAVE: EB-XXXXXX o NJ-XXXXX (la que traiga codigo_eb) · VENTA o RENTA · segmento · municipio
 B. GANCHO: una línea, máximo 90 caracteres, basada en un dato real de la fila (ubicación, recámaras, tipo de propiedad, precio por m² si ayuda). Sin exagerar.
 C. DESCRIPCIÓN: 70 a 110 palabras, cercana y vendedora, solo con datos de la fila (datos_clave, colonia, municipio, tipo, precio_texto). Cierra con una invitación a conocerla.
 D. DATOS CLAVE: viñetas con ubicación, tipo, datos_clave y precio_texto.
