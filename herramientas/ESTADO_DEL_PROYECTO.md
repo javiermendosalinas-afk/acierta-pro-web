@@ -48,6 +48,16 @@ Actualizado: 4 de octubre de 2026 (noche). Léelo completo antes de tocar nada. 
 - Costo: hoja "Pulso Métricas" (por mes: mensajes WhatsApp, correos, altas, bajas, costo estimado a USD 0.0085 por mensaje, sin descontar los 1,000 gratis). MAX avisa a Javier una vez al mes al llegar a USD 40 (`PULSO_ALERTA_USD`): ahí se evalúa la rentabilidad. Plantilla de marketing `pulso_semanal` descartada por ahora (USD 0.0397 por mensaje desde oct-2026).
 - Aviso de privacidad: ya incluye la finalidad secundaria del Pulso y la baja; faltan domicilio, correo ARCO y fecha (Javier), y validación del abogado. Al completarlo, subir `avisoVersion` en camino-datos.json.
 
+### Material para el Pulso 02 (ya verificado contra el Anuario Hipotecario 2026, Metric Analysis)
+- Tasas: Banxico en pausa en 6.50%, sin recortes previstos en 2026; tasa de colocación bancaria 9.99% (jun-2026, vs 10.31% un año antes), plazo promedio 19.2 años; crédito para pago de pasivos +51.8% en monto (portabilidad: gancho para crédito/Betty).
+- Infonavit/Fovissste: 50.7% de sus créditos del 1S 2026 fue a vivienda vendida por persona física (gancho para captar vendedores).
+- Oferta: 489.5 mil viviendas registradas en RUV (+183%), inicios de obra +217%; llegan al mercado en 2027.
+- Tickets: nueva +79.9% y usada +76.8% (2019 a 1S 2026); en 1S 2026 la usada cuesta $138 mil más.
+- Escenarios 2S 2026 a 2028: inercia ~50%, reactivación ~30%, contracción ~20%.
+- Regiones (plusvalía 2020 a 1S 2026): Noroeste 96.93%, Noreste 83.12%, Occidente 80.77%, Sureste 74.91%, Centro 58.96%. Jalisco no aparece en las tablas por estado.
+- Recordar: cifras del 1S 2026 preliminares por el incidente de ciberseguridad de la SHF (ene-2026, ~44 mil operaciones sin computar).
+- Pendiente de decisión: "Termómetro acierta.pro" mensual con precios de OFERTA del inventario propio por municipio (aclarar sesgo a segmento medio-alto y limpiar m² terreno/construcción antes de publicar).
+
 ## 4. Archivo para ChatGPT (publicidad en Instagram)
 - `inventario-chatgpt.xlsx` / `.csv`: 34 columnas (clave EB, filtros, textos para imagen, foto grande, liga de WhatsApp con la clave, hashtags, `apto_para_publicar`, `nota_calidad`). Se regenera solo cada mes.
 - Instrucciones para pegar en el GPT: `herramientas/chatgpt/instrucciones-chatgpt.txt` (4,806 caracteres; límite de ChatGPT 8,000). Diccionario y ejemplos reales: `herramientas/chatgpt/diccionario-y-ejemplos.md`.
