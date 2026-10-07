@@ -125,3 +125,9 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - Página `verifica-captura.html` (noindex): expedientes en el teléfono (IndexedDB, con fotos comprimidas), 5 pasos (Datos, Zonas de la casa tipo con plantillas, Pruebas, Documentos, Reporte), semáforo automático por sistema y documental (crítico = rojo), reporte PDF en el teléfono con jsPDF + autotable (portada, resumen, semáforo, hallazgos con fotos, mediciones, documental, recomendaciones, leyenda y firma), respaldo JSON exportable/importable. Nada sale del teléfono salvo el PDF.
 - Manual de procedimiento en Claude Docs: «Manual de procedimiento · Acierta Verifica».
 - Pendiente: detector de gas combustible (el HT6020 solo mide CO); piloto de 3 a 5 verificaciones reales antes de mostrar sellos o ejemplos.
+
+## VERI, asistente experto de verifica.casa (7-oct-2026)
+- Servidor: `POST /api/veri` en MAX (modos zona, pruebas, documento, reporte, guia, chat). Entra con el token de `/api/asesor/login` (claves CLAVE_ASESOR_*). Manda fotos (máx. 8) y documentos (PDF o imagen, máx. 4) a Claude y responde JSON {estado, mensaje, faltantes, hallazgos, pasos, borrador}. No guarda adjuntos. Límite 120 consultas por hora por usuario. Orígenes permitidos: acierta.pro, inmobiliaria.pro y verifica.casa.
+- Página: número de cliente = FOLIO del CRM (búsqueda por WhatsApp en `/api/asesor/cliente`; si no existe, provisional VC-<tel>), guía «Cómo revisarlo» por punto según el equipo, subida de documentos (cámara, PDF o imagen) con revisión de VERI, borrador del reporte y chat «Preguntar a VERI».
+- verifica.casa reenvía (GoDaddy) a acierta.pro/verifica-captura.html mientras se crea el repo `verifica-casa`.
+- Fotos del equipo para las guías: `assets/verifica/equipo/<id>.jpg` (ver LEEME.txt).

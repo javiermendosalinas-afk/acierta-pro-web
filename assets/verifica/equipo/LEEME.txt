@@ -1,0 +1,5 @@
+Fotos del equipo de Acierta Verifica para las guías de verifica.casa.
+Nombre de cada archivo (JPG, horizontal, fondo limpio):
+termografica.jpg  humedad.jpg  manometro.jpg  probador.jpg  multimetro.jpg
+co.jpg  gas.jpg  jabonosa.jpg  endoscopio.jpg  nivel.jpg  visual.jpg
+Si una foto no existe, la guía se muestra solo con los pasos.

@@ -24,7 +24,7 @@ header.barra{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;
 .marca small{display:block;font-weight:400;font-size:12px;color:#C9D3E0;letter-spacing:0}
 .folio{margin-left:auto;text-align:right;font-size:13px;color:#C9D3E0}
 .folio strong{display:block;color:#fff;font-size:15px}
-main{max-width:760px;margin:0 auto;padding:16px}
+main{max-width:760px;margin:0 auto;padding:16px 16px 76px}
 h1{font-size:26px;margin:6px 0 4px;color:var(--navy)}
 h2{font-size:21px;margin:22px 0 8px;color:var(--navy)}
 h3{font-size:18px;margin:0}
@@ -86,6 +86,31 @@ nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(-
 .expediente .info small{color:var(--muted)}
 .aviso{background:#FFF7E6;border:1px solid #F0D49A;border-radius:8px;padding:10px 12px;font-size:15px;margin-bottom:12px}
 .oculto{display:none!important}
+.guia{background:#EEF4FB;border:1px solid #C9DAEE;border-radius:8px;padding:12px;margin-top:8px;font-size:15px}
+.guia h4{margin:0 0 6px;font-size:15px;color:var(--navy)}
+.guia ol{margin:4px 0 8px;padding-left:20px}
+.guia .ref{color:var(--navy2);font-weight:700}
+.guia img{max-width:160px;border-radius:6px;display:block;margin:6px 0}
+.veri-btn{background:#0E5A8A;color:#fff;border:0;border-radius:8px;padding:12px 16px;font-weight:700;min-height:48px;width:100%;margin-top:8px}
+.veri-card{border-radius:10px;border:1.5px solid var(--line);background:#fff;padding:12px 14px;margin-top:10px;font-size:15px}
+.veri-card.alerta{border-color:var(--falla)}.veri-card.faltan_datos{border-color:var(--obs)}.veri-card.listo{border-color:var(--ok)}
+.veri-card .quien{font-weight:700;color:#0E5A8A;margin-bottom:4px}
+.veri-card ul{margin:6px 0;padding-left:20px}
+.veri-card li.rojo::marker{color:var(--falla)}.veri-card li.amarillo::marker{color:var(--obs)}.veri-card li.verde::marker{color:var(--ok)}
+.veri-fab{position:fixed;right:14px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:30;background:#0E5A8A;color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;box-shadow:0 4px 14px rgba(10,31,63,.25)}
+.veri-panel{position:fixed;inset:0;z-index:50;background:rgba(10,31,63,.45);display:flex;align-items:flex-end}
+.veri-panel .caja{background:#fff;width:100%;max-height:86vh;border-radius:14px 14px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.veri-panel .cab{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.veri-panel .mensajes{overflow:auto;padding:12px 16px;flex:1}
+.veri-panel .burbuja{background:var(--paper);border-radius:10px;padding:10px 12px;margin:6px 0;font-size:15px;white-space:pre-wrap}
+.veri-panel .burbuja.yo{background:#E3EEF9;margin-left:40px}
+.veri-panel form{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--line)}
+.veri-panel form input{flex:1;margin:0}
+.archivos{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.archivo{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:14px;background:#fff}
+.archivo img{width:44px;height:44px;object-fit:cover;border-radius:4px}
+.archivo button{border:0;background:none;color:var(--falla);font-weight:700;font-size:18px}
+.sesion{display:flex;align-items:center;gap:10px;justify-content:space-between}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:15px;z-index:40}
 @media (prefers-reduced-motion:no-preference){.toast{transition:opacity .2s}}
 </style>
@@ -143,6 +168,36 @@ const DOCUMENTOS = [
 ];
 const ESTADOS = [['ok','Bien'],['obs','Observación'],['falla','Falla'],['na','No aplica'],['nacc','No accesible']];
 const ESTADOS_DOC = [['ok','Correcto'],['obs','Con observación'],['alerta','Con alerta'],['np','No presentado'],['na','No aplica']];
+const EQUIPO = {
+  termografica: {n: 'Cámara termográfica UNI-T UTi120S+', p: ['Enciéndela y espera 10 segundos.', 'Encuadra el muro o techo completo, a 1–2 m.', 'Busca manchas frías o calientes irregulares.', 'Toma la foto térmica y una foto normal del mismo punto.'], r: 'Mancha irregular con más de 3 °C de diferencia: observación. En tablero, pastilla 10 °C más caliente que sus vecinas: crítico.'},
+  humedad: {n: 'Medidor de humedad sin agujas WM710', p: ['Elige el modo del material (concreto, yeso o madera).', 'Apóyalo plano sobre la mancha y anota la lectura.', 'Mide un punto sano del mismo muro, a 1 m.', 'Toma foto del medidor con cada lectura.'], r: 'Vale la comparación: punto sospechoso muy por encima del sano = humedad confirmada.'},
+  manometro: {n: 'Manómetro CINACE 0–200 PSI', p: ['Pon cinta teflón en la rosca.', 'Enróscalo en la llave de jardín o de la lavadora.', 'Abre la llave completa y espera 10 segundos.', 'Lee y toma foto del manómetro.'], r: 'Tinaco: 5–15 PSI. Hidroneumático: 20–60 PSI. Más de 80 PSI: riesgo.'},
+  probador: {n: 'Probador de contactos ST05B', p: ['Conéctalo en el contacto.', 'Lee las luces: correcto, sin tierra o fase invertida.', 'Anota el voltaje que marca.', 'Repite en cada contacto accesible y cuenta los que fallan.'], r: 'Voltaje 114–135 V. Sin tierra o fase invertida: observación.'},
+  multimetro: {n: 'Multímetro de gancho UNI-T UT202+', p: ['Solo si el tablero se abre sin herramienta.', 'Gira la perilla a voltaje (V~) y mide en un contacto cercano.', 'Para corriente, abraza un solo cable con el gancho.', 'No toques partes metálicas energizadas.'], r: 'Corriente cercana a la capacidad de la pastilla: observación.'},
+  co: {n: 'Detector de monóxido de carbono HT6020', p: ['Enciende el calentador o la estufa.', 'Espera 2 minutos y párate a 1 m.', 'Lee los ppm en pantalla y toma foto.', 'Si pasa de 35 ppm: apaga, ventila y avisa.'], r: '0–9 ppm normal. Más de 35 ppm: crítico.'},
+  gas: {n: 'Detector de gas combustible HT609Pro', p: ['Enciéndelo afuera, en aire limpio, y espera la calibración.', 'Pasa la punta despacio a 1–2 cm del regulador, llaves, mangueras y conexiones.', 'Si suena, marca el punto.', 'Confirma con agua jabonosa en ese punto: si hace burbujas, hay fuga.'], r: 'Fuga confirmada: crítico. No enciendas nada y ventila.'},
+  jabonosa: {n: 'Agua jabonosa (atomizador)', p: ['Rocía la conexión.', 'Observa 30 segundos.', 'Si aparecen burbujas que crecen, hay fuga.'], r: 'Cualquier burbuja: fuga, crítico.'},
+  endoscopio: {n: 'Endoscopio 1080p, 10 m', p: ['Enciende la luz de la cámara.', 'Introdúcelo por el registro o hueco existente; nunca perfores.', 'Avanza despacio y graba o toma foto.'], r: 'Raíces, grietas, sarro o agua estancada: observación.'},
+  nivel: {n: 'Nivel láser 360° de 16 líneas', p: ['Ponlo en el trípode al centro del espacio y enciéndelo.', 'Espera a que se nivele solo.', 'Mide con flexómetro de la línea al piso en 4 esquinas.', 'Anota la diferencia mayor en mm.'], r: 'Más de 10 mm en 3 m: observación. Más de 20 mm con grietas: crítico.'},
+  visual: {n: 'Linterna, espejo y flexómetro', p: ['Ilumina bien antes de concluir.', 'Usa el espejo para ver detrás o abajo.', 'Mide grietas o manchas con el flexómetro.', 'Toma foto con referencia de tamaño (flexómetro o mano).'], r: 'Grieta diagonal desde esquinas, más de 3 mm o con desnivel: crítico.'}
+};
+function equiposPara(texto) {
+  const t = texto.toLowerCase(), e = [];
+  if (/humedad|mancha|filtraci|impermeab|plaf|encharc|sellos/.test(t)) e.push('termografica', 'humedad');
+  if (/termograf/.test(t)) e.push('termografica');
+  if (/contacto|apagador|tierra|diferencial|iluminaci/.test(t)) e.push('probador');
+  if (/tablero|pastilla/.test(t)) e.push('termografica', 'multimetro');
+  if (/presi|agua caliente|tinaco|bomba|presostato/.test(t)) e.push('manometro');
+  if (/fuga.*conexi|regulador|gas|estufa|tanque/.test(t)) e.push('gas', 'jabonosa');
+  if (/calentador|flama|ventilaci.*calentador/.test(t)) e.push('co');
+  if (/drenaje|registro|azolve|ra[ií]ces|olores|desag/.test(t)) e.push('endoscopio');
+  if (/nivel|piso|hundim|escal/.test(t)) e.push('nivel');
+  e.push('visual');
+  return [...new Set(e)];
+}
+function guiaHTML(ids) {
+  return ids.map(id => { const q = EQUIPO[id]; return `<div class="guia"><h4>${esc(q.n)}</h4><img src="assets/verifica/equipo/${id}.jpg" alt="${esc(q.n)}" onerror="this.remove()"><ol>${q.p.map(x => `<li>${esc(x)}</li>`).join('')}</ol><div class="ref">Referencia: ${esc(q.r)}</div></div>`; }).join('');
+}
 const LEYENDA = 'Revisión preventiva de alcance básico, limitada a las áreas accesibles el día de la visita. No sustituye peritajes, dictámenes técnicos, avalúos, certificados registrales ni asesoría jurídica especializada cuando resulten necesarios.';
 
 // ───────────────────────── Almacenamiento (IndexedDB) ─────────────────────────
@@ -167,6 +222,29 @@ const BD = (() => {
   };
 })();
 
+// ───────────────────────── VERI: sesión y llamadas ─────────────────────────
+let API_BASE = 'https://aciertamax-webhook.onrender.com';
+fetch('camino-datos.json').then(r => r.json()).then(j => { if (j.endpoint) API_BASE = j.endpoint.replace(/\/api\/camino\/?$/, ''); }).catch(() => {});
+let SESION = null; try { SESION = JSON.parse(localStorage.getItem('veri_sesion') || 'null'); if (SESION && SESION.exp < Date.now()) SESION = null; } catch (e) { SESION = null; }
+async function api(ruta, cuerpo) { const r = await fetch(API_BASE + ruta, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cuerpo)}); const j = await r.json().catch(() => ({ok: false, error: 'Respuesta inválida del servidor.'})); if (r.status === 401 && ruta !== '/api/asesor/login') { SESION = null; localStorage.removeItem('veri_sesion'); } return j; }
+async function veri(modo, contexto, extras = {}) {
+  if (!SESION) { aviso('Entra con tu clave para usar a VERI.'); return null; }
+  const historial = (EXP && EXP.veri || []).slice(-8).map(m => ({rol: m.rol, texto: m.texto}));
+  const j = await api('/api/veri', Object.assign({token: SESION.token, modo, contexto, historial}, extras));
+  if (!j.ok) { aviso(j.error || 'VERI no respondió.'); return null; }
+  if (EXP) { EXP.veri = EXP.veri || []; if (extras.pregunta) EXP.veri.push({rol: 'tecnico', texto: extras.pregunta, modo, fecha: new Date().toISOString()});
+    EXP.veri.push({rol: 'veri', texto: j.veri.mensaje || '', modo, fecha: new Date().toISOString()}); guardar(); }
+  return j.veri;
+}
+function veriCard(v) {
+  if (!v) return '';
+  const L = (arr, cls) => arr && arr.length ? `<ul>${arr.map(x => typeof x === 'string' ? `<li>${esc(x)}</li>` : `<li class="${esc(x.nivel)}">${esc(x.texto)}</li>`).join('')}</ul>` : '';
+  return `<div class="veri-card ${esc(v.estado)}"><div class="quien">VERI · ${v.estado === 'alerta' ? 'Alerta' : v.estado === 'faltan_datos' ? 'Faltan datos' : 'Listo'}</div><div>${esc(v.mensaje)}</div>
+    ${v.faltantes && v.faltantes.length ? `<strong>Lo que falta:</strong>${L(v.faltantes)}` : ''}${v.hallazgos && v.hallazgos.length ? `<strong>Hallazgos:</strong>${L(v.hallazgos)}` : ''}${v.pasos && v.pasos.length ? `<strong>Siguiente:</strong>${L(v.pasos)}` : ''}</div>`;
+}
+async function fotosDe(ids, max = 8) { const out = []; for (const id of ids.slice(0, max)) { const d = await BD.leerFoto(id); if (d && d.startsWith('data:image')) out.push(d); } return out; }
+function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia}; }
+
 // ───────────────────────── Estado ─────────────────────────
 let EXP = null, PASO = 'datos', ZONA = null;
 const $ = (s, el = document) => el.querySelector(s);
@@ -178,11 +256,11 @@ function zonaDe(tipo, nombre) { return {id: 'z' + Math.random().toString(36).sli
   items: PLANTILLAS[tipo].map(([t, s, c]) => ({t, s, c: !!c, e: '', nota: '', fotos: []}))}; }
 function nuevoExpediente() {
   return {folio: nuevoFolio(), creado: new Date().toISOString(), actualizado: new Date().toISOString(),
-    datos: {cliente: '', telefono: '', correo: '', direccion: '', colonia: '', municipio: 'Zapopan', clave: '', tipo: 'Casa', terreno: '400', construccion: '280', niveles: '2', antiguedad: '', servicios: '', inspector: '', fecha: hoy(), hora: '', clima: '', lluvia: 'No'},
+    datos: {numcliente: '', cliente: '', telefono: '', correo: '', direccion: '', colonia: '', municipio: 'Zapopan', clave: '', tipo: 'Casa', terreno: '400', construccion: '280', niveles: '2', antiguedad: '', servicios: '', inspector: SESION ? SESION.nombre : '', fecha: hoy(), hora: '', clima: '', lluvia: 'No'},
     zonas: CASA_TIPO.map(z => Array.isArray(z) ? zonaDe(z[0], z[1]) : zonaDe(z)),
     pruebas: {presion_baja: '', presion_alta: '', presion_doble: '', medidor: '', agua_caliente: '', volt_cerca: '', volt_lejos: '', contactos: '', contactos_falla: '', co_calentador: '', co_estufa: '', detector_gas: '', jabonosa: '', nivel_sala: '', nivel_recamara: '', humedad: ''},
     documentos: DOCUMENTOS.map(([d, q, c]) => ({d, q, c: !!c, e: '', nota: ''})),
-    resultado: {resumen: '', recomendaciones: ''}};
+    resultado: {resumen: '', recomendaciones: ''}, veri: []};
 }
 let guardarTimer;
 function guardar() { if (!EXP) return; EXP.actualizado = new Date().toISOString(); clearTimeout(guardarTimer);
@@ -242,7 +320,9 @@ function pintar() {
 }
 async function inicio() {
   const lista = (await BD.todos().catch(() => [])).sort((a, b) => b.actualizado.localeCompare(a.actualizado));
-  $('#app').innerHTML = `<h1>Expedientes de inspección</h1>
+  const panelSesion = SESION ? `<div class="panel sesion"><div>VERI conectado: <strong>${esc(SESION.nombre)}</strong></div><button class="btn sec" type="button" id="salir">Salir</button></div>`
+    : `<div class="panel"><h3>Entra para trabajar con VERI</h3><p class="ayuda">Usa la misma clave del portal de coaches.</p><label class="campo">Usuario<select id="usuario"><option value="">Cargando…</option></select></label><label class="campo">Clave<input type="password" id="clave" autocomplete="current-password"></label><button class="btn" type="button" id="entrar">Entrar</button></div>`;
+  $('#app').innerHTML = panelSesion + `<h1>Expedientes de inspección</h1>
   <p class="ayuda">Todo se guarda en este teléfono, incluidas las fotos. Exporta un respaldo al terminar cada inspección.</p>
   <button class="btn grande" id="nuevo" type="button">Abrir expediente nuevo (casa tipo)</button>
   <h2>Guardados</h2>
@@ -250,12 +330,15 @@ async function inicio() {
     : '<p class="ayuda">No hay expedientes en este teléfono. Abre uno nuevo para empezar.</p>'}
   <h2>Respaldo</h2>
   <div class="acciones"><label class="btn sec" style="display:inline-flex;align-items:center">Importar respaldo<input type="file" accept="application/json" id="importar" class="oculto"></label></div>`;
+  if (!SESION) api('/api/asesor/usuarios', {}).then(j => { const s = $('#usuario'); if (s && j.ok) s.innerHTML = '<option value="">Elige tu usuario</option>' + j.usuarios.filter(u => u.activo).map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)}</option>`).join(''); }).catch(() => { const s = $('#usuario'); if (s) s.innerHTML = '<option value="">Sin conexión</option>'; });
 }
 function pDatos() {
   const d = EXP.datos;
   const t = (k, l, tipo = 'text', extra = '') => `<label class="campo">${l}<input type="${tipo}" data-dato="${k}" value="${esc(d[k])}" ${extra}></label>`;
   $('#app').innerHTML = `<h1>Datos del inmueble</h1><p class="ayuda">Lo que se captura aquí aparece en la portada del reporte.</p>
-  <div class="panel"><h3>Cliente</h3><br>${t('cliente', 'Nombre del cliente')}<div class="fila">${t('telefono', 'WhatsApp', 'tel')}${t('correo', 'Correo <span class="op">(opcional)</span>', 'email')}</div></div>
+  <div class="panel"><h3>Cliente</h3><br><div class="fila">${t('telefono', 'WhatsApp del cliente', 'tel', 'inputmode="numeric"')}${t('numcliente', 'Número de cliente (CRM)')}</div>
+  <button class="btn sec" type="button" id="buscarCRM" style="margin-bottom:12px">Buscar en el CRM con el WhatsApp</button><div id="crmRes"></div>
+  ${t('cliente', 'Nombre del cliente')}${t('correo', 'Correo <span class="op">(opcional)</span>', 'email')}</div>
   <div class="panel"><h3>Inmueble</h3><br>${t('direccion', 'Dirección')}<div class="fila">${t('colonia', 'Colonia')}<label class="campo">Municipio<select data-dato="municipio">${['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga', 'El Salto', 'Otro'].map(m => `<option ${d.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
   <div class="fila">${t('clave', 'Clave EB o NJ <span class="op">(si aplica)</span>')}<label class="campo">Tipo<select data-dato="tipo">${['Casa', 'Casa en condominio', 'Departamento', 'Local', 'Oficina', 'Bodega'].map(m => `<option ${d.tipo === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
   <div class="fila3">${t('terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}${t('niveles', 'Niveles', 'number', 'inputmode="numeric"')}</div>
@@ -278,13 +361,15 @@ function pZona() {
   <p class="ayuda">Marca cada punto. En observación o falla, agrega nota y foto.</p>
   <div class="panel">${z.items.map((it, k) => `<div class="item ${['obs', 'falla'].includes(it.e) || it.nota || it.fotos.length ? 'con-detalle' : ''}" data-item="${k}">
     <div class="txt">${esc(it.t)}</div>
+    <button type="button" class="volver" data-guia="${k}">Cómo revisarlo</button><div class="oculto" id="g-${k}">${guiaHTML(equiposPara(it.t + ' ' + z.tipo))}</div>
     <div class="estados" role="group" aria-label="${esc(it.t)}">${ESTADOS.map(([e, l]) => `<button type="button" data-e="${e}" aria-pressed="${it.e === e}">${l}</button>`).join('')}</div>
     <div class="extra"><textarea data-nota="${k}" placeholder="Qué se observa, dónde y medida si aplica">${esc(it.nota)}</textarea>
       <div class="fotos" id="f-${k}"></div>
       <label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Agregar foto<input type="file" accept="image/*" capture="environment" class="oculto" data-foto="${k}" multiple></label></div>
     ${['obs', 'falla'].includes(it.e) || it.nota || it.fotos.length ? '' : `<button type="button" class="volver" data-detalle="${k}">Agregar nota o foto</button>`}
   </div>`).join('')}</div>
-  <div class="panel"><label class="campo">Nota general de la zona <span class="op">(opcional)</span><textarea id="notaZona">${esc(z.nota)}</textarea></label></div>
+  <div class="panel"><label class="campo">Nota general de la zona <span class="op">(opcional)</span><textarea id="notaZona">${esc(z.nota)}</textarea></label>
+  <button class="veri-btn" type="button" id="veriZona">Que VERI revise esta zona</button><div id="veriZonaRes">${veriCard(z.veri)}</div></div>
   <div class="acciones"><button class="btn" type="button" id="aZonas2">Guardar y volver a zonas</button><button class="btn peligro" type="button" id="quitarZona">Quitar esta zona</button></div>`;
   z.items.forEach((it, k) => pintarFotos(it, k));
 }
@@ -307,14 +392,26 @@ function pPruebas() {
   <div class="fila">${n('co_calentador', 'CO junto al calentador', 'ppm', 'Más de 35 ppm: crítico')}${n('co_estufa', 'CO junto a la estufa', 'ppm')}</div></div>
   <div class="panel"><h3>Niveles</h3><br><div class="fila">${n('nivel_sala', 'Desnivel en sala y comedor', 'mm', 'Más de 10 mm en 3 m: observación')}${n('nivel_recamara', 'Desnivel en recámara principal', 'mm')}</div></div>
   <div class="panel"><h3>Humedad</h3><br><label class="campo">Lecturas <span class="op">(lugar: punto sospechoso / punto sano)</span><textarea data-prueba="humedad" placeholder="Muro de regadera baño 2: 78 / 22">${esc(p.humedad)}</textarea></label></div>
+  <div class="panel"><button type="button" class="volver" data-guiapruebas>Cómo hacer cada prueba</button><div class="oculto" id="guiaPruebas">${guiaHTML(['manometro', 'probador', 'multimetro', 'gas', 'jabonosa', 'co', 'nivel', 'humedad'])}</div>
+  <button class="veri-btn" type="button" id="veriPruebas">Que VERI revise las mediciones</button><div id="veriPruebasRes">${veriCard(EXP.veriPruebas)}</div></div>
   <button class="btn" type="button" data-paso="documentos">Continuar con documentos</button>`;
 }
 function pDocumentos() {
   $('#app').innerHTML = `<h1>Revisión documental</h1><p class="ayuda">Lo que no se entregue se marca como «No presentado». Lo que requiera opinión jurídica se canaliza a notario o abogado.</p>
   <div class="panel">${EXP.documentos.map((d, k) => `<div class="doc" data-doc="${k}"><div class="nombre">${esc(d.d)}</div><div class="que">${esc(d.q)}</div>
     <div class="estados doc5" role="group" aria-label="${esc(d.d)}">${ESTADOS_DOC.map(([e, l]) => `<button type="button" data-e="${e === 'alerta' ? 'falla' : e === 'np' ? 'obs' : e}" data-doce="${e}" aria-pressed="${d.e === e}">${l}</button>`).join('')}</div>
-    <textarea data-docnota="${k}" placeholder="Folio, fecha o detalle" style="margin-top:8px;${d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'display:none'}">${esc(d.nota)}</textarea></div>`).join('')}</div>
+    <textarea data-docnota="${k}" placeholder="Folio, fecha o detalle" style="margin-top:8px;${d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'display:none'}">${esc(d.nota)}</textarea>
+    <div class="archivos" id="a-${k}"></div>
+    <div class="acciones" style="margin-top:8px"><label class="btn-foto" style="display:inline-flex;align-items:center">Escanear con la cámara<input type="file" accept="image/*" capture="environment" class="oculto" data-docarch="${k}" multiple></label>
+    <label class="btn-foto" style="display:inline-flex;align-items:center">Subir archivo (PDF o imagen)<input type="file" accept="application/pdf,image/*" class="oculto" data-docarch="${k}" multiple></label></div>
+    ${(d.archivos || []).length ? `<button class="veri-btn" type="button" data-veridoc="${k}">Que VERI revise este documento</button>` : ''}<div id="vd-${k}">${veriCard(d.veri)}</div></div>`).join('')}</div>
   <button class="btn" type="button" data-paso="reporte">Ver resultado y reporte</button>`;
+  EXP.documentos.forEach((d, k) => pintarArchivos(d, k));
+}
+async function pintarArchivos(d, k) {
+  const cont = document.getElementById('a-' + k); if (!cont) return;
+  const arch = d.archivos || []; const datos = await Promise.all(arch.map(a => a.mime.startsWith('image') ? BD.leerFoto(a.id) : null));
+  cont.innerHTML = arch.map((a, j) => `<span class="archivo">${datos[j] ? `<img src="${datos[j]}" alt="">` : '<strong>PDF</strong>'}${esc(a.nombre.slice(0, 22))}<button type="button" aria-label="Quitar archivo" data-quitararch="${k}:${a.id}">×</button></span>`).join('');
 }
 function pReporte() {
   const r = evaluar(EXP);
@@ -327,6 +424,7 @@ function pReporte() {
   ${(() => { const notas = [...Object.values(r.sis).flatMap(s => s.notas), ...r.doc.notas]; return notas.length ? `<div class="panel"><h3>Hallazgos detectados</h3><ul class="lista-alertas">${notas.slice(0, 40).map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''; })()}
   <div class="panel"><label class="campo">Resumen ejecutivo <span class="op">(3 a 5 hallazgos que más importan, en lenguaje claro)</span><textarea data-res="resumen" style="min-height:130px">${esc(EXP.resultado.resumen)}</textarea></label>
   <label class="campo">Recomendaciones <span class="op">(qué reparar, qué aclarar, a qué especialista acudir)</span><textarea data-res="recomendaciones" style="min-height:130px">${esc(EXP.resultado.recomendaciones)}</textarea></label></div>
+  <button class="veri-btn" type="button" id="veriReporte">Que VERI revise todo y redacte el resumen</button><div id="veriReporteRes">${veriCard(EXP.veriReporte)}</div><br>
   <button class="btn grande" type="button" id="pdf">Generar reporte PDF</button>
   <div class="acciones" style="margin-top:12px"><button class="btn sec" type="button" id="respaldo">Exportar respaldo</button><button class="btn sec" type="button" id="cerrar">Volver a expedientes</button><button class="btn peligro" type="button" id="borrarExp">Borrar expediente</button></div>`;
 }
@@ -359,6 +457,40 @@ document.addEventListener('click', async ev => {
   if (doc && b.dataset.doce) { const d = EXP.documentos[+doc.dataset.doc]; d.e = d.e === b.dataset.doce ? '' : b.dataset.doce;
     doc.querySelectorAll('.estados button').forEach(x => x.setAttribute('aria-pressed', x.dataset.doce === d.e));
     doc.querySelector('textarea').style.display = d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'none'; guardar(); return; }
+  if (b.id === 'entrar') { const u = $('#usuario').value, c = $('#clave').value; if (!u || !c) return aviso('Elige tu usuario y escribe tu clave.');
+    b.disabled = true; const j = await api('/api/asesor/login', {usuario: u, clave: c}); b.disabled = false;
+    if (!j.ok) return aviso(j.error || 'No se pudo entrar.'); SESION = {token: j.token, nombre: j.nombre, exp: Date.now() + 11 * 3600 * 1000}; localStorage.setItem('veri_sesion', JSON.stringify(SESION)); aviso('Hola, ' + j.nombre.split(' ')[0] + '. VERI está listo.'); return pintar(); }
+  if (b.id === 'salir') { SESION = null; localStorage.removeItem('veri_sesion'); return pintar(); }
+  if (b.id === 'buscarCRM') { if (!SESION) return aviso('Entra con tu clave para consultar el CRM.'); const tel = (EXP.datos.telefono || '').replace(/\D/g, '').slice(-10);
+    if (tel.length !== 10) return aviso('Escribe el WhatsApp del cliente a 10 dígitos.'); b.disabled = true; const j = await api('/api/asesor/cliente', {token: SESION.token, whatsapp: tel}); b.disabled = false;
+    if (!j.ok) return aviso(j.error || 'No se pudo consultar el CRM.');
+    if (j.encontrado) { EXP.datos.numcliente = j.folio; if (!EXP.datos.cliente) EXP.datos.cliente = j.nombre; guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">Cliente encontrado en el CRM: <strong>${esc(j.nombre)}</strong>, folio ${esc(j.folio)}${j.vendedor ? ', asesor ' + esc(j.vendedor) : ''}.</div>`; }
+    else { EXP.datos.numcliente = EXP.datos.numcliente || ('VC-' + tel); guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">No está en el CRM. Se asignó el número provisional <strong>${esc(EXP.datos.numcliente)}</strong>; da de alta al cliente en MAX para tener su folio.</div>`; }
+    return; }
+  if (b.dataset.guia != null) { document.getElementById('g-' + b.dataset.guia).classList.toggle('oculto'); return; }
+  if (b.hasAttribute('data-guiapruebas')) { $('#guiaPruebas').classList.toggle('oculto'); return; }
+  if (b.id === 'veriZona') { const z = EXP.zonas.find(x => x.id === ZONA); b.disabled = true; b.textContent = 'VERI está revisando la zona…';
+    const v = await veri('zona', Object.assign(datosBase(), {zona: z.nombre, tipo: z.tipo, nota_zona: z.nota, puntos: z.items.map(i => ({punto: i.t, estado: i.e || 'sin marcar', nota: i.nota, fotos: i.fotos.length}))}), {imagenes: await fotosDe(z.items.flatMap(i => i.fotos))});
+    b.disabled = false; b.textContent = 'Que VERI revise esta zona'; if (v) { z.veri = v; guardar(); $('#veriZonaRes').innerHTML = veriCard(v); } return; }
+  if (b.id === 'veriPruebas') { b.disabled = true; b.textContent = 'VERI está revisando las mediciones…';
+    const v = await veri('pruebas', Object.assign(datosBase(), {pruebas: EXP.pruebas})); b.disabled = false; b.textContent = 'Que VERI revise las mediciones';
+    if (v) { EXP.veriPruebas = v; guardar(); $('#veriPruebasRes').innerHTML = veriCard(v); } return; }
+  if (b.dataset.veridoc != null) { const k = +b.dataset.veridoc, d = EXP.documentos[k]; b.disabled = true; b.textContent = 'VERI está leyendo el documento…';
+    const docs = []; for (const a of (d.archivos || []).slice(0, 4)) { const data = await BD.leerFoto(a.id); if (data) docs.push({nombre: a.nombre, data}); }
+    const v = await veri('documento', Object.assign(datosBase(), {documento: d.d, que_verificar: d.q, estado_marcado: d.e, nota: d.nota}), {documentos: docs});
+    b.disabled = false; b.textContent = 'Que VERI revise este documento'; if (v) { d.veri = v; guardar(); document.getElementById('vd-' + k).innerHTML = veriCard(v); } return; }
+  if (b.dataset.quitararch) { const [k, id] = b.dataset.quitararch.split(':'); const d = EXP.documentos[+k]; d.archivos = (d.archivos || []).filter(a => a.id !== id); BD.borrarFoto(id); guardar(); return pDocumentos(); }
+  if (b.id === 'veriReporte') { const r = evaluar(EXP); b.disabled = true; b.textContent = 'VERI está revisando el expediente…';
+    const ctx = Object.assign(datosBase(), {semaforo_general: r.general, sistemas: Object.fromEntries(Object.entries(r.sis).map(([k, s]) => [k, {color: s.color, notas: s.notas}])), documental: r.doc,
+      observaciones: EXP.zonas.flatMap(z => z.items.filter(i => ['obs', 'falla'].includes(i.e)).map(i => ({zona: z.nombre, punto: i.t, estado: i.e, nota: i.nota}))),
+      sin_marcar: EXP.zonas.reduce((n, z) => n + z.items.filter(i => !i.e).length, 0), pruebas: EXP.pruebas,
+      documentos: EXP.documentos.map(d => ({documento: d.d, estado: d.e || 'sin revisar', nota: d.nota, veri: d.veri ? d.veri.mensaje : ''}))});
+    const v = await veri('reporte', ctx); b.disabled = false; b.textContent = 'Que VERI revise todo y redacte el resumen';
+    if (v) { EXP.veriReporte = v; if (v.borrador) { const [res, rec] = v.borrador.split(/\n?-{3,}\n?/);
+      if (!EXP.resultado.resumen || confirm('¿Reemplazar el resumen y las recomendaciones con el borrador de VERI? Podrás editarlos.')) { EXP.resultado.resumen = (res || '').trim(); EXP.resultado.recomendaciones = (rec || '').trim(); } }
+      guardar(); pReporte(); } return; }
+  if (b.id === 'veriAbrir') return abrirChat();
+  if (b.id === 'veriCerrar') { const p = $('.veri-panel'); if (p) p.remove(); return; }
   if (b.id === 'pdf') return generarPDF();
   if (b.id === 'respaldo') return exportar();
   if (b.id === 'borrarExp') { if (confirm('¿Borrar este expediente y todas sus fotos de este teléfono?')) { EXP.zonas.forEach(z => z.items.forEach(i => i.fotos.forEach(id => BD.borrarFoto(id)))); await BD.borrar(EXP.folio); EXP = null; pintar(); } return; }
@@ -379,6 +511,15 @@ document.addEventListener('change', async ev => {
     for (const f of t.files) { try { const data = await comprimir(f); const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); it.fotos.push(id); } catch (e) { aviso('No se pudo leer una foto.'); } }
     t.value = ''; guardar(); pintarFotos(it, k); return;
   }
+  if (t.dataset.docarch != null && t.files.length) {
+    const k = +t.dataset.docarch, d = EXP.documentos[k]; d.archivos = d.archivos || [];
+    for (const f of t.files) { try { let data, mime = f.type || 'application/octet-stream';
+        if (mime.startsWith('image')) { data = await comprimir(f); mime = 'image/jpeg'; }
+        else if (mime === 'application/pdf') { if (f.size > 4.5e6) { aviso('El PDF pesa más de 4.5 MB. Escanea solo las hojas necesarias.'); continue; } data = await new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = mal; r.readAsDataURL(f); }); }
+        else { aviso('Solo se aceptan PDF o imágenes.'); continue; }
+        const id = 'd' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); d.archivos.push({id, nombre: f.name || 'documento', mime}); } catch (e) { aviso('No se pudo leer un archivo.'); } }
+    t.value = ''; guardar(); return pDocumentos();
+  }
   if (t.id === 'importar' && t.files[0]) {
     try { const r = JSON.parse(await t.files[0].text()); if (!r.expediente || !r.expediente.folio) throw 0;
       for (const [id, data] of Object.entries(r.fotos || {})) await BD.foto(id, data);
@@ -388,6 +529,7 @@ document.addEventListener('change', async ev => {
 });
 async function exportar() {
   const fotos = {}; for (const z of EXP.zonas) for (const i of z.items) for (const id of i.fotos) fotos[id] = await BD.leerFoto(id);
+  for (const d of EXP.documentos) for (const a of (d.archivos || [])) fotos[a.id] = await BD.leerFoto(a.id);
   const blob = new Blob([JSON.stringify({version: 1, expediente: EXP, fotos})], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `respaldo-${EXP.folio}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   aviso('Respaldo exportado');
@@ -416,7 +558,7 @@ async function generarPDF() {
     doc.setFontSize(10); doc.setTextColor(201, 211, 224); doc.text('Acierta Max | Profesionales Inmobiliarios', M, 54);
     doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});
     let y = 108; doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize(d.direccion || 'Dirección sin capturar', W - 2 * M), M, y); y += 8;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}`, `Inspector: ${d.inspector || '-'}`], M, y); y += 30;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`], M, y); y += 30;
     const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
     doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
     doc.setTextColor(...RGB.suave); doc.setFontSize(8.5); doc.text(doc.splitTextToSize(LEYENDA, W - 2 * M), M, H - 26);
@@ -483,6 +625,21 @@ async function generarPDF() {
   } catch (e) { console.error(e); aviso('No se pudo generar el PDF: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = 'Generar reporte PDF'; }
 }
+function abrirChat() {
+  if (!EXP) return;
+  const div = document.createElement('div'); div.className = 'veri-panel';
+  const pinta = () => (EXP.veri || []).map(m => `<div class="burbuja ${m.rol === 'tecnico' ? 'yo' : ''}">${esc(m.texto)}</div>`).join('') || '<p class="ayuda">Pregúntale a VERI cómo usar un aparato, qué revisar en esta zona o qué significa una lectura.</p>';
+  div.innerHTML = `<div class="caja" role="dialog" aria-label="Conversación con VERI"><div class="cab"><strong style="color:#0E5A8A">VERI</strong><span class="ayuda" style="margin:0">tu experto en campo</span><button class="btn sec" type="button" id="veriCerrar" style="margin-left:auto;min-height:40px;padding:6px 12px">Cerrar</button></div>
+    <div class="mensajes" id="veriMsgs">${pinta()}</div><form id="veriForm"><input type="text" id="veriPregunta" placeholder="Escribe tu pregunta" autocomplete="off"><button class="btn" type="submit">Enviar</button></form></div>`;
+  document.body.appendChild(div); const msgs = $('#veriMsgs'); msgs.scrollTop = msgs.scrollHeight;
+  $('#veriForm').addEventListener('submit', async ev => { ev.preventDefault(); const q = $('#veriPregunta').value.trim(); if (!q) return; $('#veriPregunta').value = '';
+    msgs.insertAdjacentHTML('beforeend', `<div class="burbuja yo">${esc(q)}</div><div class="burbuja" id="pensando">VERI está pensando…</div>`); msgs.scrollTop = msgs.scrollHeight;
+    const z = ZONA ? EXP.zonas.find(x => x.id === ZONA) : null;
+    const v = await veri(PASO === 'zonas' && z ? 'guia' : 'chat', Object.assign(datosBase(), {pantalla: PASO, zona: z ? z.nombre : '', puntos: z ? z.items.map(i => ({punto: i.t, estado: i.e || 'sin marcar'})) : undefined}), {pregunta: q});
+    const p = $('#pensando'); if (p) p.remove(); msgs.innerHTML = pinta(); if (v && ((v.pasos || []).length || (v.faltantes || []).length)) msgs.insertAdjacentHTML('beforeend', veriCard(v)); msgs.scrollTop = msgs.scrollHeight; });
+}
+const _pintarOriginal = pintar;
+pintar = function () { _pintarOriginal(); let f = $('#veriAbrir'); if (EXP && !f) { f = document.createElement('button'); f.id = 'veriAbrir'; f.className = 'veri-fab'; f.type = 'button'; f.textContent = 'Preguntar a VERI'; document.body.appendChild(f); } else if (!EXP && f) f.remove(); };
 pintar();
 </script>
 </body>
