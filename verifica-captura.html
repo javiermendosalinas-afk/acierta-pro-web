@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>Captura · Acierta Verifica</title>
+<title>verifica.casa · Captura de inspección · Acierta Verifica</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -92,7 +92,7 @@ nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(-
 </head>
 <body>
 <header class="barra">
-  <div class="marca">ACIERTA <b>VERIFICA</b><small>Captura de inspección</small></div>
+  <div class="marca">ACIERTA <b>VERIFICA</b><small>verifica.casa · Captura de inspección</small></div>
   <div class="folio" id="folioBarra"></div>
 </header>
 <main id="app"></main>
@@ -107,7 +107,7 @@ const PLANTILLAS = {
   'Azotea': [['Impermeabilizante: grietas, burbujas o desprendimientos','humedad'],['Coladeras pluviales libres','humedad'],['Encharcamientos','humedad'],['Tinaco: tapa, base y conexiones','hidraulico'],['Calentador solar y equipos','hidraulico']],
   'Estacionamiento': [['Piso: grietas o hundimientos','estructura'],['Portón y motor funcionan','acabados'],['Drenaje pluvial','humedad'],['Iluminación y contactos exteriores','electrico']],
   'Cisterna e hidroneumático': [['Tapa sellada y limpieza visible','hidraulico'],['Filtraciones','humedad'],['Bomba y presostato funcionan','hidraulico']],
-  'Instalación de gas': [['Tanque o cilindros en buen estado','gas'],['Regulador y llaves de paso','gas'],['Prueba de agua jabonosa en conexiones','gas',1],['Ventilación del calentador','gas',1]],
+  'Instalación de gas': [['Tanque o cilindros en buen estado','gas'],['Regulador y llaves de paso','gas'],['Prueba de fugas en conexiones (detector de gas y agua jabonosa)','gas',1],['Ventilación del calentador','gas',1]],
   'Tablero eléctrico': [['Pastillas identificadas','electrico'],['Termografía de pastillas y cables','electrico',1],['Tierra física','electrico'],['Interruptor diferencial en baños y cocina','electrico']],
   'Recámara': [['Muros y plafón: manchas o grietas','humedad'],['Ventanas: sello, cierre y vidrios','acabados'],['Puertas y closets','acabados'],['Contactos y apagadores','electrico'],['Piso: nivel y piezas huecas','estructura']],
   'Baño completo': [['WC: fugas y descarga','hidraulico'],['Lavabo y regadera: fugas','hidraulico'],['Presión y agua caliente','hidraulico'],['Sellos de cancel y azulejo','humedad'],['Humedad en el muro de la regadera y en el plafón de abajo','humedad'],['Extractor o ventilación','acabados']],
@@ -180,7 +180,7 @@ function nuevoExpediente() {
   return {folio: nuevoFolio(), creado: new Date().toISOString(), actualizado: new Date().toISOString(),
     datos: {cliente: '', telefono: '', correo: '', direccion: '', colonia: '', municipio: 'Zapopan', clave: '', tipo: 'Casa', terreno: '400', construccion: '280', niveles: '2', antiguedad: '', servicios: '', inspector: '', fecha: hoy(), hora: '', clima: '', lluvia: 'No'},
     zonas: CASA_TIPO.map(z => Array.isArray(z) ? zonaDe(z[0], z[1]) : zonaDe(z)),
-    pruebas: {presion_baja: '', presion_alta: '', presion_doble: '', medidor: '', agua_caliente: '', volt_cerca: '', volt_lejos: '', contactos: '', contactos_falla: '', co_calentador: '', co_estufa: '', jabonosa: '', nivel_sala: '', nivel_recamara: '', humedad: ''},
+    pruebas: {presion_baja: '', presion_alta: '', presion_doble: '', medidor: '', agua_caliente: '', volt_cerca: '', volt_lejos: '', contactos: '', contactos_falla: '', co_calentador: '', co_estufa: '', detector_gas: '', jabonosa: '', nivel_sala: '', nivel_recamara: '', humedad: ''},
     documentos: DOCUMENTOS.map(([d, q, c]) => ({d, q, c: !!c, e: '', nota: ''})),
     resultado: {resumen: '', recomendaciones: ''}};
 }
@@ -204,7 +204,9 @@ function evaluar(e) {
   const p = e.pruebas;
   const co = Math.max(num(p.co_calentador) || 0, num(p.co_estufa) || 0);
   if (num(p.co_calentador) != null || num(p.co_estufa) != null) marca('gas', co > 35 ? 'rojo' : co > 9 ? 'amarillo' : 'verde', co > 9 ? `Monóxido de carbono ${co} ppm` : null);
-  if (p.jabonosa === 'fuga') marca('gas', 'rojo', 'Fuga de gas en prueba de agua jabonosa');
+  if (p.detector_gas === 'fuga') marca('gas', 'rojo', 'Alarma del detector de gas combustible (HT609Pro)');
+  else if (p.detector_gas === 'sin') marca('gas', 'verde');
+  if (p.jabonosa === 'fuga') marca('gas', 'rojo', 'Fuga de gas confirmada con agua jabonosa');
   else if (p.jabonosa === 'sin') marca('gas', 'verde');
   const pres = [num(p.presion_baja), num(p.presion_alta)].filter(x => x != null);
   if (pres.length) { const mx = Math.max(...pres), mn = Math.min(...pres);
@@ -301,7 +303,7 @@ function pPruebas() {
   ${s('medidor', 'Medidor de agua con todo cerrado (10 min)', [['quieto', 'No avanza'], ['avanza', 'Avanza: posible fuga']])}</div>
   <div class="panel"><h3>Eléctrico</h3><br><div class="fila">${n('volt_cerca', 'Voltaje junto al tablero', 'V', 'Rango: 114–135 V')}${n('volt_lejos', 'Voltaje en el contacto más lejano', 'V')}</div>
   <div class="fila">${n('contactos', 'Contactos probados', 'número')}${n('contactos_falla', 'Contactos con falla', 'número')}</div></div>
-  <div class="panel"><h3>Gas</h3><br>${s('jabonosa', 'Agua jabonosa en conexiones', [['sin', 'Sin burbujas'], ['fuga', 'Con burbujas: fuga']])}
+  <div class="panel"><h3>Gas</h3><br>${s('detector_gas', 'Detector de gas combustible HT609Pro en conexiones', [['sin', 'Sin alarma'], ['fuga', 'Con alarma: posible fuga']])}${s('jabonosa', 'Agua jabonosa en conexiones (confirmación)', [['sin', 'Sin burbujas'], ['fuga', 'Con burbujas: fuga']])}
   <div class="fila">${n('co_calentador', 'CO junto al calentador', 'ppm', 'Más de 35 ppm: crítico')}${n('co_estufa', 'CO junto a la estufa', 'ppm')}</div></div>
   <div class="panel"><h3>Niveles</h3><br><div class="fila">${n('nivel_sala', 'Desnivel en sala y comedor', 'mm', 'Más de 10 mm en 3 m: observación')}${n('nivel_recamara', 'Desnivel en recámara principal', 'mm')}</div></div>
   <div class="panel"><h3>Humedad</h3><br><label class="campo">Lecturas <span class="op">(lugar: punto sospechoso / punto sano)</span><textarea data-prueba="humedad" placeholder="Muro de regadera baño 2: 78 / 22">${esc(p.humedad)}</textarea></label></div>
@@ -453,6 +455,7 @@ async function generarPDF() {
       ['Presión con dos salidas abiertas', v(p.presion_doble, 'PSI'), 'No debe caer a la mitad'], ['Medidor de agua con todo cerrado', p.medidor === 'avanza' ? 'Avanza (posible fuga)' : p.medidor === 'quieto' ? 'No avanza' : 'No realizado', 'No debe avanzar en 10 minutos'],
       ['Tiempo para agua caliente', v(p.agua_caliente, 's'), 'Hasta 60 s'], ['Voltaje junto al tablero', v(p.volt_cerca, 'V'), '114 a 135 V'], ['Voltaje en el contacto más lejano', v(p.volt_lejos, 'V'), '114 a 135 V'],
       ['Contactos probados / con falla', p.contactos === '' ? 'No medido' : `${p.contactos} / ${p.contactos_falla || 0}`, 'Sin fallas de polaridad ni de tierra'],
+      ['Detector de gas combustible (HT609Pro)', p.detector_gas === 'fuga' ? 'Con alarma: posible fuga' : p.detector_gas === 'sin' ? 'Sin alarma' : 'No realizado', 'Sin alarma en ninguna conexión'],
       ['Agua jabonosa en conexiones de gas', p.jabonosa === 'fuga' ? 'Con burbujas: fuga' : p.jabonosa === 'sin' ? 'Sin burbujas' : 'No realizado', 'Sin burbujas'],
       ['CO junto al calentador', v(p.co_calentador, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'], ['CO junto a la estufa', v(p.co_estufa, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'],
       ['Desnivel en sala y comedor', v(p.nivel_sala, 'mm'), 'Hasta 10 mm en 3 m'], ['Desnivel en recámara principal', v(p.nivel_recamara, 'mm'), 'Hasta 10 mm en 3 m'],
