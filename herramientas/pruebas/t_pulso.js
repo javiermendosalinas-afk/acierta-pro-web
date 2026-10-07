@@ -11,7 +11,7 @@ const fs = require('fs');
   const errores = [];
   const w = await T.abrir('pulso.html', '', errores, interceptar);
   const d = w.document, $ = id => d.getElementById(id);
-  ok(/Pulso Inmobiliario/.test(d.title) && d.querySelector('link[rel=canonical]'), 'título y canonical para buscadores');
+  ok(/PULSO Acierta Max/.test(d.title) && d.querySelector('link[rel=canonical]'), 'título y canonical para buscadores');
   ok(d.querySelectorAll('.pu-cifra').length === 4 && d.querySelectorAll('.pu-barra').length === 3, 'adelanto con 4 cifras y gráfica de barras');
   ok(/Fuente:/.test(d.querySelector('.pu-fuente').textContent), 'la gráfica muestra su fuente');
   $('puEnviar').click(); await T.espera(50);

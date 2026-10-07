@@ -745,3 +745,5 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .pulso-cta-btn { display: inline-block; background: #d62828; color: #fff !important; font-weight: 700; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
 .pulso-home { padding: 8px 16px; }
 @media (max-width: 560px) { .pulso-cta { grid-template-columns: 84px 1fr; gap: 12px; } .pulso-cta img { width: 84px; } .pulso-cta h3 { font-size: 1.1rem; } }
+
+.pulso-cta-logo{width:min(100%,300px);height:auto;display:block;margin:6px 0 10px}

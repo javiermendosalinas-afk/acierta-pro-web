@@ -1,6 +1,6 @@
 {
   "endpoint": "https://aciertamax-webhook.onrender.com/api/camino",
-  "avisoVersion": "2026-10-04",
+  "avisoVersion": "2026-10-06",
   "videoUrl": "",
   "whatsapp": "523333777337",
   "coaches": ["Javier Mendoza", "Ubaldo Mendez", "Leticia Enriquez", "Gloria Navarro", "Paola Valencia"]
