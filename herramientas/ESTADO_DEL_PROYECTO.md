@@ -120,3 +120,8 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 | 10 | Marcas "nueva / bajó de precio" en el archivo de ChatGPT (después del 3-nov) | Claude |
 | 11 | Revisar la bitácora de la corrida del 3 de noviembre (primera automática) | Claude |
 | 12 | Seguir la rutina de blog (2 mercado, 2 interiorismo, 2 construcción por semana) | Claude |
+
+## Acierta Verifica: captura en campo y reporte (7-oct-2026)
+- Página `verifica-captura.html` (noindex): expedientes en el teléfono (IndexedDB, con fotos comprimidas), 5 pasos (Datos, Zonas de la casa tipo con plantillas, Pruebas, Documentos, Reporte), semáforo automático por sistema y documental (crítico = rojo), reporte PDF en el teléfono con jsPDF + autotable (portada, resumen, semáforo, hallazgos con fotos, mediciones, documental, recomendaciones, leyenda y firma), respaldo JSON exportable/importable. Nada sale del teléfono salvo el PDF.
+- Manual de procedimiento en Claude Docs: «Manual de procedimiento · Acierta Verifica».
+- Pendiente: detector de gas combustible (el HT6020 solo mide CO); piloto de 3 a 5 verificaciones reales antes de mostrar sellos o ejemplos.

@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Captura · Acierta Verifica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--navy:#0A1F3F;--navy2:#16305a;--ink:#1B2433;--muted:#5B6575;--line:#D5DBE4;--paper:#F4F6F9;--white:#fff;
+--ok:#1E7E45;--obs:#B7791F;--falla:#C62828;--na:#8A94A3;--red:#DE0A0E;--focus:#2563EB}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Atkinson Hyperlegible',Verdana,sans-serif;font-size:17px;line-height:1.45;padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+header.barra{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;align-items:center;gap:12px}
+.marca{font-weight:700;letter-spacing:.02em;font-size:17px;line-height:1.1}
+.marca b{color:#FF5A5F;font-weight:700}
+.marca small{display:block;font-weight:400;font-size:12px;color:#C9D3E0;letter-spacing:0}
+.folio{margin-left:auto;text-align:right;font-size:13px;color:#C9D3E0}
+.folio strong{display:block;color:#fff;font-size:15px}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:6px 0 4px;color:var(--navy)}
+h2{font-size:21px;margin:22px 0 8px;color:var(--navy)}
+h3{font-size:18px;margin:0}
+p.ayuda{color:var(--muted);margin:0 0 14px;font-size:15px}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+label.campo{display:block;margin-bottom:12px;font-weight:700;font-size:15px}
+label.campo span.op{font-weight:400;color:var(--muted)}
+input[type=text],input[type=number],input[type=tel],input[type=email],input[type=date],input[type=time],select,textarea{display:block;width:100%;margin-top:5px;padding:11px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;font-weight:400;font-size:17px}
+textarea{min-height:84px;resize:vertical}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fila3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media (max-width:520px){.fila3{grid-template-columns:1fr 1fr}}
+.btn{border:0;border-radius:8px;padding:12px 16px;font-weight:700;background:var(--navy);color:#fff;min-height:48px}
+.btn.sec{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.btn.peligro{background:#fff;color:var(--falla);border:1.5px solid var(--falla)}
+.btn.grande{width:100%;font-size:18px;min-height:56px}
+.acciones{display:flex;gap:10px;flex-wrap:wrap}
+nav.pasos{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.pasos button{background:none;border:0;padding:10px 2px 12px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:64px}
+nav.pasos button .n{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:13px}
+nav.pasos button[aria-current=step]{color:var(--navy);font-weight:700}
+nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(--navy);color:#fff}
+.zona{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:8px;min-height:60px}
+.zona .avance{margin-left:auto;font-size:14px;color:var(--muted);white-space:nowrap}
+.punto{width:16px;height:16px;border-radius:50%;flex:none;border:2px solid var(--line)}
+.punto.ok{background:var(--ok);border-color:var(--ok)}.punto.obs{background:var(--obs);border-color:var(--obs)}.punto.falla{background:var(--falla);border-color:var(--falla)}
+.item{border-top:1px solid var(--line);padding:14px 0}
+.item:first-of-type{border-top:0}
+.item .txt{font-weight:700;margin-bottom:8px}
+.estados{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.estados button{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:8px 2px;font-size:13.5px;min-height:46px;line-height:1.15}
+.estados button[aria-pressed=true][data-e=ok]{background:var(--ok);border-color:var(--ok);color:#fff}
+.estados button[aria-pressed=true][data-e=obs]{background:var(--obs);border-color:var(--obs);color:#fff}
+.estados button[aria-pressed=true][data-e=falla]{background:var(--falla);border-color:var(--falla);color:#fff}
+.estados button[aria-pressed=true][data-e=na],.estados button[aria-pressed=true][data-e=nacc]{background:var(--na);border-color:var(--na);color:#fff}
+.extra{margin-top:8px;display:none}
+.item.con-detalle .extra{display:block}
+.fotos{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.fotos figure{margin:0;position:relative}
+.fotos img{width:84px;height:84px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+.fotos figure button{position:absolute;top:-8px;right:-8px;width:28px;height:28px;border-radius:50%;border:0;background:var(--falla);color:#fff;font-weight:700;line-height:1}
+.btn-foto{border:1.5px dashed var(--navy2);background:#fff;color:var(--navy2);border-radius:8px;min-height:44px;padding:8px 12px;font-weight:700}
+.volver{background:none;border:0;color:var(--navy2);font-weight:700;padding:8px 0;font-size:16px}
+.semaforo{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
+.chip{display:inline-block;border-radius:999px;padding:4px 12px;font-weight:700;font-size:14px;color:#fff}
+.chip.verde{background:var(--ok)}.chip.amarillo{background:var(--obs)}.chip.rojo{background:var(--falla)}.chip.gris{background:var(--na)}
+.general{display:flex;align-items:center;gap:14px;padding:18px;border-radius:10px;color:#fff;margin-bottom:14px}
+.general.verde{background:var(--ok)}.general.amarillo{background:var(--obs)}.general.rojo{background:var(--falla)}.general.gris{background:var(--na)}
+.general .grande{font-size:24px;font-weight:700}
+.lista-alertas{margin:8px 0 0;padding-left:20px}
+.doc{border-top:1px solid var(--line);padding:12px 0}
+.doc:first-of-type{border-top:0}
+.doc .nombre{font-weight:700}
+.doc .que{color:var(--muted);font-size:14px;margin:2px 0 8px}
+.estados.doc5 button{font-size:12.5px}
+.expediente{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.expediente .info{flex:1;min-width:0}
+.expediente .info div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.expediente .info small{color:var(--muted)}
+.aviso{background:#FFF7E6;border:1px solid #F0D49A;border-radius:8px;padding:10px 12px;font-size:15px;margin-bottom:12px}
+.oculto{display:none!important}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:15px;z-index:40}
+@media (prefers-reduced-motion:no-preference){.toast{transition:opacity .2s}}
+</style>
+</head>
+<body>
+<header class="barra">
+  <div class="marca">ACIERTA <b>VERIFICA</b><small>Captura de inspección</small></div>
+  <div class="folio" id="folioBarra"></div>
+</header>
+<main id="app"></main>
+<nav class="pasos oculto" id="pasos" aria-label="Pasos de la inspección"></nav>
+<script>
+'use strict';
+// ───────────────────────── Datos fijos ─────────────────────────
+const SISTEMAS = {estructura:'Estructura visible', humedad:'Humedad e impermeabilización', electrico:'Instalación eléctrica', hidraulico:'Hidráulico y sanitario', gas:'Gas', acabados:'Acabados y carpintería'};
+// [texto, sistema, crítico si es falla]
+const PLANTILLAS = {
+  'Exterior y fachada': [['Grietas en muros y bardas','estructura',1],['Desprendimientos o aplanados flojos','acabados'],['Humedad en la base de los muros','humedad'],['Herrería y protecciones','acabados'],['Pendiente del terreno respecto a la casa','humedad']],
+  'Azotea': [['Impermeabilizante: grietas, burbujas o desprendimientos','humedad'],['Coladeras pluviales libres','humedad'],['Encharcamientos','humedad'],['Tinaco: tapa, base y conexiones','hidraulico'],['Calentador solar y equipos','hidraulico']],
+  'Estacionamiento': [['Piso: grietas o hundimientos','estructura'],['Portón y motor funcionan','acabados'],['Drenaje pluvial','humedad'],['Iluminación y contactos exteriores','electrico']],
+  'Cisterna e hidroneumático': [['Tapa sellada y limpieza visible','hidraulico'],['Filtraciones','humedad'],['Bomba y presostato funcionan','hidraulico']],
+  'Instalación de gas': [['Tanque o cilindros en buen estado','gas'],['Regulador y llaves de paso','gas'],['Prueba de agua jabonosa en conexiones','gas',1],['Ventilación del calentador','gas',1]],
+  'Tablero eléctrico': [['Pastillas identificadas','electrico'],['Termografía de pastillas y cables','electrico',1],['Tierra física','electrico'],['Interruptor diferencial en baños y cocina','electrico']],
+  'Recámara': [['Muros y plafón: manchas o grietas','humedad'],['Ventanas: sello, cierre y vidrios','acabados'],['Puertas y closets','acabados'],['Contactos y apagadores','electrico'],['Piso: nivel y piezas huecas','estructura']],
+  'Baño completo': [['WC: fugas y descarga','hidraulico'],['Lavabo y regadera: fugas','hidraulico'],['Presión y agua caliente','hidraulico'],['Sellos de cancel y azulejo','humedad'],['Humedad en el muro de la regadera y en el plafón de abajo','humedad'],['Extractor o ventilación','acabados']],
+  'Medio baño': [['Fugas','hidraulico'],['WC y lavabo funcionan','hidraulico'],['Ventilación','acabados']],
+  'Escalera': [['Barandal firme','estructura',1],['Escalones: fisuras','estructura'],['Iluminación','electrico']],
+  'Sala y comedor': [['Pisos: nivel y piezas huecas','estructura'],['Humedad en muros y plafón (revisar bajo los baños)','humedad'],['Ventanas','acabados'],['Contactos y apagadores','electrico']],
+  'Cocina': [['Tarja y desagüe: fugas','hidraulico'],['Protección de contactos cerca del agua','electrico'],['Campana','acabados'],['Estufa: encendido y flama azul','gas'],['Conexión de gas de la estufa','gas',1],['Gabinetes y cubierta','acabados']],
+  'Lavandería': [['Llaves y desagüe de la lavadora','hidraulico'],['Contacto con tierra para la lavadora','electrico'],['Humedad en muros','humedad'],['Ventilación','acabados']],
+  'Cuarto de servicio': [['Humedad en muros y plafón','humedad'],['Contactos y apagadores','electrico'],['Baño de servicio, si existe','hidraulico']],
+  'Terraza': [['Pendiente hacia las coladeras','humedad'],['Impermeabilización si hay espacios abajo','humedad'],['Barandal firme','estructura',1],['Contactos exteriores','electrico']],
+  'Drenaje y registros': [['Flujo y azolve','hidraulico'],['Raíces o grietas','hidraulico'],['Malos olores','hidraulico']]
+};
+const CASA_TIPO = ['Exterior y fachada','Azotea','Estacionamiento','Cisterna e hidroneumático','Instalación de gas','Tablero eléctrico',
+  ['Recámara','Recámara principal'],['Recámara','Recámara 2'],['Recámara','Recámara 3'],['Baño completo','Baño de recámara principal'],['Baño completo','Baño 2'],['Baño completo','Baño 3'],
+  'Escalera','Sala y comedor','Cocina','Medio baño','Lavandería','Cuarto de servicio','Terraza','Drenaje y registros'];
+// [documento, qué verificar, crítico]
+const DOCUMENTOS = [
+  ['Identificación oficial del vendedor','Vigente; el nombre coincide con la escritura',1],
+  ['Escritura de propiedad','Ubicación, superficie, medidas y colindancias coinciden con lo observado',1],
+  ['Inscripción en el Registro Público','Sello o folio real de inscripción',1],
+  ['Certificado de libertad de gravámenes','Reciente; sin hipotecas, embargos ni anotaciones',1],
+  ['Estado civil y régimen matrimonial','Si hay sociedad conyugal, firma el cónyuge',1],
+  ['Poder notarial (si vende un apoderado)','Vigente y con facultades de dominio',1],
+  ['Sucesión (si el titular falleció)','Adjudicación concluida',1],
+  ['Predial','Al corriente del año en curso',0],
+  ['Agua (SIAPA u organismo local)','Constancia de no adeudo o último recibo pagado',0],
+  ['Luz (CFE)','Último recibo pagado y a nombre de quién está',0],
+  ['Cuotas de mantenimiento o colonos','Constancia de no adeudo',0],
+  ['Régimen de condominio y reglamento','Escritura constitutiva y reglamento, si es coto o condominio',0],
+  ['Licencias de construcción y habitabilidad','Licencia, alineamiento y número oficial, terminación de obra',0],
+  ['Uso de suelo','Compatible con el uso que dará el cliente',0],
+  ['Ocupación','Quién vive hoy; contrato de arrendamiento vigente',0]
+];
+const ESTADOS = [['ok','Bien'],['obs','Observación'],['falla','Falla'],['na','No aplica'],['nacc','No accesible']];
+const ESTADOS_DOC = [['ok','Correcto'],['obs','Con observación'],['alerta','Con alerta'],['np','No presentado'],['na','No aplica']];
+const LEYENDA = 'Revisión preventiva de alcance básico, limitada a las áreas accesibles el día de la visita. No sustituye peritajes, dictámenes técnicos, avalúos, certificados registrales ni asesoría jurídica especializada cuando resulten necesarios.';
+
+// ───────────────────────── Almacenamiento (IndexedDB) ─────────────────────────
+const BD = (() => {
+  let db;
+  const abrir = () => db ? Promise.resolve(db) : new Promise((ok, mal) => {
+    const r = indexedDB.open('acierta-verifica', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('expedientes', {keyPath: 'folio'}); r.result.createObjectStore('fotos', {keyPath: 'id'}); };
+    r.onsuccess = () => { db = r.result; ok(db); }; r.onerror = () => mal(r.error);
+  });
+  const tx = (tienda, modo, fn) => abrir().then(d => new Promise((ok, mal) => {
+    const t = d.transaction(tienda, modo); const s = t.objectStore(tienda); const res = fn(s);
+    t.oncomplete = () => ok(res && res.result !== undefined ? res.result : res); t.onerror = () => mal(t.error);
+  }));
+  return {
+    guardar: e => tx('expedientes', 'readwrite', s => s.put(e)),
+    todos: () => tx('expedientes', 'readonly', s => s.getAll()),
+    borrar: f => tx('expedientes', 'readwrite', s => s.delete(f)),
+    foto: (id, data) => tx('fotos', 'readwrite', s => s.put({id, data})),
+    leerFoto: id => tx('fotos', 'readonly', s => s.get(id)).then(r => r ? r.data : null),
+    borrarFoto: id => tx('fotos', 'readwrite', s => s.delete(id))
+  };
+})();
+
+// ───────────────────────── Estado ─────────────────────────
+let EXP = null, PASO = 'datos', ZONA = null;
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoy = () => { const d = new Date(); return d.toISOString().slice(0, 10); };
+function nuevoFolio() { const d = new Date(); const p = n => String(n).padStart(2, '0');
+  return `AV-${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; }
+function zonaDe(tipo, nombre) { return {id: 'z' + Math.random().toString(36).slice(2, 9), tipo, nombre: nombre || tipo, nota: '',
+  items: PLANTILLAS[tipo].map(([t, s, c]) => ({t, s, c: !!c, e: '', nota: '', fotos: []}))}; }
+function nuevoExpediente() {
+  return {folio: nuevoFolio(), creado: new Date().toISOString(), actualizado: new Date().toISOString(),
+    datos: {cliente: '', telefono: '', correo: '', direccion: '', colonia: '', municipio: 'Zapopan', clave: '', tipo: 'Casa', terreno: '400', construccion: '280', niveles: '2', antiguedad: '', servicios: '', inspector: '', fecha: hoy(), hora: '', clima: '', lluvia: 'No'},
+    zonas: CASA_TIPO.map(z => Array.isArray(z) ? zonaDe(z[0], z[1]) : zonaDe(z)),
+    pruebas: {presion_baja: '', presion_alta: '', presion_doble: '', medidor: '', agua_caliente: '', volt_cerca: '', volt_lejos: '', contactos: '', contactos_falla: '', co_calentador: '', co_estufa: '', jabonosa: '', nivel_sala: '', nivel_recamara: '', humedad: ''},
+    documentos: DOCUMENTOS.map(([d, q, c]) => ({d, q, c: !!c, e: '', nota: ''})),
+    resultado: {resumen: '', recomendaciones: ''}};
+}
+let guardarTimer;
+function guardar() { if (!EXP) return; EXP.actualizado = new Date().toISOString(); clearTimeout(guardarTimer);
+  guardarTimer = setTimeout(() => BD.guardar(EXP).catch(() => aviso('No se pudo guardar en este teléfono. Exporta un respaldo.')), 250); }
+function aviso(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
+
+// ───────────────────────── Semáforo ─────────────────────────
+const ORDEN = {gris: 0, verde: 1, amarillo: 2, rojo: 3};
+const peor = (a, b) => ORDEN[b] > ORDEN[a] ? b : a;
+function num(v) { const n = parseFloat(String(v).replace(',', '.')); return Number.isFinite(n) ? n : null; }
+function evaluar(e) {
+  const sis = {}; Object.keys(SISTEMAS).forEach(k => sis[k] = {color: 'gris', notas: []});
+  const marca = (k, color, nota) => { sis[k].color = peor(sis[k].color, color); if (nota) sis[k].notas.push(nota); };
+  e.zonas.forEach(z => z.items.forEach(i => {
+    if (i.e === 'ok') marca(i.s, 'verde');
+    else if (i.e === 'obs') marca(i.s, 'amarillo', `${z.nombre}: ${i.t}`);
+    else if (i.e === 'falla') marca(i.s, i.c ? 'rojo' : 'amarillo', `${z.nombre}: ${i.t}`);
+  }));
+  const p = e.pruebas;
+  const co = Math.max(num(p.co_calentador) || 0, num(p.co_estufa) || 0);
+  if (num(p.co_calentador) != null || num(p.co_estufa) != null) marca('gas', co > 35 ? 'rojo' : co > 9 ? 'amarillo' : 'verde', co > 9 ? `Monóxido de carbono ${co} ppm` : null);
+  if (p.jabonosa === 'fuga') marca('gas', 'rojo', 'Fuga de gas en prueba de agua jabonosa');
+  else if (p.jabonosa === 'sin') marca('gas', 'verde');
+  const pres = [num(p.presion_baja), num(p.presion_alta)].filter(x => x != null);
+  if (pres.length) { const mx = Math.max(...pres), mn = Math.min(...pres);
+    marca('hidraulico', mx > 80 ? 'amarillo' : mn < 5 ? 'amarillo' : 'verde', mx > 80 ? `Presión alta: ${mx} PSI` : mn < 5 ? `Presión baja: ${mn} PSI` : null); }
+  if (num(p.presion_doble) != null && pres.length && num(p.presion_doble) <= Math.max(...pres) / 2) marca('hidraulico', 'amarillo', 'La presión cae a la mitad con dos salidas abiertas');
+  if (p.medidor === 'avanza') marca('hidraulico', 'amarillo', 'El medidor avanza con todo cerrado (posible fuga)');
+  if (num(p.agua_caliente) != null && num(p.agua_caliente) > 60) marca('hidraulico', 'amarillo', `Agua caliente tarda ${num(p.agua_caliente)} s`);
+  [num(p.volt_cerca), num(p.volt_lejos)].forEach(v => { if (v != null) marca('electrico', v < 114 || v > 135 ? 'amarillo' : 'verde', v < 114 || v > 135 ? `Voltaje fuera de rango: ${v} V` : null); });
+  if (num(p.contactos_falla) > 0) marca('electrico', 'amarillo', `${num(p.contactos_falla)} de ${num(p.contactos) || '?'} contactos con falla`);
+  [['nivel_sala', 'sala'], ['nivel_recamara', 'recámara principal']].forEach(([k, l]) => { const v = num(p[k]); if (v != null) marca('estructura', v > 20 ? 'rojo' : v > 10 ? 'amarillo' : 'verde', v > 10 ? `Desnivel de ${v} mm en ${l}` : null); });
+  // documental
+  const doc = {color: 'gris', notas: []};
+  e.documentos.forEach(d => {
+    const c = d.e === 'ok' ? 'verde' : d.e === 'obs' ? 'amarillo' : d.e === 'alerta' ? (d.c ? 'rojo' : 'amarillo') : d.e === 'np' ? 'amarillo' : 'gris';
+    doc.color = peor(doc.color, c); if (['obs', 'alerta', 'np'].includes(d.e)) doc.notas.push(`${d.d}: ${d.e === 'np' ? 'no presentado' : d.e === 'alerta' ? 'con alerta' : 'con observación'}`);
+  });
+  let general = 'gris'; Object.values(sis).forEach(s => general = peor(general, s.color)); general = peor(general, doc.color);
+  return {sis, doc, general};
+}
+const NOMBRE_COLOR = {verde: 'Verde', amarillo: 'Amarillo', rojo: 'Rojo', gris: 'Sin datos'};
+const SENTIDO = {verde: 'Sin observaciones relevantes', amarillo: 'Requiere reparación o aclaración antes de firmar', rojo: 'Hallazgo crítico: atender antes de decidir', gris: 'Aún sin información suficiente'};
+
+// ───────────────────────── Pantallas ─────────────────────────
+function pintar() {
+  $('#folioBarra').innerHTML = EXP ? `Folio<strong>${esc(EXP.folio)}</strong>` : '';
+  const nav = $('#pasos');
+  if (!EXP) { nav.classList.add('oculto'); return inicio(); }
+  nav.classList.remove('oculto');
+  const pasos = [['datos', 'Datos'], ['zonas', 'Zonas'], ['pruebas', 'Pruebas'], ['documentos', 'Documentos'], ['reporte', 'Reporte']];
+  nav.innerHTML = pasos.map(([k, l], i) => `<button type="button" data-paso="${k}" ${PASO === k ? 'aria-current="step"' : ''}><span class="n">${i + 1}</span>${l}</button>`).join('');
+  ({datos: pDatos, zonas: ZONA ? pZona : pZonas, pruebas: pPruebas, documentos: pDocumentos, reporte: pReporte})[PASO]();
+  window.scrollTo(0, 0);
+}
+async function inicio() {
+  const lista = (await BD.todos().catch(() => [])).sort((a, b) => b.actualizado.localeCompare(a.actualizado));
+  $('#app').innerHTML = `<h1>Expedientes de inspección</h1>
+  <p class="ayuda">Todo se guarda en este teléfono, incluidas las fotos. Exporta un respaldo al terminar cada inspección.</p>
+  <button class="btn grande" id="nuevo" type="button">Abrir expediente nuevo (casa tipo)</button>
+  <h2>Guardados</h2>
+  ${lista.length ? lista.map(e => `<div class="expediente"><div class="info"><div><strong>${esc(e.folio)}</strong></div><div>${esc(e.datos.direccion || 'Sin dirección')}</div><small>${esc(e.datos.cliente || 'Sin cliente')} · actualizado ${new Date(e.actualizado).toLocaleString('es-MX')}</small></div><button class="btn sec" type="button" data-abrir="${esc(e.folio)}">Abrir</button></div>`).join('')
+    : '<p class="ayuda">No hay expedientes en este teléfono. Abre uno nuevo para empezar.</p>'}
+  <h2>Respaldo</h2>
+  <div class="acciones"><label class="btn sec" style="display:inline-flex;align-items:center">Importar respaldo<input type="file" accept="application/json" id="importar" class="oculto"></label></div>`;
+}
+function pDatos() {
+  const d = EXP.datos;
+  const t = (k, l, tipo = 'text', extra = '') => `<label class="campo">${l}<input type="${tipo}" data-dato="${k}" value="${esc(d[k])}" ${extra}></label>`;
+  $('#app').innerHTML = `<h1>Datos del inmueble</h1><p class="ayuda">Lo que se captura aquí aparece en la portada del reporte.</p>
+  <div class="panel"><h3>Cliente</h3><br>${t('cliente', 'Nombre del cliente')}<div class="fila">${t('telefono', 'WhatsApp', 'tel')}${t('correo', 'Correo <span class="op">(opcional)</span>', 'email')}</div></div>
+  <div class="panel"><h3>Inmueble</h3><br>${t('direccion', 'Dirección')}<div class="fila">${t('colonia', 'Colonia')}<label class="campo">Municipio<select data-dato="municipio">${['Guadalajara', 'Zapopan', 'Tlaquepaque', 'Tonalá', 'Tlajomulco de Zúñiga', 'El Salto', 'Otro'].map(m => `<option ${d.municipio === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
+  <div class="fila">${t('clave', 'Clave EB o NJ <span class="op">(si aplica)</span>')}<label class="campo">Tipo<select data-dato="tipo">${['Casa', 'Casa en condominio', 'Departamento', 'Local', 'Oficina', 'Bodega'].map(m => `<option ${d.tipo === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
+  <div class="fila3">${t('terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}${t('niveles', 'Niveles', 'number', 'inputmode="numeric"')}</div>
+  <div class="fila">${t('antiguedad', 'Antigüedad aproximada <span class="op">(años)</span>', 'number', 'inputmode="numeric"')}${t('servicios', 'Servicios <span class="op">(cisterna, gas LP…)</span>')}</div></div>
+  <div class="panel"><h3>Visita</h3><br>${t('inspector', 'Inspector')}<div class="fila">${t('fecha', 'Fecha', 'date')}${t('hora', 'Hora de inicio', 'time')}</div>
+  <div class="fila">${t('clima', 'Clima <span class="op">(ej. soleado, 24 °C)</span>')}<label class="campo">¿Llovió en las últimas 48 h?<select data-dato="lluvia">${['No', 'Sí'].map(m => `<option ${d.lluvia === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div></div>
+  <div class="acciones"><button class="btn" type="button" data-paso="zonas">Continuar con las zonas</button><button class="btn sec" type="button" id="cerrar">Volver a expedientes</button></div>`;
+}
+function avanceZona(z) { const hechos = z.items.filter(i => i.e).length; const c = z.items.some(i => i.e === 'falla') ? 'falla' : z.items.some(i => i.e === 'obs') ? 'obs' : hechos === z.items.length ? 'ok' : '';
+  return {hechos, total: z.items.length, c}; }
+function pZonas() {
+  $('#app').innerHTML = `<h1>Recorrido por zonas</h1><p class="ayuda">De afuera hacia adentro y de arriba hacia abajo. Toca una zona para revisarla.</p>
+  ${EXP.zonas.map(z => { const a = avanceZona(z); return `<button type="button" class="zona" data-zona="${z.id}"><span class="punto ${a.c}"></span><span><strong>${esc(z.nombre)}</strong></span><span class="avance">${a.hechos}/${a.total}</span></button>`; }).join('')}
+  <div class="panel"><label class="campo">Agregar zona<select id="tipoZona">${Object.keys(PLANTILLAS).map(k => `<option>${k}</option>`).join('')}</select></label>
+  <label class="campo">Nombre <span class="op">(ej. Recámara 4)</span><input type="text" id="nombreZona"></label><button class="btn sec" type="button" id="agregarZona">Agregar zona</button></div>`;
+}
+function pZona() {
+  const z = EXP.zonas.find(x => x.id === ZONA); if (!z) { ZONA = null; return pZonas(); }
+  $('#app').innerHTML = `<button type="button" class="volver" id="aZonas">‹ Todas las zonas</button><h1>${esc(z.nombre)}</h1>
+  <p class="ayuda">Marca cada punto. En observación o falla, agrega nota y foto.</p>
+  <div class="panel">${z.items.map((it, k) => `<div class="item ${['obs', 'falla'].includes(it.e) || it.nota || it.fotos.length ? 'con-detalle' : ''}" data-item="${k}">
+    <div class="txt">${esc(it.t)}</div>
+    <div class="estados" role="group" aria-label="${esc(it.t)}">${ESTADOS.map(([e, l]) => `<button type="button" data-e="${e}" aria-pressed="${it.e === e}">${l}</button>`).join('')}</div>
+    <div class="extra"><textarea data-nota="${k}" placeholder="Qué se observa, dónde y medida si aplica">${esc(it.nota)}</textarea>
+      <div class="fotos" id="f-${k}"></div>
+      <label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Agregar foto<input type="file" accept="image/*" capture="environment" class="oculto" data-foto="${k}" multiple></label></div>
+    ${['obs', 'falla'].includes(it.e) || it.nota || it.fotos.length ? '' : `<button type="button" class="volver" data-detalle="${k}">Agregar nota o foto</button>`}
+  </div>`).join('')}</div>
+  <div class="panel"><label class="campo">Nota general de la zona <span class="op">(opcional)</span><textarea id="notaZona">${esc(z.nota)}</textarea></label></div>
+  <div class="acciones"><button class="btn" type="button" id="aZonas2">Guardar y volver a zonas</button><button class="btn peligro" type="button" id="quitarZona">Quitar esta zona</button></div>`;
+  z.items.forEach((it, k) => pintarFotos(it, k));
+}
+async function pintarFotos(it, k) {
+  const cont = document.getElementById('f-' + k); if (!cont) return;
+  const datos = await Promise.all(it.fotos.map(id => BD.leerFoto(id)));
+  cont.innerHTML = it.fotos.map((id, j) => datos[j] ? `<figure><img src="${datos[j]}" alt="Foto ${j + 1} de ${esc(it.t)}"><button type="button" aria-label="Quitar foto" data-quitar="${k}:${id}">×</button></figure>` : '').join('');
+}
+function pPruebas() {
+  const p = EXP.pruebas;
+  const n = (k, l, u, ayuda) => `<label class="campo">${l} <span class="op">${u}</span><input type="number" inputmode="decimal" data-prueba="${k}" value="${esc(p[k])}">${ayuda ? `<span class="op" style="font-weight:400;font-size:14px">${ayuda}</span>` : ''}</label>`;
+  const s = (k, l, ops) => `<label class="campo">${l}<select data-prueba="${k}"><option value="">Sin realizar</option>${ops.map(([v, t]) => `<option value="${v}" ${p[k] === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`;
+  $('#app').innerHTML = `<h1>Pruebas y mediciones</h1><p class="ayuda">Registra el valor aunque sea bueno. Deja vacío lo que no se pudo medir.</p>
+  <div class="panel"><h3>Hidráulico</h3><br><div class="fila">${n('presion_baja', 'Presión en planta baja', 'PSI', 'Tinaco: 5–15 · hidroneumático: 20–60')}${n('presion_alta', 'Presión en el punto más alto', 'PSI')}</div>
+  <div class="fila">${n('presion_doble', 'Presión con dos salidas abiertas', 'PSI')}${n('agua_caliente', 'Tiempo para agua caliente', 'segundos', 'Más de 60 s es observación')}</div>
+  ${s('medidor', 'Medidor de agua con todo cerrado (10 min)', [['quieto', 'No avanza'], ['avanza', 'Avanza: posible fuga']])}</div>
+  <div class="panel"><h3>Eléctrico</h3><br><div class="fila">${n('volt_cerca', 'Voltaje junto al tablero', 'V', 'Rango: 114–135 V')}${n('volt_lejos', 'Voltaje en el contacto más lejano', 'V')}</div>
+  <div class="fila">${n('contactos', 'Contactos probados', 'número')}${n('contactos_falla', 'Contactos con falla', 'número')}</div></div>
+  <div class="panel"><h3>Gas</h3><br>${s('jabonosa', 'Agua jabonosa en conexiones', [['sin', 'Sin burbujas'], ['fuga', 'Con burbujas: fuga']])}
+  <div class="fila">${n('co_calentador', 'CO junto al calentador', 'ppm', 'Más de 35 ppm: crítico')}${n('co_estufa', 'CO junto a la estufa', 'ppm')}</div></div>
+  <div class="panel"><h3>Niveles</h3><br><div class="fila">${n('nivel_sala', 'Desnivel en sala y comedor', 'mm', 'Más de 10 mm en 3 m: observación')}${n('nivel_recamara', 'Desnivel en recámara principal', 'mm')}</div></div>
+  <div class="panel"><h3>Humedad</h3><br><label class="campo">Lecturas <span class="op">(lugar: punto sospechoso / punto sano)</span><textarea data-prueba="humedad" placeholder="Muro de regadera baño 2: 78 / 22">${esc(p.humedad)}</textarea></label></div>
+  <button class="btn" type="button" data-paso="documentos">Continuar con documentos</button>`;
+}
+function pDocumentos() {
+  $('#app').innerHTML = `<h1>Revisión documental</h1><p class="ayuda">Lo que no se entregue se marca como «No presentado». Lo que requiera opinión jurídica se canaliza a notario o abogado.</p>
+  <div class="panel">${EXP.documentos.map((d, k) => `<div class="doc" data-doc="${k}"><div class="nombre">${esc(d.d)}</div><div class="que">${esc(d.q)}</div>
+    <div class="estados doc5" role="group" aria-label="${esc(d.d)}">${ESTADOS_DOC.map(([e, l]) => `<button type="button" data-e="${e === 'alerta' ? 'falla' : e === 'np' ? 'obs' : e}" data-doce="${e}" aria-pressed="${d.e === e}">${l}</button>`).join('')}</div>
+    <textarea data-docnota="${k}" placeholder="Folio, fecha o detalle" style="margin-top:8px;${d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'display:none'}">${esc(d.nota)}</textarea></div>`).join('')}</div>
+  <button class="btn" type="button" data-paso="reporte">Ver resultado y reporte</button>`;
+}
+function pReporte() {
+  const r = evaluar(EXP);
+  const sinMarcar = EXP.zonas.reduce((n, z) => n + z.items.filter(i => !i.e).length, 0);
+  const sinFoto = EXP.zonas.reduce((n, z) => n + z.items.filter(i => ['obs', 'falla'].includes(i.e) && !i.fotos.length).length, 0);
+  $('#app').innerHTML = `<h1>Resultado</h1>
+  <div class="general ${r.general}"><div><div class="grande">${NOMBRE_COLOR[r.general]}</div><div>${SENTIDO[r.general]}</div></div></div>
+  ${sinMarcar || sinFoto ? `<div class="aviso">${sinMarcar ? `Faltan ${sinMarcar} puntos por marcar en las zonas. ` : ''}${sinFoto ? `${sinFoto} observaciones o fallas no tienen foto.` : ''}</div>` : ''}
+  <div class="panel semaforo">${Object.entries(SISTEMAS).map(([k, l]) => `<div>${l}</div><span class="chip ${r.sis[k].color}">${NOMBRE_COLOR[r.sis[k].color]}</span>`).join('')}<div><strong>Documental y legal</strong></div><span class="chip ${r.doc.color}">${NOMBRE_COLOR[r.doc.color]}</span></div>
+  ${(() => { const notas = [...Object.values(r.sis).flatMap(s => s.notas), ...r.doc.notas]; return notas.length ? `<div class="panel"><h3>Hallazgos detectados</h3><ul class="lista-alertas">${notas.slice(0, 40).map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''; })()}
+  <div class="panel"><label class="campo">Resumen ejecutivo <span class="op">(3 a 5 hallazgos que más importan, en lenguaje claro)</span><textarea data-res="resumen" style="min-height:130px">${esc(EXP.resultado.resumen)}</textarea></label>
+  <label class="campo">Recomendaciones <span class="op">(qué reparar, qué aclarar, a qué especialista acudir)</span><textarea data-res="recomendaciones" style="min-height:130px">${esc(EXP.resultado.recomendaciones)}</textarea></label></div>
+  <button class="btn grande" type="button" id="pdf">Generar reporte PDF</button>
+  <div class="acciones" style="margin-top:12px"><button class="btn sec" type="button" id="respaldo">Exportar respaldo</button><button class="btn sec" type="button" id="cerrar">Volver a expedientes</button><button class="btn peligro" type="button" id="borrarExp">Borrar expediente</button></div>`;
+}
+
+// ───────────────────────── Fotos ─────────────────────────
+function comprimir(file) { return new Promise((ok, mal) => { const img = new Image(); const url = URL.createObjectURL(file);
+  img.onload = () => { const max = 1400; let {width: w, height: h} = img; if (w > max || h > max) { const f = max / Math.max(w, h); w = Math.round(w * f); h = Math.round(h * f); }
+    const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.72)); };
+  img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('imagen')); }; img.src = url; }); }
+
+// ───────────────────────── Eventos ─────────────────────────
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('button'); if (!b) return;
+  if (b.dataset.paso) { PASO = b.dataset.paso; ZONA = null; return pintar(); }
+  if (b.id === 'nuevo') { EXP = nuevoExpediente(); await BD.guardar(EXP); PASO = 'datos'; ZONA = null; return pintar(); }
+  if (b.dataset.abrir) { EXP = (await BD.todos()).find(e => e.folio === b.dataset.abrir); PASO = 'datos'; ZONA = null; return pintar(); }
+  if (b.id === 'cerrar') { await BD.guardar(EXP); EXP = null; return pintar(); }
+  if (b.dataset.zona) { ZONA = b.dataset.zona; return pintar(); }
+  if (b.id === 'aZonas' || b.id === 'aZonas2') { guardar(); ZONA = null; return pintar(); }
+  if (b.id === 'agregarZona') { const tipo = $('#tipoZona').value; EXP.zonas.push(zonaDe(tipo, $('#nombreZona').value.trim() || tipo)); guardar(); return pintar(); }
+  if (b.id === 'quitarZona') { if (confirm('¿Quitar esta zona y sus fotos?')) { const z = EXP.zonas.find(x => x.id === ZONA); z.items.forEach(i => i.fotos.forEach(id => BD.borrarFoto(id))); EXP.zonas = EXP.zonas.filter(x => x.id !== ZONA); ZONA = null; guardar(); pintar(); } return; }
+  const item = b.closest('[data-item]');
+  if (item && b.dataset.e) { const z = EXP.zonas.find(x => x.id === ZONA); const it = z.items[+item.dataset.item]; it.e = it.e === b.dataset.e ? '' : b.dataset.e;
+    item.querySelectorAll('.estados button').forEach(x => x.setAttribute('aria-pressed', x.dataset.e === it.e));
+    if (['obs', 'falla'].includes(it.e)) { item.classList.add('con-detalle'); const d = item.querySelector('[data-detalle]'); if (d) d.remove(); }
+    guardar(); return; }
+  if (b.dataset.detalle != null) { b.closest('.item').classList.add('con-detalle'); b.remove(); return; }
+  if (b.dataset.quitar) { const [k, id] = b.dataset.quitar.split(':'); const z = EXP.zonas.find(x => x.id === ZONA); const it = z.items[+k]; it.fotos = it.fotos.filter(f => f !== id); BD.borrarFoto(id); guardar(); pintarFotos(it, +k); return; }
+  const doc = b.closest('[data-doc]');
+  if (doc && b.dataset.doce) { const d = EXP.documentos[+doc.dataset.doc]; d.e = d.e === b.dataset.doce ? '' : b.dataset.doce;
+    doc.querySelectorAll('.estados button').forEach(x => x.setAttribute('aria-pressed', x.dataset.doce === d.e));
+    doc.querySelector('textarea').style.display = d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'none'; guardar(); return; }
+  if (b.id === 'pdf') return generarPDF();
+  if (b.id === 'respaldo') return exportar();
+  if (b.id === 'borrarExp') { if (confirm('¿Borrar este expediente y todas sus fotos de este teléfono?')) { EXP.zonas.forEach(z => z.items.forEach(i => i.fotos.forEach(id => BD.borrarFoto(id)))); await BD.borrar(EXP.folio); EXP = null; pintar(); } return; }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target; if (!EXP) return;
+  if (t.dataset.dato) { EXP.datos[t.dataset.dato] = t.value; guardar(); }
+  else if (t.dataset.nota != null) { EXP.zonas.find(x => x.id === ZONA).items[+t.dataset.nota].nota = t.value; guardar(); }
+  else if (t.id === 'notaZona') { EXP.zonas.find(x => x.id === ZONA).nota = t.value; guardar(); }
+  else if (t.dataset.prueba) { EXP.pruebas[t.dataset.prueba] = t.value; guardar(); }
+  else if (t.dataset.docnota != null) { EXP.documentos[+t.dataset.docnota].nota = t.value; guardar(); }
+  else if (t.dataset.res) { EXP.resultado[t.dataset.res] = t.value; guardar(); }
+});
+document.addEventListener('change', async ev => {
+  const t = ev.target;
+  if (t.dataset.foto != null && t.files.length) {
+    const k = +t.dataset.foto; const it = EXP.zonas.find(x => x.id === ZONA).items[k];
+    for (const f of t.files) { try { const data = await comprimir(f); const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); it.fotos.push(id); } catch (e) { aviso('No se pudo leer una foto.'); } }
+    t.value = ''; guardar(); pintarFotos(it, k); return;
+  }
+  if (t.id === 'importar' && t.files[0]) {
+    try { const r = JSON.parse(await t.files[0].text()); if (!r.expediente || !r.expediente.folio) throw 0;
+      for (const [id, data] of Object.entries(r.fotos || {})) await BD.foto(id, data);
+      await BD.guardar(r.expediente); aviso('Respaldo importado'); pintar(); } catch (e) { aviso('El archivo no es un respaldo de Acierta Verifica.'); }
+  }
+  if (t.dataset.dato || t.dataset.prueba) { if (t.dataset.dato) EXP.datos[t.dataset.dato] = t.value; else EXP.pruebas[t.dataset.prueba] = t.value; guardar(); }
+});
+async function exportar() {
+  const fotos = {}; for (const z of EXP.zonas) for (const i of z.items) for (const id of i.fotos) fotos[id] = await BD.leerFoto(id);
+  const blob = new Blob([JSON.stringify({version: 1, expediente: EXP, fotos})], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `respaldo-${EXP.folio}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  aviso('Respaldo exportado');
+}
+
+// ───────────────────────── Reporte PDF ─────────────────────────
+const RGB = {navy: [10, 31, 63], rojoMarca: [222, 10, 14], verde: [30, 126, 69], amarillo: [183, 121, 31], rojo: [198, 40, 40], gris: [138, 148, 163], tinta: [27, 36, 51], suave: [91, 101, 117], linea: [213, 219, 228]};
+async function generarPDF() {
+  if (!window.jspdf) { aviso('No se cargó el generador de PDF. Revisa la conexión a internet y vuelve a intentar.'); return; }
+  const btn = $('#pdf'); btn.disabled = true; btn.textContent = 'Generando reporte…';
+  try {
+    const {jsPDF} = window.jspdf; const doc = new jsPDF({unit: 'mm', format: 'letter'});
+    const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 16;
+    const r = evaluar(EXP), d = EXP.datos;
+    const pie = () => { const n = doc.internal.getNumberOfPages(); for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(8); doc.setTextColor(...RGB.suave);
+      doc.text(`Acierta Verifica | Folio ${EXP.folio}`, M, H - 8); doc.text(`Página ${i} de ${n}`, W - M, H - 8, {align: 'right'}); } };
+    const encabezado = t => { doc.setFillColor(...RGB.navy); doc.rect(0, 0, W, 16, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text('ACIERTA', M, 10); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 19, 10); doc.setTextColor(255); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(t, W - M, 10, {align: 'right'}); return 26; };
+    const titulo = (t, y) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(...RGB.navy); doc.text(t, M, y); return y + 7; };
+    const parrafo = (t, y, size = 10) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(size); doc.setTextColor(...RGB.tinta); const ls = doc.splitTextToSize(t, W - 2 * M); doc.text(ls, M, y); return y + ls.length * size * 0.42 + 2; };
+    const espacio = (y, need) => { if (y + need > H - 18) { doc.addPage(); return encabezado('Reporte de verificación'); } return y; };
+    // Portada
+    doc.setFillColor(...RGB.navy); doc.rect(0, 0, W, 92, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(26); doc.text('ACIERTA', M, 34); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 46, 34);
+    doc.setTextColor(255); doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.text('Reporte de verificación física y documental preventiva', M, 46);
+    doc.setFontSize(10); doc.setTextColor(201, 211, 224); doc.text('Acierta Max | Profesionales Inmobiliarios', M, 54);
+    doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});
+    let y = 108; doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize(d.direccion || 'Dirección sin capturar', W - 2 * M), M, y); y += 8;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}`, `Inspector: ${d.inspector || '-'}`], M, y); y += 30;
+    const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+    doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
+    doc.setTextColor(...RGB.suave); doc.setFontSize(8.5); doc.text(doc.splitTextToSize(LEYENDA, W - 2 * M), M, H - 26);
+    // Resumen y semáforo
+    doc.addPage(); y = encabezado('Resumen'); y = titulo('Resumen ejecutivo', y); y = parrafo(EXP.resultado.resumen || 'Sin resumen capturado.', y, 10.5); y += 4;
+    y = titulo('Semáforo por sistema', y);
+    doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Sistema', 'Resultado', 'Principales hallazgos']],
+      body: [...Object.entries(SISTEMAS).map(([k, l]) => [l, NOMBRE_COLOR[r.sis[k].color], r.sis[k].notas.slice(0, 4).join('\n') || '—']), ['Documental y legal', NOMBRE_COLOR[r.doc.color], r.doc.notas.slice(0, 4).join('\n') || '—']],
+      styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255},
+      columnStyles: {0: {cellWidth: 52, fontStyle: 'bold'}, 1: {cellWidth: 26}},
+      didParseCell: c => { if (c.section === 'body' && c.column.index === 1) { const k = Object.keys(NOMBRE_COLOR).find(x => NOMBRE_COLOR[x] === c.cell.raw); c.cell.styles.fillColor = RGB[k] || RGB.gris; c.cell.styles.textColor = 255; c.cell.styles.fontStyle = 'bold'; } }});
+    // Hallazgos por zona
+    doc.addPage(); y = encabezado('Hallazgos por zona'); y = titulo('Hallazgos por zona', y);
+    y = parrafo('Se listan los puntos con observación o falla, con su evidencia. Los puntos en buen estado se resumen al final de cada zona.', y, 9.5);
+    for (const z of EXP.zonas) {
+      const malos = z.items.filter(i => ['obs', 'falla'].includes(i.e)); const bien = z.items.filter(i => i.e === 'ok').length; const nacc = z.items.filter(i => i.e === 'nacc').map(i => i.t);
+      y = espacio(y, 18); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(...RGB.navy); doc.text(z.nombre, M, y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...RGB.suave); const revisados = z.items.filter(i => i.e).length; doc.text(revisados ? `${bien} en buen estado | ${malos.length} con observación o falla${nacc.length ? ' | ' + nacc.length + ' no accesibles' : ''}` : 'Sin revisar', W - M, y, {align: 'right'}); y += 5;
+      for (const it of malos) {
+        y = espacio(y, 14); const c = it.e === 'falla' ? (it.c ? RGB.rojo : RGB.amarillo) : RGB.amarillo; doc.setFillColor(...c); doc.circle(M + 2, y - 1.2, 1.6, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...RGB.tinta); doc.text(`${it.e === 'falla' ? 'Falla' : 'Observación'}: ${it.t}`, M + 6, y); y += 5;
+        if (it.nota) { doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); const ls = doc.splitTextToSize(it.nota, W - 2 * M - 6); y = espacio(y, ls.length * 4.2); doc.text(ls, M + 6, y); y += ls.length * 4.2 + 1; }
+        if (it.fotos.length) { let x = M + 6; const fw = 56, fh = 42; y = espacio(y, fh + 4);
+          for (const id of it.fotos.slice(0, 6)) { const data = await BD.leerFoto(id); if (!data) continue; if (x + fw > W - M) { x = M + 6; y += fh + 3; y = espacio(y, fh + 4); }
+            try { doc.addImage(data, 'JPEG', x, y, fw, fh, undefined, 'FAST'); } catch (e) {} x += fw + 3; }
+          y += fh + 4; }
+      }
+      if (z.nota) { y = espacio(y, 10); doc.setFont('helvetica', 'italic'); doc.setFontSize(9.5); doc.setTextColor(...RGB.tinta); const ls = doc.splitTextToSize('Nota: ' + z.nota, W - 2 * M); doc.text(ls, M, y); y += ls.length * 4.2 + 1; }
+      if (nacc.length) { y = espacio(y, 8); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...RGB.suave); const ls = doc.splitTextToSize('No accesible: ' + nacc.join('; '), W - 2 * M); doc.text(ls, M, y); y += ls.length * 4 + 1; }
+      doc.setDrawColor(...RGB.linea); doc.line(M, y, W - M, y); y += 6;
+    }
+    // Mediciones
+    doc.addPage(); y = encabezado('Mediciones'); y = titulo('Pruebas y mediciones', y); const p = EXP.pruebas; const v = (x, u) => x === '' || x == null ? 'No medido' : `${x} ${u}`;
+    doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Prueba', 'Resultado', 'Referencia']], body: [
+      ['Presión en planta baja', v(p.presion_baja, 'PSI'), 'Tinaco 5-15 PSI; hidroneumático 20-60 PSI'], ['Presión en el punto más alto', v(p.presion_alta, 'PSI'), 'Más de 80 PSI: riesgo en conexiones'],
+      ['Presión con dos salidas abiertas', v(p.presion_doble, 'PSI'), 'No debe caer a la mitad'], ['Medidor de agua con todo cerrado', p.medidor === 'avanza' ? 'Avanza (posible fuga)' : p.medidor === 'quieto' ? 'No avanza' : 'No realizado', 'No debe avanzar en 10 minutos'],
+      ['Tiempo para agua caliente', v(p.agua_caliente, 's'), 'Hasta 60 s'], ['Voltaje junto al tablero', v(p.volt_cerca, 'V'), '114 a 135 V'], ['Voltaje en el contacto más lejano', v(p.volt_lejos, 'V'), '114 a 135 V'],
+      ['Contactos probados / con falla', p.contactos === '' ? 'No medido' : `${p.contactos} / ${p.contactos_falla || 0}`, 'Sin fallas de polaridad ni de tierra'],
+      ['Agua jabonosa en conexiones de gas', p.jabonosa === 'fuga' ? 'Con burbujas: fuga' : p.jabonosa === 'sin' ? 'Sin burbujas' : 'No realizado', 'Sin burbujas'],
+      ['CO junto al calentador', v(p.co_calentador, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'], ['CO junto a la estufa', v(p.co_estufa, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'],
+      ['Desnivel en sala y comedor', v(p.nivel_sala, 'mm'), 'Hasta 10 mm en 3 m'], ['Desnivel en recámara principal', v(p.nivel_recamara, 'mm'), 'Hasta 10 mm en 3 m'],
+      ['Lecturas de humedad', p.humedad || 'No registradas', 'Punto sospechoso contra punto sano del mismo muro']],
+      styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255}, columnStyles: {0: {cellWidth: 60, fontStyle: 'bold'}, 1: {cellWidth: 48}}});
+    // Documental
+    doc.addPage(); y = encabezado('Revisión documental'); y = titulo('Revisión documental y legal preventiva', y);
+    const ED = Object.fromEntries(ESTADOS_DOC); ED[''] = 'Sin revisar';
+    doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Documento', 'Estado', 'Detalle']], body: EXP.documentos.map(x => [x.d, ED[x.e], x.nota || x.q]),
+      styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255}, columnStyles: {0: {cellWidth: 62, fontStyle: 'bold'}, 1: {cellWidth: 32}},
+      didParseCell: c => { if (c.section === 'body' && c.column.index === 1) { const e = EXP.documentos[c.row.index].e; const m = {ok: RGB.verde, obs: RGB.amarillo, alerta: EXP.documentos[c.row.index].c ? RGB.rojo : RGB.amarillo, np: RGB.amarillo};
+        if (m[e]) { c.cell.styles.fillColor = m[e]; c.cell.styles.textColor = 255; c.cell.styles.fontStyle = 'bold'; } } }});
+    y = doc.lastAutoTable.finalY + 6; y = espacio(y, 20); y = parrafo('Los asuntos que requieran opinión jurídica deben confirmarse con notario o abogado antes de firmar.', y, 9.5);
+    // Recomendaciones y firma
+    doc.addPage(); y = encabezado('Recomendaciones'); y = titulo('Recomendaciones', y); y = parrafo(EXP.resultado.recomendaciones || 'Sin recomendaciones capturadas.', y, 10.5); y += 6;
+    y = espacio(y, 60); y = titulo('Alcance y límites', y); y = parrafo(LEYENDA, y, 9.5); y += 18;
+    doc.setDrawColor(...RGB.tinta); doc.line(M, y, M + 75, y); doc.setFontSize(10); doc.setTextColor(...RGB.tinta); doc.text(d.inspector || 'Inspector', M, y + 5); doc.setTextColor(...RGB.suave); doc.setFontSize(9); doc.text('Inspector | Acierta Verifica', M, y + 10);
+    doc.text(`Acierta Max, S.A. de C.V. | WhatsApp 33 3377 7337 | acierta.pro`, M, y + 22);
+    pie();
+    const nombre = `Acierta-Verifica-${EXP.folio}.pdf`; const blob = doc.output('blob');
+    const archivo = new File([blob], nombre, {type: 'application/pdf'});
+    if (navigator.canShare && navigator.canShare({files: [archivo]})) { try { await navigator.share({files: [archivo], title: 'Reporte Acierta Verifica'}); } catch (e) { doc.save(nombre); } }
+    else doc.save(nombre);
+    aviso('Reporte generado');
+  } catch (e) { console.error(e); aviso('No se pudo generar el PDF: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Generar reporte PDF'; }
+}
+pintar();
+</script>
+</body>
+</html>
