@@ -131,3 +131,7 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - Página: número de cliente = FOLIO del CRM (búsqueda por WhatsApp en `/api/asesor/cliente`; si no existe, provisional VC-<tel>), guía «Cómo revisarlo» por punto según el equipo, subida de documentos (cámara, PDF o imagen) con revisión de VERI, borrador del reporte y chat «Preguntar a VERI».
 - verifica.casa reenvía (GoDaddy) a acierta.pro/verifica-captura.html mientras se crea el repo `verifica-casa`.
 - Fotos del equipo para las guías: `assets/verifica/equipo/<id>.jpg` (ver LEEME.txt).
+
+## Terrenos y verificación en sitio (8-oct-2026)
+- Inventario: `terreno` y `construccion` por ficha. EasyBroker vía API (`enriquecer_terrenos` en inventario_sync.py; caché `herramientas/eb_terrenos.json.gz`; hasta 2,500 consultas por corrida; requiere el secreto de Actions EASYBROKER_API_KEY). NeoJaus: `land.area` y `construction_area` (VERSION_DATOS 3 vuelve a leer las publicables una vez).
+- verifica.casa: ubicación GPS en sitio (precisión y hora), datos de la escritura (superficies, fecha y precio de compra), plano de Magicplan/Polycam con superficies medidas y revisión de VERI; diferencia >10% entre medida y escritura = observación documental. Base para la «Opinión de valor Acierta».

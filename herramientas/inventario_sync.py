@@ -31,7 +31,7 @@ import sys
 import time
 import unicodedata
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import requests
 from bs4 import BeautifulSoup
@@ -869,6 +869,69 @@ def escribir_xlsx(ruta, registros, fecha):
 # ----------------------------------------------------------------------
 # PRINCIPAL
 # ----------------------------------------------------------------------
+# --- Terreno y construcción desde la API de EasyBroker (para la opinión de valor) ---
+# El listado de aciertamax.com solo trae un número de m². La API trae lot_size (terreno) y
+# construction_size (construcción). Se consulta cada clave una vez y se guarda en caché;
+# las que no se encuentran se reintentan después de 30 días. Sin EASYBROKER_API_KEY no hace nada.
+RUTA_CACHE_TERRENOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eb_terrenos.json.gz")
+
+
+def enriquecer_terrenos(filas, max_consultas=2500, pausa=0.25):
+    import gzip, time as _t
+    clave = os.environ.get("EASYBROKER_API_KEY", "").strip()
+    cache = {}
+    if os.path.exists(RUTA_CACHE_TERRENOS):
+        try:
+            with gzip.open(RUTA_CACHE_TERRENOS, "rt", encoding="utf-8") as fh:
+                cache = json.load(fh)
+        except Exception:
+            cache = {}
+    hoy = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    hace30 = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
+    hechas = encontradas = 0
+    if clave:
+        s = requests.Session()
+        s.headers.update({"X-Authorization": clave, "Accept": "application/json"})
+        for f in filas:
+            eb = f.get("eb") or ""
+            if not eb.startswith("EB-") or hechas >= max_consultas:
+                continue
+            c = cache.get(eb)
+            if c and (c.get("t") is not None or c.get("c") is not None or c.get("f", "") >= hace30):
+                continue
+            hechas += 1
+            dato = None
+            for ruta in (f"/properties/{eb}", f"/mls_properties/{eb}"):
+                try:
+                    r = s.get("https://api.easybroker.com/v1" + ruta, timeout=20)
+                except requests.RequestException:
+                    continue
+                if r.status_code == 429:
+                    _t.sleep(5)
+                    continue
+                if r.ok:
+                    j = r.json()
+                    dato = {"t": j.get("lot_size"), "c": j.get("construction_size"), "f": hoy}
+                    break
+            cache[eb] = dato or {"t": None, "c": None, "f": hoy}
+            encontradas += 1 if dato else 0
+            _t.sleep(pausa)
+        with gzip.open(RUTA_CACHE_TERRENOS, "wt", encoding="utf-8") as fh:
+            json.dump(cache, fh, separators=(",", ":"))
+    con = 0
+    for f in filas:
+        c = cache.get(f.get("eb") or "")
+        if not c:
+            continue
+        if c.get("t"):
+            f["terreno"] = round(float(c["t"]), 2); con += 1
+        if c.get("c"):
+            f["construccion"] = round(float(c["c"]), 2)
+    print(f"Terrenos: {hechas} consultas a la API ({encontradas} encontradas) · {con} fichas con terreno"
+          + ("" if clave else " · sin EASYBROKER_API_KEY: solo se usa la caché"), flush=True)
+    return con
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--paginas-max", type=int, default=0, help="limita paginas por municipio/operacion (pruebas)")
@@ -1031,6 +1094,8 @@ def main():
         if f.get("_revisar"):
             fila_pub["revisar"] = True
         salida.append(fila_pub)
+    if not args.reusar_data:
+        enriquecer_terrenos(salida)
     os.makedirs(DIR_REPORTES, exist_ok=True)
     if not args.sin_escribir:
         with open(RUTA_DATA, "w", encoding="utf-8") as fh:

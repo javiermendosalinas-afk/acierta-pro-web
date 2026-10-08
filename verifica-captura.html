@@ -320,7 +320,7 @@ function veriCard(v) {
     ${v.faltantes && v.faltantes.length ? `<strong>Lo que falta:</strong>${L(v.faltantes)}` : ''}${v.hallazgos && v.hallazgos.length ? `<strong>Hallazgos:</strong>${L(v.hallazgos)}` : ''}${v.pasos && v.pasos.length ? `<strong>Siguiente:</strong>${L(v.pasos)}` : ''}</div>`;
 }
 async function fotosDe(ids, max = 8) { const out = []; for (const id of ids.slice(0, max)) { const d = await BD.leerFoto(id); if (d && d.startsWith('data:image')) out.push(d); } return out; }
-function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia}; }
+function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia, ubicacion_gps: d.gps || null, escritura: {terreno_m2: d.esc_terreno, construccion_m2: d.esc_construccion, fecha_compra: d.fecha_compra, precio_compra: d.precio_compra}, plano_medido: {terreno_m2: d.plano_terreno, construccion_m2: d.plano_construccion}, incongruencias: congruencia(EXP)}; }
 
 // ───────────────────────── Estado ─────────────────────────
 let EXP = null, PASO = 'datos', ZONA = null;
@@ -378,6 +378,7 @@ function evaluar(e) {
     const c = d.e === 'ok' ? 'verde' : d.e === 'obs' ? 'amarillo' : d.e === 'alerta' ? (d.c ? 'rojo' : 'amarillo') : d.e === 'np' ? 'amarillo' : 'gris';
     doc.color = peor(doc.color, c); if (['obs', 'alerta', 'np'].includes(d.e)) doc.notas.push(`${d.d}: ${d.e === 'np' ? 'no presentado' : d.e === 'alerta' ? 'con alerta' : 'con observación'}`);
   });
+  congruencia(e).forEach(n => { doc.color = peor(doc.color, 'amarillo'); doc.notas.push(n); });
   let general = 'gris'; Object.values(sis).forEach(s => general = peor(general, s.color)); general = peor(general, doc.color);
   return {sis, doc, general};
 }
@@ -436,9 +437,22 @@ function pDatos() {
   <div class="fila">${t('clave', 'Clave EB o NJ <span class="op">(si aplica)</span>')}<label class="campo">Tipo<select data-dato="tipo">${['Casa', 'Casa en condominio', 'Departamento', 'Local', 'Oficina', 'Bodega'].map(m => `<option ${d.tipo === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div>
   <div class="fila3">${t('terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}${t('niveles', 'Niveles', 'number', 'inputmode="numeric"')}</div>
   <div class="fila">${t('antiguedad', 'Antigüedad aproximada <span class="op">(años)</span>', 'number', 'inputmode="numeric"')}${t('servicios', 'Servicios <span class="op">(cisterna, gas LP…)</span>')}</div></div>
+  <div class="panel"><h3>Ubicación verificada en sitio</h3><p class="ayuda">Al llegar a la casa, párate en la entrada y regístrala.</p>
+  <div id="gpsRes">${d.gps ? `<div class="aviso">Registrada: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (±${Math.round(d.gps.precision)} m) el ${new Date(d.gps.fecha).toLocaleString('es-MX')}. <a href="https://maps.google.com/?q=${d.gps.lat},${d.gps.lon}" target="_blank" rel="noopener">Ver en el mapa</a></div>` : ''}</div>
+  <button class="btn sec" type="button" id="gps">${d.gps ? 'Volver a registrar la ubicación' : 'Estoy en la casa: registrar ubicación'}</button></div>
+  <div class="panel"><h3>Según la escritura</h3><br><div class="fila">${t('esc_terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('esc_construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}</div>
+  <div class="fila">${t('fecha_compra', 'Fecha de compra', 'date')}${t('precio_compra', 'Precio de compra $', 'number', 'inputmode="decimal"')}</div>
+  <p class="ayuda" style="margin:0">Súbela en Documentos y pide a VERI que la lea: extrae estos datos por ti.</p></div>
+  <div class="panel"><h3>Plano medido en sitio</h3><p class="ayuda">Hazlo con Magicplan o Polycam recorriendo la casa, y súbelo aquí (PDF o imagen).</p>
+  <div class="fila">${t('plano_terreno', 'Terreno medido m²', 'number', 'inputmode="decimal"')}${t('plano_construccion', 'Construcción medida m²', 'number', 'inputmode="decimal"')}</div>
+  <div class="archivos" id="planoArch"></div>
+  <label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Subir plano<input type="file" accept="application/pdf,image/*" class="oculto" id="planoFile" multiple></label>
+  ${(EXP.plano || []).length ? '<button class="veri-btn" type="button" id="veriPlano">Que VERI revise el plano contra la escritura</button>' : ''}<div id="veriPlanoRes">${veriCard(EXP.veriPlano)}</div>
+  ${(() => { const c = congruencia(EXP); return c.length ? `<div class="aviso" style="margin-top:10px">${c.map(esc).join('<br>')}</div>` : ''; })()}</div>
   <div class="panel"><h3>Visita</h3><br>${t('inspector', 'Inspector')}<div class="fila">${t('fecha', 'Fecha', 'date')}${t('hora', 'Hora de inicio', 'time')}</div>
   <div class="fila">${t('clima', 'Clima <span class="op">(ej. soleado, 24 °C)</span>')}<label class="campo">¿Llovió en las últimas 48 h?<select data-dato="lluvia">${['No', 'Sí'].map(m => `<option ${d.lluvia === m ? 'selected' : ''}>${m}</option>`).join('')}</select></label></div></div>
   <div class="acciones"><button class="btn" type="button" data-paso="zonas">Continuar con las zonas</button><button class="btn sec" type="button" id="cerrar">Volver a expedientes</button></div>`;
+  pintarPlano();
 }
 function avanceZona(z) { const hechos = z.items.filter(i => i.e).length; const c = z.items.some(i => i.e === 'falla') ? 'falla' : z.items.some(i => i.e === 'obs') ? 'obs' : hechos === z.items.length ? 'ok' : '';
   return {hechos, total: z.items.length, c}; }
@@ -508,6 +522,16 @@ function pDocumentos() {
   <button class="btn" type="button" data-paso="reporte">Ver resultado y reporte</button>`;
   EXP.documentos.forEach((d, k) => pintarArchivos(d, k));
 }
+function congruencia(e) {
+  const d = e.datos, out = []; const n = v => { const x = parseFloat(v); return Number.isFinite(x) && x > 0 ? x : null; };
+  const par = (a, b, la, lb, que) => { if (a && b) { const dif = Math.abs(a - b) / b * 100; if (dif > 10) out.push(`${que}: ${la} ${a} m² contra ${lb} ${b} m² (diferencia de ${dif.toFixed(0)}%).`); } };
+  par(n(d.plano_construccion), n(d.esc_construccion), 'medida', 'escritura', 'Construcción');
+  par(n(d.plano_terreno), n(d.esc_terreno), 'medido', 'escritura', 'Terreno');
+  if (!n(d.plano_construccion)) par(n(d.construccion), n(d.esc_construccion), 'declarada', 'escritura', 'Construcción');
+  return out;
+}
+async function pintarPlano() { const cont = document.getElementById('planoArch'); if (!cont) return; const arch = EXP.plano || []; const datos = await Promise.all(arch.map(a => a.mime.startsWith('image') ? BD.leerFoto(a.id) : null));
+  cont.innerHTML = arch.map((a, j) => `<span class="archivo">${datos[j] ? `<img src="${datos[j]}" alt="">` : '<strong>PDF</strong>'}${esc(a.nombre.slice(0, 22))}<button type="button" aria-label="Quitar plano" data-quitarplano="${a.id}">×</button></span>`).join(''); }
 async function pintarArchivos(d, k) {
   const cont = document.getElementById('a-' + k); if (!cont) return;
   const arch = d.archivos || []; const datos = await Promise.all(arch.map(a => a.mime.startsWith('image') ? BD.leerFoto(a.id) : null));
@@ -568,6 +592,15 @@ document.addEventListener('click', async ev => {
     if (j.encontrado) { EXP.datos.numcliente = j.folio; if (!EXP.datos.cliente) EXP.datos.cliente = j.nombre; guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">Cliente encontrado en el CRM: <strong>${esc(j.nombre)}</strong>, folio ${esc(j.folio)}${j.vendedor ? ', asesor ' + esc(j.vendedor) : ''}.</div>`; }
     else { EXP.datos.numcliente = EXP.datos.numcliente || ('VC-' + tel); guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">No está en el CRM. Se asignó el número provisional <strong>${esc(EXP.datos.numcliente)}</strong>; da de alta al cliente en MAX para tener su folio.</div>`; }
     return; }
+  if (b.id === 'gps') { if (!navigator.geolocation) return aviso('Este teléfono no permite obtener la ubicación.'); b.disabled = true; b.textContent = 'Obteniendo ubicación…';
+    navigator.geolocation.getCurrentPosition(pos => { EXP.datos.gps = {lat: pos.coords.latitude, lon: pos.coords.longitude, precision: pos.coords.accuracy, fecha: new Date().toISOString()}; guardar(); pDatos();
+      if (pos.coords.accuracy > 50) aviso('Precisión baja (±' + Math.round(pos.coords.accuracy) + ' m). Sal a la calle frente a la casa y vuelve a registrar.'); },
+      err => { b.disabled = false; b.textContent = 'Estoy en la casa: registrar ubicación'; aviso(err.code === 1 ? 'Permite el acceso a la ubicación en el navegador y vuelve a intentar.' : 'No se pudo obtener la ubicación. Intenta al aire libre.'); },
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 0}); return; }
+  if (b.dataset.quitarplano) { EXP.plano = (EXP.plano || []).filter(a => a.id !== b.dataset.quitarplano); BD.borrarFoto(b.dataset.quitarplano); guardar(); return pDatos(); }
+  if (b.id === 'veriPlano') { b.disabled = true; b.textContent = 'VERI está revisando el plano…'; const docs = []; for (const a of (EXP.plano || []).slice(0, 4)) { const data = await BD.leerFoto(a.id); if (data) docs.push({nombre: a.nombre, data}); }
+    const v = await veri('documento', Object.assign(datosBase(), {documento: 'Plano medido en sitio (Magicplan/Polycam)', que_verificar: 'Superficies por espacio y total; compararlas con la escritura, el predial y lo declarado; distribución coherente con las zonas revisadas (3 recámaras, 3.5 baños, etc.).'}), {documentos: docs});
+    b.disabled = false; b.textContent = 'Que VERI revise el plano contra la escritura'; if (v) { EXP.veriPlano = v; guardar(); $('#veriPlanoRes').innerHTML = veriCard(v); } return; }
   if (b.dataset.guia != null) { document.getElementById('g-' + b.dataset.guia).classList.toggle('oculto'); return; }
   if (b.dataset.pguia) { document.getElementById('pg-' + b.dataset.pguia).classList.toggle('oculto'); return; }
   if (b.dataset.pquitar) { const [k, id] = b.dataset.pquitar.split(':'); EXP.pruebasFotos[k] = (EXP.pruebasFotos[k] || []).filter(f => f !== id); BD.borrarFoto(id); guardar(); pintarFotosPrueba(k); return; }
@@ -629,6 +662,13 @@ document.addEventListener('change', async ev => {
       if (v) { EXP.pruebasVeri[k] = v; guardar(); } const c2 = document.getElementById('pv-' + k); if (c2) c2.innerHTML = veriCard(EXP.pruebasVeri[k]); }
     return;
   }
+  if (t.id === 'planoFile' && t.files.length) { EXP.plano = EXP.plano || [];
+    for (const f of t.files) { try { let data, mime = f.type || '';
+        if (mime.startsWith('image')) { data = await comprimir(f); mime = 'image/jpeg'; }
+        else if (mime === 'application/pdf') { if (f.size > 4.5e6) { aviso('El PDF pesa más de 4.5 MB.'); continue; } data = await new Promise((ok, mal) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = mal; r.readAsDataURL(f); }); }
+        else { aviso('Solo PDF o imagen.'); continue; }
+        const id = 'pl' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); EXP.plano.push({id, nombre: f.name || 'plano', mime}); } catch (e) { aviso('No se pudo leer el plano.'); } }
+    t.value = ''; guardar(); return pDatos(); }
   if (t.dataset.docarch != null && t.files.length) {
     const k = +t.dataset.docarch, d = EXP.documentos[k]; d.archivos = d.archivos || [];
     for (const f of t.files) { try { let data, mime = f.type || 'application/octet-stream';
@@ -649,6 +689,7 @@ async function exportar() {
   const fotos = {}; for (const z of EXP.zonas) for (const i of z.items) for (const id of i.fotos) fotos[id] = await BD.leerFoto(id);
   for (const d of EXP.documentos) for (const a of (d.archivos || [])) fotos[a.id] = await BD.leerFoto(a.id);
   for (const ids of Object.values(EXP.pruebasFotos || {})) for (const id of ids) fotos[id] = await BD.leerFoto(id);
+  for (const a of (EXP.plano || [])) fotos[a.id] = await BD.leerFoto(a.id);
   const blob = new Blob([JSON.stringify({version: 1, expediente: EXP, fotos})], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `respaldo-${EXP.folio}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   aviso('Respaldo exportado');
@@ -679,7 +720,7 @@ async function generarPDF() {
     if (pe.lista.length) { doc.setFillColor(...RGB.amarillo); doc.roundedRect(M, 60, 84, 9, 2, 2, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('REPORTE DE CAMPO | PRELIMINAR', M + 4, 66); doc.setFont('helvetica', 'normal'); }
     doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});
     let y = 108; doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize(d.direccion || 'Dirección sin capturar', W - 2 * M), M, y); y += 8;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`], M, y); y += 30;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`, d.gps ? `Ubicación verificada en sitio: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (+/- ${Math.round(d.gps.precision)} m), ${new Date(d.gps.fecha).toLocaleString('es-MX')}` : 'Ubicación: sin registro GPS en sitio', (d.esc_construccion || d.plano_construccion) ? `Construcción: escritura ${d.esc_construccion || '-'} m2 | medida ${d.plano_construccion || '-'} m2 | Terreno: escritura ${d.esc_terreno || '-'} m2 | medido ${d.plano_terreno || '-'} m2` : ''].filter(Boolean), M, y); y += 40;
     const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
     doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
     if (pe.lista.length) { doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Resultado preliminar: hay estudios en proceso.', M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);

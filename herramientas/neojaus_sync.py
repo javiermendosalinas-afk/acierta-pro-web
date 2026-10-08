@@ -57,6 +57,7 @@ TRABAJADORES = 3
 PAUSA = 0.6            # por trabajador: ~4-5 fichas por segundo en total
 DIST_DUPLICADO_M = 80
 VERSION_FILTRO = 2      # v2: ya no se exige shared_commission; las 'fuera' de v1 se vuelven a revisar
+VERSION_DATOS = 3       # v3: las publicables guardan terreno y construcción (para la opinión de valor)
 TOLERANCIA_PRECIO = 0.03
 
 TIPO_POR_CLAVE = {      # respaldo si el título no trae el tipo
@@ -179,6 +180,8 @@ def leer_ficha(url):
             "titulo": (p.get("name") or "").strip(), "tipo": tipo,
             "recamaras": p.get("rooms") or None, "banos": p.get("bathrooms"),
             "m2": float(m2) if m2 else None, "niveles": p.get("floors"),
+            "terreno": float(area_terreno) if area_terreno else None,
+            "construccion": float(p["construction_area"]) if p.get("construction_area") else None,
             "eb": nj, "liga": None,     # la pone el sitio de la bolsa (no acierta.pro)
             "foto": foto, "lat": coords.get("lat"), "lon": coords.get("lng"),
             "colonia": loc.get("neighborhood") or "", "fuente": "neojaus", "url_fuente": url,
@@ -292,7 +295,8 @@ def main():
 
     pendientes = [u for u, lm in sitemap.items() if u not in cache or cache[u].get("lm") != lm
                   or cache[u].get("estado") == "error"
-                  or (cache[u].get("estado") == "fuera" and cache[u].get("v") != VERSION_FILTRO)]
+                  or (cache[u].get("estado") == "fuera" and cache[u].get("v") != VERSION_FILTRO)
+                  or (cache[u].get("estado") not in ("fuera", "error") and (cache[u].get("vd") or 0) < VERSION_DATOS)]
     # primero las que probablemente son de la ZMG (más útiles si el tiempo no alcanza)
     zmg = re.compile(r"zapopan|guadalajara|tlaquepaque|tonala|tlajomulco|salto|jalisco", re.I)
     pendientes.sort(key=lambda u: 0 if zmg.search(u) else 1)
@@ -316,7 +320,7 @@ def main():
                 estado, regs = hecho.result()
             except Exception:
                 estado, regs = "error", []
-            cache[u] = {"lm": sitemap.get(u, ""), "estado": estado, "regs": regs, "v": VERSION_FILTRO}
+            cache[u] = {"lm": sitemap.get(u, ""), "estado": estado, "regs": regs, "v": VERSION_FILTRO, "vd": VERSION_DATOS}
             cont[estado] += 1
             revisadas += 1
             if revisadas % 500 == 0:
