@@ -242,7 +242,7 @@ const BD = (() => {
 let API_BASE = 'https://aciertamax-webhook.onrender.com';
 fetch('camino-datos.json').then(r => r.json()).then(j => { if (j.endpoint) API_BASE = j.endpoint.replace(/\/api\/camino\/?$/, ''); }).catch(() => {});
 let SESION = null; try { SESION = JSON.parse(localStorage.getItem('veri_sesion') || 'null'); if (SESION && SESION.exp < Date.now()) SESION = null; } catch (e) { SESION = null; }
-async function api(ruta, cuerpo) { const r = await fetch(API_BASE + ruta, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cuerpo)}); const j = await r.json().catch(() => ({ok: false, error: 'Respuesta inválida del servidor.'})); if (r.status === 401 && ruta !== '/api/asesor/login') { SESION = null; localStorage.removeItem('veri_sesion'); } return j; }
+async function api(ruta, cuerpo) { const r = await fetch(API_BASE + ruta, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cuerpo)}); const j = await r.json().catch(() => ({ok: false, error: 'Respuesta inválida del servidor.'})); if (r.status === 401 && ruta !== '/api/asesor/login') { SESION = null; try { localStorage.removeItem('veri_sesion'); } catch (e) {} } return j; }
 async function veri(modo, contexto, extras = {}) {
   if (!SESION) { aviso('Entra con tu clave para usar a VERI.'); return null; }
   const historial = (EXP && EXP.veri || []).slice(-8).map(m => ({rol: m.rol, texto: m.texto}));
@@ -346,7 +346,23 @@ async function inicio() {
     : '<p class="ayuda">No hay expedientes en este teléfono. Abre uno nuevo para empezar.</p>'}
   <h2>Respaldo</h2>
   <div class="acciones"><label class="btn sec" style="display:inline-flex;align-items:center">Importar respaldo<input type="file" accept="application/json" id="importar" class="oculto"></label></div>`;
-  if (!SESION) api('/api/asesor/usuarios', {}).then(j => { const s = $('#usuario'); if (s && j.ok) s.innerHTML = '<option value="">Elige tu usuario</option>' + j.usuarios.filter(u => u.activo).map(u => `<option value="${esc(u.usuario)}">${esc(u.nombre)}</option>`).join(''); }).catch(() => { const s = $('#usuario'); if (s) s.innerHTML = '<option value="">Sin conexión</option>'; });
+  if (!SESION) cargarUsuarios();
+}
+async function cargarUsuarios(intento = 1) {
+  const s = $('#usuario'); if (!s) return;
+  const msg = txt => { let m = $('#msgUsuarios'); if (!m) { m = document.createElement('div'); m.id = 'msgUsuarios'; m.className = 'aviso'; s.closest('.panel').insertBefore(m, s.closest('label')); } m.innerHTML = txt; };
+  try {
+    const j = await api('/api/asesor/usuarios', {});
+    if (!j.ok) throw new Error('respuesta');
+    const activos = j.usuarios.filter(u => u.activo);
+    s.innerHTML = '<option value="">Elige tu usuario</option>' + j.usuarios.map(u => `<option value="${esc(u.usuario)}" ${u.activo ? '' : 'disabled'}>${esc(u.nombre)}${u.activo ? '' : ' (sin clave)'}</option>`).join('');
+    const m = $('#msgUsuarios'); if (m) m.remove();
+    if (!activos.length) msg('Todavía no hay claves dadas de alta en el servidor. En Render, en el servicio <strong>aciertamax-webhook</strong> → Environment, agrega <strong>CLAVE_ASESOR_JAVIER</strong> y las de tu equipo, guarda, espera 3 minutos y vuelve a abrir esta página.');
+  } catch (e) {
+    if (intento < 3) { s.innerHTML = '<option value="">Despertando el servidor…</option>'; setTimeout(() => cargarUsuarios(intento + 1), 15000); return; }
+    s.innerHTML = '<option value="">Sin conexión con el servidor</option>';
+    msg('No se pudo conectar con el servidor. Revisa tu internet y vuelve a abrir la página en 1 minuto.');
+  }
 }
 function pDatos() {
   const d = EXP.datos;
@@ -476,8 +492,8 @@ document.addEventListener('click', async ev => {
     doc.querySelector('textarea').style.display = d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'none'; guardar(); return; }
   if (b.id === 'entrar') { const u = $('#usuario').value, c = $('#clave').value; if (!u || !c) return aviso('Elige tu usuario y escribe tu clave.');
     b.disabled = true; const j = await api('/api/asesor/login', {usuario: u, clave: c}); b.disabled = false;
-    if (!j.ok) return aviso(j.error || 'No se pudo entrar.'); SESION = {token: j.token, nombre: j.nombre, exp: Date.now() + 11 * 3600 * 1000}; localStorage.setItem('veri_sesion', JSON.stringify(SESION)); aviso('Hola, ' + j.nombre.split(' ')[0] + '. VERI está listo.'); return pintar(); }
-  if (b.id === 'salir') { SESION = null; localStorage.removeItem('veri_sesion'); return pintar(); }
+    if (!j.ok) return aviso(j.error || 'No se pudo entrar.'); SESION = {token: j.token, nombre: j.nombre, exp: Date.now() + 11 * 3600 * 1000}; try { localStorage.setItem('veri_sesion', JSON.stringify(SESION)); } catch (e) {} aviso('Hola, ' + j.nombre.split(' ')[0] + '. VERI está listo.'); return pintar(); }
+  if (b.id === 'salir') { SESION = null; try { localStorage.removeItem('veri_sesion'); } catch (e) {} return pintar(); }
   if (b.id === 'buscarCRM') { if (!SESION) return aviso('Entra con tu clave para consultar el CRM.'); const tel = (EXP.datos.telefono || '').replace(/\D/g, '').slice(-10);
     if (tel.length !== 10) return aviso('Escribe el WhatsApp del cliente a 10 dígitos.'); b.disabled = true; const j = await api('/api/asesor/cliente', {token: SESION.token, whatsapp: tel}); b.disabled = false;
     if (!j.ok) return aviso(j.error || 'No se pudo consultar el CRM.');
