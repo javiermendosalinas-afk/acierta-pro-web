@@ -875,6 +875,8 @@ def escribir_xlsx(ruta, registros, fecha):
 # (herramientas/eb_terrenos.json.gz). Si existiera EASYBROKER_API_KEY se usaría la API.
 # Las fichas sin dato se reintentan después de 30 días.
 RUTA_CACHE_TERRENOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eb_terrenos.json.gz")
+DIR_MUESTRAS_FICHAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "muestras_fichas")
+VERSION_LECTOR = 2      # al mejorar el lector, las fichas leídas sin dato se vuelven a leer
 _NUM = r"([\d]{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)"
 _U = r"\s*(?:m²|m2|mts²|mts|metros)"
 _ET_T = r"(?:tama[ñn]o\s+del\s+terreno|superficie\s+(?:de|del|total\s+de)\s+terreno|[áa]rea\s+de\s+terreno|terreno|lote)"
@@ -931,7 +933,7 @@ def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
     cache = _cargar_cache_terrenos()
     hoy = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hace30 = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
-    hechas = encontradas = 0
+    hechas = encontradas = muestras = 0
     s = requests.Session()
     if clave_api:
         s.headers.update({"X-Authorization": clave_api, "Accept": "application/json"})
@@ -942,7 +944,7 @@ def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
             continue
         vistos.add(eb)
         c = cache.get(eb)
-        if c and (c.get("t") is not None or c.get("c") is not None or c.get("f", "") >= hace30):
+        if c and (c.get("t") is not None or c.get("c") is not None or (c.get("f", "") >= hace30 and c.get("v", 1) >= VERSION_LECTOR)):
             continue
         hechas += 1
         dato = None
@@ -958,10 +960,15 @@ def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
         elif f.get("liga"):
             resp = get_con_reintentos(s, f["liga"])
             if resp is not None:
+                if muestras < 3:
+                    os.makedirs(DIR_MUESTRAS_FICHAS, exist_ok=True)
+                    with open(os.path.join(DIR_MUESTRAS_FICHAS, f"ficha_{muestras + 1}.html"), "w", encoding="utf-8") as fh:
+                        fh.write(f"<!-- {f['liga']} -->\n" + resp.text)
+                    muestras += 1
                 te, co = terreno_desde_html(resp.text)
                 if te or co:
                     dato = {"t": te, "c": co, "f": hoy}
-        cache[eb] = dato or {"t": None, "c": None, "f": hoy}
+        cache[eb] = dict(dato or {"t": None, "c": None, "f": hoy}, v=VERSION_LECTOR)
         encontradas += 1 if dato else 0
         if hechas % 250 == 0:
             _guardar_cache_terrenos(cache)

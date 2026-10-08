@@ -34,12 +34,16 @@ jobs:
       - name: Dependencias
         run: pip install requests beautifulsoup4
       - name: Leer terrenos de las fichas
-        run: python -u herramientas/inventario_sync.py --solo-terrenos ${{ github.event.inputs.maximo || '4000' }}
+        run: |
+          N="${{ github.event.inputs.maximo }}"
+          [ -z "$N" ] && N=$(grep -oE '^[0-9]+' herramientas/disparar_terrenos.txt | head -1)
+          [ -z "$N" ] && N=4000
+          python -u herramientas/inventario_sync.py --solo-terrenos $N
       - name: Guardar
         run: |
           git config user.name "acierta-bot"
           git config user.email "acierta-bot@users.noreply.github.com"
-          git add data.json herramientas/eb_terrenos.json.gz
+          git add data.json herramientas/eb_terrenos.json.gz herramientas/muestras_fichas 2>/dev/null || true
           if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
           git commit -m "Terrenos: fichas de aciertamax.com ($(date -u +%Y-%m-%d))"
           git pull --rebase -X theirs origin main || true
