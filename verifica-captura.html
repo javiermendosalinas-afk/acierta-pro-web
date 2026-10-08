@@ -183,6 +183,31 @@ const EQUIPO = {
   nivel: {n: 'Nivel láser 360° de 16 líneas', p: ['Ponlo en el trípode al centro del espacio y enciéndelo.', 'Espera a que se nivele solo.', 'Mide con flexómetro de la línea al piso en 4 esquinas.', 'Anota la diferencia mayor en mm.'], r: 'Más de 10 mm en 3 m: observación. Más de 20 mm con grietas: crítico.'},
   visual: {n: 'Linterna, espejo y flexómetro', p: ['Ilumina bien antes de concluir.', 'Usa el espejo para ver detrás o abajo.', 'Mide grietas o manchas con el flexómetro.', 'Toma foto con referencia de tamaño (flexómetro o mano).'], r: 'Grieta diagonal desde esquinas, más de 3 mm o con desnivel: crítico.'}
 };
+EQUIPO.cronometro = {n: 'Cronómetro del celular', p: ['Ve a la regadera más lejana del calentador.', 'Abre solo la llave del agua caliente al máximo y arranca el cronómetro.', 'Detén el cronómetro cuando el agua salga caliente al tacto.', 'Anota los segundos.'], r: 'Hasta 60 segundos es normal. Más de 60 s: observación.'};
+EQUIPO.medidor = {n: 'Medidor de agua de la casa', p: ['Cierra todas las llaves, el WC y la toma de la lavadora; apaga el hidroneumático si existe.', 'Toma foto del medidor mostrando todos los números.', 'Espera 10 minutos sin usar agua.', 'Toma otra foto: si los números o la carátula avanzaron, hay fuga.'], r: 'No debe avanzar nada en 10 minutos.'};
+const PRUEBAS = [
+  {sec: 'Hidráulico', items: [
+    {k: 'presion_baja', l: 'Presión en planta baja', u: 'PSI', eq: ['manometro'], paso: 'Usa la llave de jardín o de la lavadora de planta baja.', ayuda: 'Tinaco: 5–15 · hidroneumático: 20–60'},
+    {k: 'presion_alta', l: 'Presión en el punto más alto', u: 'PSI', eq: ['manometro'], paso: 'Usa la llave más alta de la casa (azotea, lavadero de azotea o baño de planta alta).'},
+    {k: 'presion_doble', l: 'Presión con dos salidas abiertas', u: 'PSI', eq: ['manometro'], paso: 'Con el manómetro puesto en planta alta, pide que abran la regadera y el lavabo de ese piso; lee el manómetro.', ayuda: 'No debe caer a la mitad'},
+    {k: 'agua_caliente', l: 'Tiempo para agua caliente', u: 'segundos', eq: ['cronometro'], ayuda: 'Más de 60 s es observación'},
+    {k: 'medidor', l: 'Medidor de agua con todo cerrado (10 min)', tipo: 'sel', ops: [['quieto', 'No avanza'], ['avanza', 'Avanza: posible fuga']], eq: ['medidor']}]},
+  {sec: 'Eléctrico', items: [
+    {k: 'volt_cerca', l: 'Voltaje junto al tablero', u: 'V', eq: ['probador', 'multimetro'], paso: 'Usa el contacto más cercano al tablero.', ayuda: 'Rango: 114–135 V'},
+    {k: 'volt_lejos', l: 'Voltaje en el contacto más lejano', u: 'V', eq: ['probador'], paso: 'Usa el contacto más alejado del tablero (normalmente en planta alta o al fondo).'},
+    {k: 'contactos', l: 'Contactos probados', u: 'número', eq: ['probador'], paso: 'Prueba todos los contactos accesibles de la casa y cuéntalos.'},
+    {k: 'contactos_falla', l: 'Contactos con falla', u: 'número', eq: ['probador'], paso: 'Cuenta los que marcaron sin tierra, fase invertida o sin voltaje, y anota dónde están en la zona correspondiente.'}]},
+  {sec: 'Gas', items: [
+    {k: 'detector_gas', l: 'Detector de gas combustible HT609Pro en conexiones', tipo: 'sel', ops: [['sin', 'Sin alarma'], ['fuga', 'Con alarma: posible fuga']], eq: ['gas']},
+    {k: 'jabonosa', l: 'Agua jabonosa en conexiones (confirmación)', tipo: 'sel', ops: [['sin', 'Sin burbujas'], ['fuga', 'Con burbujas: fuga']], eq: ['jabonosa']},
+    {k: 'co_calentador', l: 'CO junto al calentador', u: 'ppm', eq: ['co'], ayuda: 'Más de 35 ppm: crítico'},
+    {k: 'co_estufa', l: 'CO junto a la estufa', u: 'ppm', eq: ['co'], paso: 'Enciende 2 quemadores y el horno si existe.'}]},
+  {sec: 'Niveles', items: [
+    {k: 'nivel_sala', l: 'Desnivel en sala y comedor', u: 'mm', eq: ['nivel'], ayuda: 'Más de 10 mm en 3 m: observación'},
+    {k: 'nivel_recamara', l: 'Desnivel en recámara principal', u: 'mm', eq: ['nivel']}]},
+  {sec: 'Humedad', items: [
+    {k: 'humedad', l: 'Lecturas de humedad (lugar: punto sospechoso / punto sano)', tipo: 'txt', eq: ['termografica', 'humedad'], paso: 'Registra una línea por cada muro revisado, por ejemplo: «Muro de regadera baño 2: 78 / 22».'}]}
+];
 function equiposPara(texto) {
   const t = texto.toLowerCase(), e = [];
   if (/humedad|mancha|filtraci|impermeab|plaf|encharc|sellos/.test(t)) e.push('termografica', 'humedad');
@@ -210,6 +235,8 @@ const ICONOS = {
   nivel: '<rect x="24" y="16" width="16" height="14" rx="3"/><path d="M32 30v8M32 38l-10 18M32 38l10 18M32 38v18"/><path d="M4 23h18M42 23h18" stroke="#1E9E4E" stroke-dasharray="3 3"/>',
   visual: '<path d="M10 26h20l8-6v20l-8-6H10z"/><path d="M42 22l8-4M42 30h9M42 38l8 4" stroke="#E0A100"/><rect x="12" y="46" width="40" height="8" rx="2"/><path d="M18 46v4M24 46v3M30 46v4M36 46v3M42 46v4"/>'
 };
+ICONOS.cronometro = '<circle cx="32" cy="36" r="20"/><path d="M32 36V24M28 8h8M32 8v8" /><path d="M32 36l8 6" stroke="#DE0A0E"/>';
+ICONOS.medidor = '<circle cx="32" cy="32" r="18"/><rect x="22" y="24" width="20" height="8" rx="1.5" fill="#E8F0FA"/><path d="M8 32h6M50 32h6"/><circle cx="32" cy="42" r="3" fill="#DE0A0E" stroke="none"/>';
 function icono(id) { return `<svg class="ico-equipo" viewBox="0 0 64 64" width="56" height="56" fill="none" stroke="#0A1F3F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[id] || ''}</svg>`; }
 function guiaHTML(ids) {
   return ids.map(id => { const q = EQUIPO[id]; return `<div class="guia"><div class="guia-cab">${icono(id)}<h4>${esc(q.n)}</h4></div><img src="assets/verifica/equipo/${id}.jpg" alt="Foto: ${esc(q.n)}" onerror="this.remove()"><ol>${q.p.map(x => `<li>${esc(x)}</li>`).join('')}</ol><div class="ref">Referencia: ${esc(q.r)}</div></div>`; }).join('');
@@ -412,22 +439,27 @@ async function pintarFotos(it, k) {
   cont.innerHTML = it.fotos.map((id, j) => datos[j] ? `<figure><img src="${datos[j]}" alt="Foto ${j + 1} de ${esc(it.t)}"><button type="button" aria-label="Quitar foto" data-quitar="${k}:${id}">×</button></figure>` : '').join('');
 }
 function pPruebas() {
-  const p = EXP.pruebas;
-  const n = (k, l, u, ayuda) => `<label class="campo">${l} <span class="op">${u}</span><input type="number" inputmode="decimal" data-prueba="${k}" value="${esc(p[k])}">${ayuda ? `<span class="op" style="font-weight:400;font-size:14px">${ayuda}</span>` : ''}</label>`;
-  const s = (k, l, ops) => `<label class="campo">${l}<select data-prueba="${k}"><option value="">Sin realizar</option>${ops.map(([v, t]) => `<option value="${v}" ${p[k] === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>`;
-  $('#app').innerHTML = `<h1>Pruebas y mediciones</h1><p class="ayuda">Registra el valor aunque sea bueno. Deja vacío lo que no se pudo medir.</p>
-  <div class="panel"><h3>Hidráulico</h3><br><div class="fila">${n('presion_baja', 'Presión en planta baja', 'PSI', 'Tinaco: 5–15 · hidroneumático: 20–60')}${n('presion_alta', 'Presión en el punto más alto', 'PSI')}</div>
-  <div class="fila">${n('presion_doble', 'Presión con dos salidas abiertas', 'PSI')}${n('agua_caliente', 'Tiempo para agua caliente', 'segundos', 'Más de 60 s es observación')}</div>
-  ${s('medidor', 'Medidor de agua con todo cerrado (10 min)', [['quieto', 'No avanza'], ['avanza', 'Avanza: posible fuga']])}</div>
-  <div class="panel"><h3>Eléctrico</h3><br><div class="fila">${n('volt_cerca', 'Voltaje junto al tablero', 'V', 'Rango: 114–135 V')}${n('volt_lejos', 'Voltaje en el contacto más lejano', 'V')}</div>
-  <div class="fila">${n('contactos', 'Contactos probados', 'número')}${n('contactos_falla', 'Contactos con falla', 'número')}</div></div>
-  <div class="panel"><h3>Gas</h3><br>${s('detector_gas', 'Detector de gas combustible HT609Pro en conexiones', [['sin', 'Sin alarma'], ['fuga', 'Con alarma: posible fuga']])}${s('jabonosa', 'Agua jabonosa en conexiones (confirmación)', [['sin', 'Sin burbujas'], ['fuga', 'Con burbujas: fuga']])}
-  <div class="fila">${n('co_calentador', 'CO junto al calentador', 'ppm', 'Más de 35 ppm: crítico')}${n('co_estufa', 'CO junto a la estufa', 'ppm')}</div></div>
-  <div class="panel"><h3>Niveles</h3><br><div class="fila">${n('nivel_sala', 'Desnivel en sala y comedor', 'mm', 'Más de 10 mm en 3 m: observación')}${n('nivel_recamara', 'Desnivel en recámara principal', 'mm')}</div></div>
-  <div class="panel"><h3>Humedad</h3><br><label class="campo">Lecturas <span class="op">(lugar: punto sospechoso / punto sano)</span><textarea data-prueba="humedad" placeholder="Muro de regadera baño 2: 78 / 22">${esc(p.humedad)}</textarea></label></div>
-  <div class="panel"><button type="button" class="volver" data-guiapruebas>Cómo hacer cada prueba</button><div class="oculto" id="guiaPruebas">${guiaHTML(['manometro', 'probador', 'multimetro', 'gas', 'jabonosa', 'co', 'nivel', 'humedad'])}</div>
-  <button class="veri-btn" type="button" id="veriPruebas">Que VERI revise las mediciones</button><div id="veriPruebasRes">${veriCard(EXP.veriPruebas)}</div></div>
+  const p = EXP.pruebas; EXP.pruebasFotos = EXP.pruebasFotos || {}; EXP.pruebasVeri = EXP.pruebasVeri || {};
+  const campo = q => {
+    const ctrl = q.tipo === 'sel' ? `<select data-prueba="${q.k}"><option value="">Sin realizar</option>${q.ops.map(([v, tx]) => `<option value="${v}" ${p[q.k] === v ? 'selected' : ''}>${tx}</option>`).join('')}</select>`
+      : q.tipo === 'txt' ? `<textarea data-prueba="${q.k}" placeholder="Muro de regadera baño 2: 78 / 22">${esc(p[q.k])}</textarea>`
+      : `<input type="number" inputmode="decimal" data-prueba="${q.k}" value="${esc(p[q.k])}">`;
+    const guia = (q.paso ? `<div class="guia"><h4>En esta prueba</h4><div>${esc(q.paso)}</div></div>` : '') + guiaHTML(q.eq);
+    return `<div class="item" data-pk="${q.k}"><label class="campo" style="margin-bottom:6px">${esc(q.l)} ${q.u ? `<span class="op">${q.u}</span>` : ''}${ctrl}${q.ayuda ? `<span class="op" style="font-weight:400;font-size:14px">${esc(q.ayuda)}</span>` : ''}</label>
+      <div class="acciones"><button type="button" class="volver" data-pguia="${q.k}">Cómo medirlo</button>
+      <label class="btn-foto" style="display:inline-flex;align-items:center">Foto de la lectura<input type="file" accept="image/*" capture="environment" class="oculto" data-pfoto="${q.k}" multiple></label></div>
+      <div class="oculto" id="pg-${q.k}">${guia}</div><div class="fotos" id="pf-${q.k}"></div><div id="pv-${q.k}">${veriCard(EXP.pruebasVeri[q.k])}</div></div>`;
+  };
+  $('#app').innerHTML = `<h1>Pruebas y mediciones</h1><p class="ayuda">En cada prueba toca «Cómo medirlo», sigue los pasos, escribe el valor y toma foto del aparato con la lectura. VERI la revisa al momento.</p>
+  ${PRUEBAS.map(s => `<div class="panel"><h3>${s.sec}</h3>${s.items.map(campo).join('')}</div>`).join('')}
+  <div class="panel"><button class="veri-btn" type="button" id="veriPruebas">Que VERI revise todas las mediciones</button><div id="veriPruebasRes">${veriCard(EXP.veriPruebas)}</div></div>
   <button class="btn" type="button" data-paso="documentos">Continuar con documentos</button>`;
+  PRUEBAS.forEach(s => s.items.forEach(q => pintarFotosPrueba(q.k)));
+}
+async function pintarFotosPrueba(k) {
+  const cont = document.getElementById('pf-' + k); if (!cont) return; const ids = (EXP.pruebasFotos || {})[k] || [];
+  const datos = await Promise.all(ids.map(id => BD.leerFoto(id)));
+  cont.innerHTML = ids.map((id, j) => datos[j] ? `<figure><img src="${datos[j]}" alt="Lectura ${j + 1}"><button type="button" aria-label="Quitar foto" data-pquitar="${k}:${id}">×</button></figure>` : '').join('');
 }
 function pDocumentos() {
   $('#app').innerHTML = `<h1>Revisión documental</h1><p class="ayuda">Lo que no se entregue se marca como «No presentado». Lo que requiera opinión jurídica se canaliza a notario o abogado.</p>
@@ -501,7 +533,8 @@ document.addEventListener('click', async ev => {
     else { EXP.datos.numcliente = EXP.datos.numcliente || ('VC-' + tel); guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">No está en el CRM. Se asignó el número provisional <strong>${esc(EXP.datos.numcliente)}</strong>; da de alta al cliente en MAX para tener su folio.</div>`; }
     return; }
   if (b.dataset.guia != null) { document.getElementById('g-' + b.dataset.guia).classList.toggle('oculto'); return; }
-  if (b.hasAttribute('data-guiapruebas')) { $('#guiaPruebas').classList.toggle('oculto'); return; }
+  if (b.dataset.pguia) { document.getElementById('pg-' + b.dataset.pguia).classList.toggle('oculto'); return; }
+  if (b.dataset.pquitar) { const [k, id] = b.dataset.pquitar.split(':'); EXP.pruebasFotos[k] = (EXP.pruebasFotos[k] || []).filter(f => f !== id); BD.borrarFoto(id); guardar(); pintarFotosPrueba(k); return; }
   if (b.id === 'veriZona') { const z = EXP.zonas.find(x => x.id === ZONA); b.disabled = true; b.textContent = 'VERI está revisando la zona…';
     const v = await veri('zona', Object.assign(datosBase(), {zona: z.nombre, tipo: z.tipo, nota_zona: z.nota, puntos: z.items.map(i => ({punto: i.t, estado: i.e || 'sin marcar', nota: i.nota, fotos: i.fotos.length}))}), {imagenes: await fotosDe(z.items.flatMap(i => i.fotos))});
     b.disabled = false; b.textContent = 'Que VERI revise esta zona'; if (v) { z.veri = v; guardar(); $('#veriZonaRes').innerHTML = veriCard(v); } return; }
@@ -549,6 +582,16 @@ document.addEventListener('change', async ev => {
       if (v) { it.veri = v; guardar(); } const c2 = document.getElementById('vi-' + k); if (c2) c2.innerHTML = veriCard(it.veri); }
     return;
   }
+  if (t.dataset.pfoto && t.files.length) {
+    const k = t.dataset.pfoto, n = t.files.length; EXP.pruebasFotos = EXP.pruebasFotos || {}; EXP.pruebasVeri = EXP.pruebasVeri || {}; EXP.pruebasFotos[k] = EXP.pruebasFotos[k] || [];
+    for (const f of t.files) { try { const data = await comprimir(f); const id = 'p' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); EXP.pruebasFotos[k].push(id); } catch (e) { aviso('No se pudo leer una foto.'); } }
+    t.value = ''; guardar(); pintarFotosPrueba(k);
+    if (SESION) { const q = PRUEBAS.flatMap(s => s.items).find(x => x.k === k); const cont = document.getElementById('pv-' + k);
+      if (cont) cont.innerHTML = '<div class="veri-card"><div class="quien">VERI</div>Revisando la lectura…</div>';
+      const v = await veri('foto', Object.assign(datosBase(), {prueba: q.l, unidad: q.u || '', valor_capturado: EXP.pruebas[k] || 'sin capturar', instrumento: q.eq.map(id => EQUIPO[id].n), referencia: q.eq.map(id => EQUIPO[id].r).join(' ')}), {imagenes: await fotosDe(EXP.pruebasFotos[k].slice(-Math.min(n, 3)), 3)});
+      if (v) { EXP.pruebasVeri[k] = v; guardar(); } const c2 = document.getElementById('pv-' + k); if (c2) c2.innerHTML = veriCard(EXP.pruebasVeri[k]); }
+    return;
+  }
   if (t.dataset.docarch != null && t.files.length) {
     const k = +t.dataset.docarch, d = EXP.documentos[k]; d.archivos = d.archivos || [];
     for (const f of t.files) { try { let data, mime = f.type || 'application/octet-stream';
@@ -568,6 +611,7 @@ document.addEventListener('change', async ev => {
 async function exportar() {
   const fotos = {}; for (const z of EXP.zonas) for (const i of z.items) for (const id of i.fotos) fotos[id] = await BD.leerFoto(id);
   for (const d of EXP.documentos) for (const a of (d.archivos || [])) fotos[a.id] = await BD.leerFoto(a.id);
+  for (const ids of Object.values(EXP.pruebasFotos || {})) for (const id of ids) fotos[id] = await BD.leerFoto(id);
   const blob = new Blob([JSON.stringify({version: 1, expediente: EXP, fotos})], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `respaldo-${EXP.folio}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   aviso('Respaldo exportado');
