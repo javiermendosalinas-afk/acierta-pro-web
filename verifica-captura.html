@@ -79,7 +79,8 @@ nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(-
 .doc:first-of-type{border-top:0}
 .doc .nombre{font-weight:700}
 .doc .que{color:var(--muted);font-size:14px;margin:2px 0 8px}
-.estados.doc5 button{font-size:12.5px}
+.estados.doc5{grid-template-columns:repeat(3,1fr)}
+.estados.doc5 button{font-size:13px}
 .expediente{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
 .expediente .info{flex:1;min-width:0}
 .expediente .info div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -169,7 +170,40 @@ const DOCUMENTOS = [
   ['Ocupación','Quién vive hoy; contrato de arrendamiento vigente',0]
 ];
 const ESTADOS = [['ok','Bien'],['obs','Observación'],['falla','Falla'],['na','No aplica'],['nacc','No accesible']];
-const ESTADOS_DOC = [['ok','Correcto'],['obs','Con observación'],['alerta','Con alerta'],['np','No presentado'],['na','No aplica']];
+const ESTADOS_DOC = [['ok','Correcto'],['obs','Con observación'],['alerta','Con alerta'],['tramite','En trámite'],['np','No presentado'],['na','No aplica']];
+function plazoDoc(nombre) { const n = nombre.toLowerCase();
+  if (n.includes('gravámenes')) return [5, 'Certificado de libertad o gravamen del RPP: 5 días hábiles (urgente en 24 h al doble)'];
+  if (n.includes('registro público')) return [1, 'Consulta de folio real en línea'];
+  if (n.includes('licencias') || n.includes('uso de suelo')) return [10, 'Dictamen o constancia municipal: alrededor de 10 días hábiles'];
+  if (n.includes('poder') || n.includes('sucesión')) return [3, 'Verificación por el notario de la operación'];
+  if (n.includes('agua')) return [3, 'Constancia de no adeudo del organismo de agua'];
+  if (n.includes('predial')) return [1, 'Constancia de no adeudo predial'];
+  if (n.includes('condominio')) return [3, 'Copias del régimen y constancia del administrador'];
+  if (n.includes('estado civil')) return [1, 'Acta de matrimonio reciente'];
+  return [2, 'Entrega por el vendedor o el cliente']; }
+function sumarHabiles(fechaISO, dias) { const d = new Date((fechaISO || hoy()) + 'T12:00:00'); let n = 0; while (n < dias) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d.getDay() !== 6) n++; } return d.toISOString().slice(0, 10); }
+function fechaLarga(iso) { return iso ? new Date(iso + 'T12:00:00').toLocaleDateString('es-MX', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'}) : ''; }
+const RANGOS = {
+  presion_baja: {l: 'Presión en planta baja', u: 'PSI', esc: [0, 100], zonas: [[0, 5, 'a'], [5, 60, 'v'], [60, 80, 'a'], [80, 100, 'r']], imp: {v: 'Presión adecuada para el uso diario.', a: 'Presión fuera de lo ideal: revisar tinaco, bomba o regulador.', r: 'Presión excesiva: riesgo de fugas y daño en conexiones.'}},
+  presion_alta: {l: 'Presión en el punto más alto', u: 'PSI', esc: [0, 100], zonas: [[0, 5, 'a'], [5, 60, 'v'], [60, 80, 'a'], [80, 100, 'r']], imp: {v: 'Llega agua con presión suficiente a la planta alta.', a: 'Poca presión en la planta alta; puede requerir presurizador.', r: 'Presión excesiva: riesgo de fugas.'}},
+  agua_caliente: {l: 'Tiempo para agua caliente', u: 's', esc: [0, 120], zonas: [[0, 60, 'v'], [60, 120, 'a']], imp: {v: 'El agua caliente llega en tiempo razonable.', a: 'Tarda en llegar: desperdicio de agua y gas.'}},
+  volt_cerca: {l: 'Voltaje junto al tablero', u: 'V', esc: [100, 145], zonas: [[100, 114, 'a'], [114, 135, 'v'], [135, 145, 'a']], imp: {v: 'Voltaje dentro de norma.', a: 'Voltaje fuera de norma: puede dañar aparatos.'}},
+  volt_lejos: {l: 'Voltaje en el contacto más lejano', u: 'V', esc: [100, 145], zonas: [[100, 114, 'a'], [114, 135, 'v'], [135, 145, 'a']], imp: {v: 'Sin caída de voltaje relevante.', a: 'Caída de voltaje: cableado delgado o conexiones flojas.'}},
+  co_calentador: {l: 'Monóxido de carbono junto al calentador', u: 'ppm', esc: [0, 60], zonas: [[0, 9, 'v'], [9, 35, 'a'], [35, 60, 'r']], imp: {v: 'Combustión correcta.', a: 'Combustión deficiente: dar mantenimiento al calentador.', r: 'Riesgo de intoxicación: no usar hasta reparar.'}},
+  co_estufa: {l: 'Monóxido de carbono junto a la estufa', u: 'ppm', esc: [0, 60], zonas: [[0, 9, 'v'], [9, 35, 'a'], [35, 60, 'r']], imp: {v: 'Combustión correcta.', a: 'Combustión deficiente: limpiar quemadores y revisar ventilación.', r: 'Riesgo de intoxicación: no usar hasta reparar.'}},
+  nivel_sala: {l: 'Desnivel en sala y comedor', u: 'mm', esc: [0, 30], zonas: [[0, 10, 'v'], [10, 20, 'a'], [20, 30, 'r']], imp: {v: 'Pisos dentro de tolerancia.', a: 'Desnivel visible: revisar firme y asentamientos.', r: 'Posible asentamiento: perito estructural.'}},
+  nivel_recamara: {l: 'Desnivel en recámara principal', u: 'mm', esc: [0, 30], zonas: [[0, 10, 'v'], [10, 20, 'a'], [20, 30, 'r']], imp: {v: 'Pisos dentro de tolerancia.', a: 'Desnivel visible: revisar firme y asentamientos.', r: 'Posible asentamiento: perito estructural.'}}
+};
+function pendientes(e) {
+  const lista = []; const f0 = e.datos.fecha || hoy();
+  e.documentos.forEach(d => { if (d.e === 'tramite') { const [dias, motivo] = plazoDoc(d.d); lista.push({c: d.d, m: motivo, f: d.fecha || sumarHabiles(f0, dias)}); }
+    else if (d.e === 'np') lista.push({c: d.d, m: 'Pendiente de entrega por el vendedor o el cliente', f: d.fecha || sumarHabiles(f0, 2)}); });
+  e.zonas.forEach(z => { const sin = z.items.filter(i => !i.e).length; if (sin) lista.push({c: `Zona: ${z.nombre}`, m: `${sin} punto${sin > 1 ? 's' : ''} sin revisar`, f: ''}); });
+  const sinMedir = Object.entries(RANGOS).filter(([k]) => e.pruebas[k] === '' || e.pruebas[k] == null).map(([, r]) => r.l);
+  if (sinMedir.length) lista.push({c: 'Mediciones', m: 'Sin medir: ' + sinMedir.join(', '), f: ''});
+  const fechas = lista.map(x => x.f).filter(Boolean).sort();
+  return {lista, final: fechas.length ? fechas[fechas.length - 1] : ''};
+}
 const EQUIPO = {
   termografica: {n: 'Cámara termográfica UNI-T UTi120S+', p: ['Enciéndela y espera 10 segundos.', 'Encuadra el muro o techo completo, a 1–2 m.', 'Busca manchas frías o calientes irregulares.', 'Toma la foto térmica y una foto normal del mismo punto.'], r: 'Mancha irregular con más de 3 °C de diferencia: observación. En tablero, pastilla 10 °C más caliente que sus vecinas: crítico.'},
   humedad: {n: 'Medidor de humedad sin agujas WM710', p: ['Elige el modo del material (concreto, yeso o madera).', 'Apóyalo plano sobre la mancha y anota la lectura.', 'Mide un punto sano del mismo muro, a 1 m.', 'Toma foto del medidor con cada lectura.'], r: 'Vale la comparación: punto sospechoso muy por encima del sano = humedad confirmada.'},
@@ -464,8 +498,9 @@ async function pintarFotosPrueba(k) {
 function pDocumentos() {
   $('#app').innerHTML = `<h1>Revisión documental</h1><p class="ayuda">Lo que no se entregue se marca como «No presentado». Lo que requiera opinión jurídica se canaliza a notario o abogado.</p>
   <div class="panel">${EXP.documentos.map((d, k) => `<div class="doc" data-doc="${k}"><div class="nombre">${esc(d.d)}</div><div class="que">${esc(d.q)}</div>
-    <div class="estados doc5" role="group" aria-label="${esc(d.d)}">${ESTADOS_DOC.map(([e, l]) => `<button type="button" data-e="${e === 'alerta' ? 'falla' : e === 'np' ? 'obs' : e}" data-doce="${e}" aria-pressed="${d.e === e}">${l}</button>`).join('')}</div>
+    <div class="estados doc5" role="group" aria-label="${esc(d.d)}">${ESTADOS_DOC.map(([e, l]) => `<button type="button" data-e="${e === 'alerta' ? 'falla' : (e === 'np' || e === 'tramite') ? 'obs' : e}" data-doce="${e}" aria-pressed="${d.e === e}">${l}</button>`).join('')}</div>
     <textarea data-docnota="${k}" placeholder="Folio, fecha o detalle" style="margin-top:8px;${d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'display:none'}">${esc(d.nota)}</textarea>
+    ${d.e === 'tramite' || d.e === 'np' ? `<label class="campo" style="margin-top:8px">Fecha estimada de entrega <span class="op">(${esc(plazoDoc(d.d)[1])})</span><input type="date" data-docfecha="${k}" value="${esc(d.fecha || sumarHabiles(EXP.datos.fecha, d.e === 'tramite' ? plazoDoc(d.d)[0] : 2))}"></label>` : ''}
     <div class="archivos" id="a-${k}"></div>
     <div class="acciones" style="margin-top:8px"><label class="btn-foto" style="display:inline-flex;align-items:center">Escanear con la cámara<input type="file" accept="image/*" capture="environment" class="oculto" data-docarch="${k}" multiple></label>
     <label class="btn-foto" style="display:inline-flex;align-items:center">Subir archivo (PDF o imagen)<input type="file" accept="application/pdf,image/*" class="oculto" data-docarch="${k}" multiple></label></div>
@@ -485,6 +520,7 @@ function pReporte() {
   $('#app').innerHTML = `<h1>Resultado</h1>
   <div class="general ${r.general}"><div><div class="grande">${NOMBRE_COLOR[r.general]}</div><div>${SENTIDO[r.general]}</div></div></div>
   ${sinMarcar || sinFoto ? `<div class="aviso">${sinMarcar ? `Faltan ${sinMarcar} puntos por marcar en las zonas. ` : ''}${sinFoto ? `${sinFoto} observaciones o fallas no tienen foto.` : ''}</div>` : ''}
+  ${(() => { const pe = pendientes(EXP); return pe.lista.length ? `<div class="panel"><h3>En proceso${pe.final ? ` · reporte final estimado: ${esc(fechaLarga(pe.final))}` : ''}</h3><ul class="lista-alertas">${pe.lista.map(x => `<li><strong>${esc(x.c)}</strong>: ${esc(x.m)}${x.f ? ` (estimado ${esc(fechaLarga(x.f))})` : ''}</li>`).join('')}</ul></div>` : ''; })()}
   <div class="panel semaforo">${Object.entries(SISTEMAS).map(([k, l]) => `<div>${l}</div><span class="chip ${r.sis[k].color}">${NOMBRE_COLOR[r.sis[k].color]}</span>`).join('')}<div><strong>Documental y legal</strong></div><span class="chip ${r.doc.color}">${NOMBRE_COLOR[r.doc.color]}</span></div>
   ${(() => { const notas = [...Object.values(r.sis).flatMap(s => s.notas), ...r.doc.notas]; return notas.length ? `<div class="panel"><h3>Hallazgos detectados</h3><ul class="lista-alertas">${notas.slice(0, 40).map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>` : ''; })()}
   <div class="panel"><label class="campo">Resumen ejecutivo <span class="op">(3 a 5 hallazgos que más importan, en lenguaje claro)</span><textarea data-res="resumen" style="min-height:130px">${esc(EXP.resultado.resumen)}</textarea></label>
@@ -521,7 +557,7 @@ document.addEventListener('click', async ev => {
   const doc = b.closest('[data-doc]');
   if (doc && b.dataset.doce) { const d = EXP.documentos[+doc.dataset.doc]; d.e = d.e === b.dataset.doce ? '' : b.dataset.doce;
     doc.querySelectorAll('.estados button').forEach(x => x.setAttribute('aria-pressed', x.dataset.doce === d.e));
-    doc.querySelector('textarea').style.display = d.e && d.e !== 'ok' && d.e !== 'na' || d.nota ? '' : 'none'; guardar(); return; }
+    if (!['tramite', 'np'].includes(d.e)) delete d.fecha; guardar(); return pDocumentos(); }
   if (b.id === 'entrar') { const u = $('#usuario').value, c = $('#clave').value; if (!u || !c) return aviso('Elige tu usuario y escribe tu clave.');
     b.disabled = true; const j = await api('/api/asesor/login', {usuario: u, clave: c}); b.disabled = false;
     if (!j.ok) return aviso(j.error || 'No se pudo entrar.'); SESION = {token: j.token, nombre: j.nombre, exp: Date.now() + 11 * 3600 * 1000}; try { localStorage.setItem('veri_sesion', JSON.stringify(SESION)); } catch (e) {} aviso('Hola, ' + j.nombre.split(' ')[0] + '. VERI está listo.'); return pintar(); }
@@ -568,6 +604,7 @@ document.addEventListener('input', ev => {
   else if (t.id === 'notaZona') { EXP.zonas.find(x => x.id === ZONA).nota = t.value; guardar(); }
   else if (t.dataset.prueba) { EXP.pruebas[t.dataset.prueba] = t.value; guardar(); }
   else if (t.dataset.docnota != null) { EXP.documentos[+t.dataset.docnota].nota = t.value; guardar(); }
+  else if (t.dataset.docfecha != null) { EXP.documentos[+t.dataset.docfecha].fecha = t.value; guardar(); }
   else if (t.dataset.res) { EXP.resultado[t.dataset.res] = t.value; guardar(); }
 });
 document.addEventListener('change', async ev => {
@@ -638,11 +675,15 @@ async function generarPDF() {
     doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(26); doc.text('ACIERTA', M, 34); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 46, 34);
     doc.setTextColor(255); doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.text('Reporte de verificación física y documental preventiva', M, 46);
     doc.setFontSize(10); doc.setTextColor(201, 211, 224); doc.text('Acierta Max | Profesionales Inmobiliarios', M, 54);
+    const pe = pendientes(EXP);
+    if (pe.lista.length) { doc.setFillColor(...RGB.amarillo); doc.roundedRect(M, 60, 84, 9, 2, 2, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('REPORTE DE CAMPO | PRELIMINAR', M + 4, 66); doc.setFont('helvetica', 'normal'); }
     doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});
     let y = 108; doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize(d.direccion || 'Dirección sin capturar', W - 2 * M), M, y); y += 8;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`], M, y); y += 30;
     const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
     doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
+    if (pe.lista.length) { doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Resultado preliminar: hay estudios en proceso.', M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
+      doc.text(doc.splitTextToSize(`${pe.lista.length} concepto(s) en proceso de gabinete. ${pe.final ? 'Reporte final estimado: ' + fechaLarga(pe.final) + '.' : ''} El semáforo puede cambiar al recibirlos.`, W - 2 * M), M, y + 6); }
     doc.setTextColor(...RGB.suave); doc.setFontSize(8.5); doc.text(doc.splitTextToSize(LEYENDA, W - 2 * M), M, H - 26);
     // Resumen y semáforo
     doc.addPage(); y = encabezado('Resumen'); y = titulo('Resumen ejecutivo', y); y = parrafo(EXP.resultado.resumen || 'Sin resumen capturado.', y, 10.5); y += 4;
@@ -655,7 +696,7 @@ async function generarPDF() {
     // Hallazgos por zona
     doc.addPage(); y = encabezado('Hallazgos por zona'); y = titulo('Hallazgos por zona', y);
     y = parrafo('Se listan los puntos con observación o falla, con su evidencia. Los puntos en buen estado se resumen al final de cada zona.', y, 9.5);
-    for (const z of EXP.zonas) {
+    for (const z of EXP.zonas.filter(zz => zz.items.some(i => i.e))) {
       const malos = z.items.filter(i => ['obs', 'falla'].includes(i.e)); const bien = z.items.filter(i => i.e === 'ok').length; const nacc = z.items.filter(i => i.e === 'nacc').map(i => i.t);
       y = espacio(y, 18); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(...RGB.navy); doc.text(z.nombre, M, y);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...RGB.suave); const revisados = z.items.filter(i => i.e).length; doc.text(revisados ? `${bien} en buen estado | ${malos.length} con observación o falla${nacc.length ? ' | ' + nacc.length + ' no accesibles' : ''}` : 'Sin revisar', W - M, y, {align: 'right'}); y += 5;
@@ -672,27 +713,52 @@ async function generarPDF() {
       if (nacc.length) { y = espacio(y, 8); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...RGB.suave); const ls = doc.splitTextToSize('No accesible: ' + nacc.join('; '), W - 2 * M); doc.text(ls, M, y); y += ls.length * 4 + 1; }
       doc.setDrawColor(...RGB.linea); doc.line(M, y, W - M, y); y += 6;
     }
-    // Mediciones
-    doc.addPage(); y = encabezado('Mediciones'); y = titulo('Pruebas y mediciones', y); const p = EXP.pruebas; const v = (x, u) => x === '' || x == null ? 'No medido' : `${x} ${u}`;
-    doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Prueba', 'Resultado', 'Referencia']], body: [
-      ['Presión en planta baja', v(p.presion_baja, 'PSI'), 'Tinaco 5-15 PSI; hidroneumático 20-60 PSI'], ['Presión en el punto más alto', v(p.presion_alta, 'PSI'), 'Más de 80 PSI: riesgo en conexiones'],
-      ['Presión con dos salidas abiertas', v(p.presion_doble, 'PSI'), 'No debe caer a la mitad'], ['Medidor de agua con todo cerrado', p.medidor === 'avanza' ? 'Avanza (posible fuga)' : p.medidor === 'quieto' ? 'No avanza' : 'No realizado', 'No debe avanzar en 10 minutos'],
-      ['Tiempo para agua caliente', v(p.agua_caliente, 's'), 'Hasta 60 s'], ['Voltaje junto al tablero', v(p.volt_cerca, 'V'), '114 a 135 V'], ['Voltaje en el contacto más lejano', v(p.volt_lejos, 'V'), '114 a 135 V'],
-      ['Contactos probados / con falla', p.contactos === '' ? 'No medido' : `${p.contactos} / ${p.contactos_falla || 0}`, 'Sin fallas de polaridad ni de tierra'],
-      ['Detector de gas combustible (HT609Pro)', p.detector_gas === 'fuga' ? 'Con alarma: posible fuga' : p.detector_gas === 'sin' ? 'Sin alarma' : 'No realizado', 'Sin alarma en ninguna conexión'],
-      ['Agua jabonosa en conexiones de gas', p.jabonosa === 'fuga' ? 'Con burbujas: fuga' : p.jabonosa === 'sin' ? 'Sin burbujas' : 'No realizado', 'Sin burbujas'],
-      ['CO junto al calentador', v(p.co_calentador, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'], ['CO junto a la estufa', v(p.co_estufa, 'ppm'), '0-9 ppm normal; más de 35 ppm crítico'],
-      ['Desnivel en sala y comedor', v(p.nivel_sala, 'mm'), 'Hasta 10 mm en 3 m'], ['Desnivel en recámara principal', v(p.nivel_recamara, 'mm'), 'Hasta 10 mm en 3 m'],
-      ['Lecturas de humedad', p.humedad || 'No registradas', 'Punto sospechoso contra punto sano del mismo muro']],
-      styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255}, columnStyles: {0: {cellWidth: 60, fontStyle: 'bold'}, 1: {cellWidth: 48}}});
+    // Mediciones: solo lo medido, en gráfica con rangos
+    doc.addPage(); y = encabezado('Mediciones'); y = titulo('Mediciones: dónde cayó cada lectura', y);
+    y = parrafo('Verde: rango normal. Ámbar: requiere atención. Rojo: crítico. El triángulo marca la lectura.', y, 9.5); y += 2;
+    const P = EXP.pruebas, COL = {v: RGB.verde, a: RGB.amarillo, r: RGB.rojo};
+    const medidas = Object.entries(RANGOS).filter(([k]) => num(P[k]) != null);
+    for (const [k, R] of medidas) {
+      y = espacio(y, 26); const val = num(P[k]); const [e0, e1] = R.esc; const bx = M, bw = W - 2 * M, by = y + 7, bh = 6;
+      const xOf = v => bx + bw * (Math.min(Math.max(v, e0), e1) - e0) / (e1 - e0);
+      const zona = (R.zonas.find(([a, b2]) => val >= a && val <= b2) || R.zonas[R.zonas.length - 1])[2];
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...RGB.tinta); doc.text(R.l, M, y + 3);
+      doc.setTextColor(...COL[zona]); doc.text(`${val} ${R.u}`, W - M, y + 3, {align: 'right'});
+      R.zonas.forEach(([a, b2, c]) => { doc.setFillColor(...COL[c]); doc.rect(xOf(a), by, xOf(b2) - xOf(a), bh, 'F'); });
+      const vx = xOf(val); doc.setFillColor(...RGB.tinta); doc.triangle(vx - 2.2, by - 2.6, vx + 2.2, by - 2.6, vx, by + 0.4, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...RGB.suave);
+      const marcas = [...new Set([e0, ...R.zonas.map(z => z[1])])]; marcas.forEach(m => doc.text(String(m), xOf(m), by + bh + 4, {align: m === e0 ? 'left' : m === e1 ? 'right' : 'center'}));
+      const vz = R.zonas.filter(z => z[2] === 'v'); if (vz.length) doc.text(`Normal: ${vz[0][0]} a ${vz[vz.length - 1][1]} ${R.u}`, M, by + bh + 8.5);
+      doc.setFontSize(9.5); doc.setTextColor(...RGB.tinta); doc.text(doc.splitTextToSize(R.imp[zona] || '', bw - 60), M + 60, by + bh + 8.5);
+      y = by + bh + 15;
+    }
+    const otras = [];
+    if (num(P.contactos) != null) otras.push(['Contactos probados', `${num(P.contactos)} probados, ${num(P.contactos_falla) || 0} con falla`, num(P.contactos_falla) > 0 ? 'a' : 'v', num(P.contactos_falla) > 0 ? 'Contactos sin tierra o con polaridad invertida: corregir con electricista.' : 'Contactos correctos.']);
+    if (num(P.presion_doble) != null) { const ref = Math.max(num(P.presion_baja) || 0, num(P.presion_alta) || 0); const mal = ref && num(P.presion_doble) <= ref / 2; otras.push(['Presión con dos salidas abiertas', `${num(P.presion_doble)} PSI`, mal ? 'a' : 'v', mal ? 'La presión cae a la mitad o más con uso simultáneo.' : 'La presión se sostiene con uso simultáneo.']); }
+    if (P.medidor) otras.push(['Medidor de agua con todo cerrado', P.medidor === 'avanza' ? 'Avanza' : 'No avanza', P.medidor === 'avanza' ? 'a' : 'v', P.medidor === 'avanza' ? 'Posible fuga oculta: localizar con plomero.' : 'Sin fugas detectadas en 10 minutos.']);
+    if (P.detector_gas) otras.push(['Detector de gas combustible', P.detector_gas === 'fuga' ? 'Con alarma' : 'Sin alarma', P.detector_gas === 'fuga' ? 'r' : 'v', P.detector_gas === 'fuga' ? 'Posible fuga de gas: no usar y reparar de inmediato.' : 'Sin fugas detectadas en conexiones.']);
+    if (P.jabonosa) otras.push(['Agua jabonosa en conexiones', P.jabonosa === 'fuga' ? 'Con burbujas' : 'Sin burbujas', P.jabonosa === 'fuga' ? 'r' : 'v', P.jabonosa === 'fuga' ? 'Fuga de gas confirmada.' : 'Sin fuga confirmada.']);
+    if (otras.length) { y = espacio(y, 30);
+      doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Prueba', 'Resultado', 'Implicación']], body: otras.map(o => [o[0], o[1], o[3]]),
+        styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255}, columnStyles: {0: {cellWidth: 55, fontStyle: 'bold'}, 1: {cellWidth: 32}},
+        didParseCell: c => { if (c.section === 'body' && c.column.index === 1) { c.cell.styles.fillColor = COL[otras[c.row.index][2]]; c.cell.styles.textColor = 255; c.cell.styles.fontStyle = 'bold'; } }});
+      y = doc.lastAutoTable.finalY + 6; }
+    if (P.humedad) { y = espacio(y, 16); doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(...RGB.tinta); doc.text('Lecturas de humedad (punto sospechoso / punto sano)', M, y); y = parrafo(P.humedad, y + 5, 9.5); }
+    if (!medidas.length && !otras.length && !P.humedad) y = parrafo('Aún no hay mediciones registradas.', y, 10);
     // Documental
     doc.addPage(); y = encabezado('Revisión documental'); y = titulo('Revisión documental y legal preventiva', y);
     const ED = Object.fromEntries(ESTADOS_DOC); ED[''] = 'Sin revisar';
-    doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Documento', 'Estado', 'Detalle']], body: EXP.documentos.map(x => [x.d, ED[x.e], x.nota || x.q]),
+    const docsDx = EXP.documentos.filter(x => ['ok', 'obs', 'alerta'].includes(x.e));
+    if (!docsDx.length) y = parrafo('Aún no hay documentos revisados; ver la sección En proceso.', y, 10);
+    if (docsDx.length) doc.autoTable({startY: y, margin: {left: M, right: M}, head: [['Documento', 'Resultado', 'Detalle']], body: docsDx.map(x => [x.d, ED[x.e], (x.veri && x.veri.mensaje) || x.nota || x.q]),
       styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255}, columnStyles: {0: {cellWidth: 62, fontStyle: 'bold'}, 1: {cellWidth: 32}},
-      didParseCell: c => { if (c.section === 'body' && c.column.index === 1) { const e = EXP.documentos[c.row.index].e; const m = {ok: RGB.verde, obs: RGB.amarillo, alerta: EXP.documentos[c.row.index].c ? RGB.rojo : RGB.amarillo, np: RGB.amarillo};
+      didParseCell: c => { if (c.section === 'body' && c.column.index === 1) { const e = docsDx[c.row.index].e; const m = {ok: RGB.verde, obs: RGB.amarillo, alerta: docsDx[c.row.index].c ? RGB.rojo : RGB.amarillo};
         if (m[e]) { c.cell.styles.fillColor = m[e]; c.cell.styles.textColor = 255; c.cell.styles.fontStyle = 'bold'; } } }});
-    y = doc.lastAutoTable.finalY + 6; y = espacio(y, 20); y = parrafo('Los asuntos que requieran opinión jurídica deben confirmarse con notario o abogado antes de firmar.', y, 9.5);
+    y = (docsDx.length ? doc.lastAutoTable.finalY : y) + 6; y = espacio(y, 20); y = parrafo('Los asuntos que requieran opinión jurídica deben confirmarse con notario o abogado antes de firmar.', y, 9.5);
+    if (pe.lista.length) { doc.addPage(); y = encabezado('En proceso'); y = titulo('En proceso: estudio de gabinete', y);
+      y = parrafo(`Estos conceptos aún no tienen diagnóstico. ${pe.final ? 'El reporte final se estima para el ' + fechaLarga(pe.final) + '.' : ''} Las fechas son estimadas en días hábiles y dependen de cada autoridad y de la entrega de documentos.`, y, 10);
+      doc.autoTable({startY: y + 2, margin: {left: M, right: M}, head: [['Concepto', 'Motivo', 'Fecha estimada']], body: pe.lista.map(x => [x.c, x.m, x.f ? fechaLarga(x.f) : 'Siguiente visita']),
+        styles: {fontSize: 9, cellPadding: 2.2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.amarillo, textColor: 255}, columnStyles: {0: {cellWidth: 58, fontStyle: 'bold'}, 2: {cellWidth: 44}}}); }
     // Recomendaciones y firma
     doc.addPage(); y = encabezado('Recomendaciones'); y = titulo('Recomendaciones', y); y = parrafo(EXP.resultado.recomendaciones || 'Sin recomendaciones capturadas.', y, 10.5); y += 6;
     y = espacio(y, 60); y = titulo('Alcance y límites', y); y = parrafo(LEYENDA, y, 9.5); y += 18;
