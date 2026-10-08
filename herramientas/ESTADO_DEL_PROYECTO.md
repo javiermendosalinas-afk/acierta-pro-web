@@ -133,5 +133,6 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - Fotos del equipo para las guías: `assets/verifica/equipo/<id>.jpg` (ver LEEME.txt).
 
 ## Terrenos y verificación en sitio (8-oct-2026)
+- Sin API de EasyBroker (cuesta ~$40,000): el terreno se lee de la ficha de cada propiedad en aciertamax.com (`terreno_desde_html`), con caché; flujo semanal `terrenos.yml` (lunes 03:00, hasta 4,000 fichas) o al cambiar `herramientas/disparar_terrenos.txt`.
 - Inventario: `terreno` y `construccion` por ficha. EasyBroker vía API (`enriquecer_terrenos` en inventario_sync.py; caché `herramientas/eb_terrenos.json.gz`; hasta 2,500 consultas por corrida; requiere el secreto de Actions EASYBROKER_API_KEY). NeoJaus: `land.area` y `construction_area` (VERSION_DATOS 3 vuelve a leer las publicables una vez).
 - verifica.casa: ubicación GPS en sitio (precisión y hora), datos de la escritura (superficies, fecha y precio de compra), plano de Magicplan/Polycam con superficies medidas y revisión de VERI; diferencia >10% entre medida y escritura = observación documental. Base para la «Opinión de valor Acierta».

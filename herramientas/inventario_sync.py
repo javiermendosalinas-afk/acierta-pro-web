@@ -869,55 +869,106 @@ def escribir_xlsx(ruta, registros, fecha):
 # ----------------------------------------------------------------------
 # PRINCIPAL
 # ----------------------------------------------------------------------
-# --- Terreno y construcción desde la API de EasyBroker (para la opinión de valor) ---
-# El listado de aciertamax.com solo trae un número de m². La API trae lot_size (terreno) y
-# construction_size (construcción). Se consulta cada clave una vez y se guarda en caché;
-# las que no se encuentran se reintentan después de 30 días. Sin EASYBROKER_API_KEY no hace nada.
+# --- Terreno y construcción (para la opinión de valor) ---
+# El listado de aciertamax.com solo trae un número de m². La ficha de cada propiedad muestra
+# terreno y construcción por separado: se lee cada ficha UNA vez y se guarda en caché
+# (herramientas/eb_terrenos.json.gz). Si existiera EASYBROKER_API_KEY se usaría la API.
+# Las fichas sin dato se reintentan después de 30 días.
 RUTA_CACHE_TERRENOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eb_terrenos.json.gz")
+_NUM = r"([\d]{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)"
+_U = r"\s*(?:m²|m2|mts²|mts|metros)"
+_ET_T = r"(?:tama[ñn]o\s+del\s+terreno|superficie\s+(?:de|del|total\s+de)\s+terreno|[áa]rea\s+de\s+terreno|terreno|lote)"
+_ET_C = r"(?:tama[ñn]o\s+de\s+(?:la\s+)?construcci[óo]n|superficie\s+(?:aproximada\s+)?(?:de\s+)?construi(?:da|do)|superficie\s+(?:aproximada\s+)?de\s+construcci[óo]n|[áa]rea\s+(?:de\s+)?constru(?:ida|cci[óo]n)|construcci[óo]n)"
+# En orden de confianza: «Terreno: 375 m²» · «375 m² de terreno» · «375 m² Lot Size» · «Terreno 375 m²»
+RX_T = [re.compile(_ET_T + r"(?:\s+\w+){0,2}\s*:\s*" + _NUM + _U, re.I),
+        re.compile(_NUM + _U + r"\s+de\s+" + _ET_T, re.I),
+        re.compile(_NUM + _U + r"\s*(?:lot\s+size|land\s+size)", re.I),
+        re.compile(r"(?:lot\s+size|land)\s*:?\s*" + _NUM + _U, re.I),
+        re.compile(_ET_T + r"\s+" + _NUM + _U, re.I)]
+RX_C = [re.compile(_ET_C + r"(?:\s+\w+){0,2}\s*:\s*" + _NUM + _U, re.I),
+        re.compile(_NUM + _U + r"\s+de\s+" + _ET_C, re.I),
+        re.compile(_NUM + _U + r"\s*(?:construction(?:\s+size)?|built|construidos)", re.I),
+        re.compile(r"construction(?:\s+size)?\s*:?\s*" + _NUM + _U, re.I),
+        re.compile(_ET_C + r"\s+" + _NUM + _U, re.I)]
 
 
-def enriquecer_terrenos(filas, max_consultas=2500, pausa=0.25):
-    import gzip, time as _t
-    clave = os.environ.get("EASYBROKER_API_KEY", "").strip()
-    cache = {}
+def terreno_desde_html(html):
+    """(terreno, construccion) leídos del texto de la ficha; None si no aparecen."""
+    texto = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)
+    def leer(patrones, lo, hi):
+        for rx in patrones:
+            for m in rx.finditer(texto):
+                try:
+                    v = float(m.group(1).replace(",", ""))
+                except ValueError:
+                    continue
+                if lo <= v <= hi:
+                    return round(v, 2)
+        return None
+    return leer(RX_T, 10, 2_000_000), leer(RX_C, 10, 200_000)
+
+
+def _cargar_cache_terrenos():
+    import gzip
     if os.path.exists(RUTA_CACHE_TERRENOS):
         try:
             with gzip.open(RUTA_CACHE_TERRENOS, "rt", encoding="utf-8") as fh:
-                cache = json.load(fh)
+                return json.load(fh)
         except Exception:
-            cache = {}
+            pass
+    return {}
+
+
+def _guardar_cache_terrenos(cache):
+    import gzip
+    with gzip.open(RUTA_CACHE_TERRENOS, "wt", encoding="utf-8") as fh:
+        json.dump(cache, fh, separators=(",", ":"))
+
+
+def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
+    import time as _t
+    clave_api = os.environ.get("EASYBROKER_API_KEY", "").strip()
+    cache = _cargar_cache_terrenos()
     hoy = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hace30 = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
     hechas = encontradas = 0
-    if clave:
-        s = requests.Session()
-        s.headers.update({"X-Authorization": clave, "Accept": "application/json"})
-        for f in filas:
-            eb = f.get("eb") or ""
-            if not eb.startswith("EB-") or hechas >= max_consultas:
-                continue
-            c = cache.get(eb)
-            if c and (c.get("t") is not None or c.get("c") is not None or c.get("f", "") >= hace30):
-                continue
-            hechas += 1
-            dato = None
+    s = requests.Session()
+    if clave_api:
+        s.headers.update({"X-Authorization": clave_api, "Accept": "application/json"})
+    vistos = set()
+    for f in filas:
+        eb = f.get("eb") or ""
+        if not eb.startswith("EB-") or eb in vistos or hechas >= max_consultas:
+            continue
+        vistos.add(eb)
+        c = cache.get(eb)
+        if c and (c.get("t") is not None or c.get("c") is not None or c.get("f", "") >= hace30):
+            continue
+        hechas += 1
+        dato = None
+        if clave_api:
             for ruta in (f"/properties/{eb}", f"/mls_properties/{eb}"):
                 try:
                     r = s.get("https://api.easybroker.com/v1" + ruta, timeout=20)
                 except requests.RequestException:
                     continue
-                if r.status_code == 429:
-                    _t.sleep(5)
-                    continue
                 if r.ok:
-                    j = r.json()
-                    dato = {"t": j.get("lot_size"), "c": j.get("construction_size"), "f": hoy}
+                    j = r.json(); dato = {"t": j.get("lot_size"), "c": j.get("construction_size"), "f": hoy}
                     break
-            cache[eb] = dato or {"t": None, "c": None, "f": hoy}
-            encontradas += 1 if dato else 0
-            _t.sleep(pausa)
-        with gzip.open(RUTA_CACHE_TERRENOS, "wt", encoding="utf-8") as fh:
-            json.dump(cache, fh, separators=(",", ":"))
+        elif f.get("liga"):
+            resp = get_con_reintentos(s, f["liga"])
+            if resp is not None:
+                te, co = terreno_desde_html(resp.text)
+                if te or co:
+                    dato = {"t": te, "c": co, "f": hoy}
+        cache[eb] = dato or {"t": None, "c": None, "f": hoy}
+        encontradas += 1 if dato else 0
+        if hechas % 250 == 0:
+            _guardar_cache_terrenos(cache)
+            print(f"  terrenos: {hechas} fichas leídas ({encontradas} con dato)", flush=True)
+        _t.sleep(pausa)
+    if hechas:
+        _guardar_cache_terrenos(cache)
     con = 0
     for f in filas:
         c = cache.get(f.get("eb") or "")
@@ -927,9 +978,23 @@ def enriquecer_terrenos(filas, max_consultas=2500, pausa=0.25):
             f["terreno"] = round(float(c["t"]), 2); con += 1
         if c.get("c"):
             f["construccion"] = round(float(c["c"]), 2)
-    print(f"Terrenos: {hechas} consultas a la API ({encontradas} encontradas) · {con} fichas con terreno"
-          + ("" if clave else " · sin EASYBROKER_API_KEY: solo se usa la caché"), flush=True)
+    if hechas >= 20 and encontradas == 0:
+        print("[AVISO] Ninguna ficha mostró terreno ni construcción: revisar el formato de las fichas de aciertamax.com", flush=True)
+    print(f"Terrenos: {hechas} fichas consultadas ({encontradas} con dato) · {con} propiedades con terreno en total"
+          + (" · vía API" if clave_api else " · vía fichas de aciertamax.com"), flush=True)
     return con
+
+
+def solo_terrenos(max_consultas):
+    """Completa terreno y construcción en data.json sin volver a recorrer el inventario."""
+    filas = cargar_previo(RUTA_DATA)
+    if not filas:
+        print("No hay data.json"); return
+    antes = sum(1 for f in filas if f.get("terreno"))
+    enriquecer_terrenos(filas, max_consultas=max_consultas)
+    with open(RUTA_DATA, "w", encoding="utf-8") as fh:
+        json.dump(filas, fh, ensure_ascii=False, separators=(",", ":"))
+    print(f"data.json: {antes} → {sum(1 for f in filas if f.get('terreno'))} propiedades con terreno", flush=True)
 
 
 def main():
@@ -940,7 +1005,10 @@ def main():
                     help="no rastrea ni cambia data.json: solo regenera el archivo para ChatGPT (CSV y Excel)")
     ap.add_argument("--reusar-data", action="store_true",
                     help="no rastrea: aplica 4 municipios, segmento y guardas de precio a data.json existente")
+    ap.add_argument("--solo-terrenos", type=int, default=0, help="solo completa terrenos en data.json (máximo de fichas a leer)")
     args = ap.parse_args()
+    if args.solo_terrenos:
+        return solo_terrenos(args.solo_terrenos)
 
     ahora = datetime.now(timezone.utc)
     fecha = ahora.strftime("%Y-%m-%d")
