@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>verifica.casa · Captura de inspección · Acierta Verifica</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/verifica/marca/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/verifica/marca/apple-touch-icon.png">
+<link rel="manifest" href="assets/verifica/marca/manifest.webmanifest">
+<meta name="theme-color" content="#0A1F3F"><meta name="apple-mobile-web-app-title" content="Verifica">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -20,6 +24,7 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 header.barra{position:sticky;top:0;z-index:20;background:var(--navy);color:#fff;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;display:flex;align-items:center;gap:12px}
 .marca{font-weight:700;letter-spacing:.02em;font-size:17px;line-height:1.1}
+.logo-marca{height:38px;width:auto;display:block;margin-bottom:2px}
 .marca b{color:#FF5A5F;font-weight:700}
 .marca small{display:block;font-weight:400;font-size:12px;color:#C9D3E0;letter-spacing:0}
 .folio{margin-left:auto;text-align:right;font-size:13px;color:#C9D3E0}
@@ -120,7 +125,7 @@ nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(-
 </head>
 <body>
 <header class="barra">
-  <div class="marca">ACIERTA <b>VERIFICA</b><small>verifica.casa · Captura de inspección</small></div>
+  <div class="marca"><img src="assets/verifica/marca/verifica-blanco-web.png" alt="Verifica · Acierta Max" class="logo-marca"><small>verifica.casa · Captura de inspección</small></div>
   <div class="folio" id="folioBarra"></div>
 </header>
 <main id="app"></main>
@@ -792,25 +797,29 @@ async function exportar() {
 
 // ───────────────────────── Reporte PDF ─────────────────────────
 const RGB = {navy: [10, 31, 63], rojoMarca: [222, 10, 14], verde: [30, 126, 69], amarillo: [183, 121, 31], rojo: [198, 40, 40], gris: [138, 148, 163], tinta: [27, 36, 51], suave: [91, 101, 117], linea: [213, 219, 228]};
+let LOGO_PDF = null;
+async function logoPDF() { if (LOGO_PDF !== null) return LOGO_PDF;
+  try { const r = await fetch('assets/verifica/marca/verifica-blanco-pdf.png'); const b = await r.blob(); LOGO_PDF = await new Promise((ok, mal) => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = mal; f.readAsDataURL(b); }); }
+  catch (e) { LOGO_PDF = ''; } return LOGO_PDF; }
 async function generarPDF() {
   if (!window.jspdf) { aviso('No se cargó el generador de PDF. Revisa la conexión a internet y vuelve a intentar.'); return; }
   const btn = $('#pdf'); btn.disabled = true; btn.textContent = 'Generando reporte…';
   try {
-    const {jsPDF} = window.jspdf; const doc = new jsPDF({unit: 'mm', format: 'letter'});
+    const {jsPDF} = window.jspdf; const doc = new jsPDF({unit: 'mm', format: 'letter'}); const LOGO = await logoPDF(); const PROP = 315 / 1052;
     const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 16;
     const r = evaluar(EXP), d = EXP.datos;
     const pie = () => { const n = doc.internal.getNumberOfPages(); for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(8); doc.setTextColor(...RGB.suave);
       doc.text(`Acierta Verifica | Folio ${EXP.folio}`, M, H - 8); doc.text(`Página ${i} de ${n}`, W - M, H - 8, {align: 'right'}); } };
     const encabezado = t => { doc.setFillColor(...RGB.navy); doc.rect(0, 0, W, 16, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text('ACIERTA', M, 10); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 19, 10); doc.setTextColor(255); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(t, W - M, 10, {align: 'right'}); return 26; };
+      if (LOGO) doc.addImage(LOGO, 'PNG', M, 3.2, 9.6 / PROP, 9.6, 'logo', 'FAST'); else { doc.text('ACIERTA', M, 10); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 19, 10); } doc.setTextColor(255); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.text(t, W - M, 10, {align: 'right'}); return 26; };
     const titulo = (t, y) => { doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(...RGB.navy); doc.text(t, M, y); return y + 7; };
     const parrafo = (t, y, size = 10) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(size); doc.setTextColor(...RGB.tinta); const ls = doc.splitTextToSize(t, W - 2 * M); doc.text(ls, M, y); return y + ls.length * size * 0.42 + 2; };
     const espacio = (y, need) => { if (y + need > H - 18) { doc.addPage(); return encabezado('Reporte de verificación'); } return y; };
     // Portada
     doc.setFillColor(...RGB.navy); doc.rect(0, 0, W, 92, 'F');
-    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(26); doc.text('ACIERTA', M, 34); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 46, 34);
-    doc.setTextColor(255); doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.text('Reporte de verificación física y documental preventiva', M, 46);
-    doc.setFontSize(10); doc.setTextColor(201, 211, 224); doc.text('Acierta Max | Profesionales Inmobiliarios', M, 54);
+    if (LOGO) doc.addImage(LOGO, 'PNG', M, 12, 27 / PROP, 27, 'logo', 'FAST');
+    else { doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(26); doc.text('ACIERTA', M, 34); doc.setTextColor(...RGB.rojoMarca); doc.text('VERIFICA', M + 46, 34); }
+    doc.setTextColor(255); doc.setFontSize(13); doc.setFont('helvetica', 'normal'); doc.text('Reporte de verificación física y documental preventiva', M, 52);
     const pe = pendientes(EXP);
     if (pe.lista.length) { doc.setFillColor(...RGB.amarillo); doc.roundedRect(M, 60, 84, 9, 2, 2, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('REPORTE DE CAMPO | PRELIMINAR', M + 4, 66); doc.setFont('helvetica', 'normal'); }
     doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});

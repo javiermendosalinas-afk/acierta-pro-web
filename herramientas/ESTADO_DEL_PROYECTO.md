@@ -138,3 +138,7 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - Sin API de EasyBroker (cuesta ~$40,000): el terreno se lee de la ficha de cada propiedad en aciertamax.com (`terreno_desde_html`), con caché; flujo semanal `terrenos.yml` (lunes 03:00, hasta 4,000 fichas) o al cambiar `herramientas/disparar_terrenos.txt`.
 - Inventario: `terreno` y `construccion` por ficha. EasyBroker vía API (`enriquecer_terrenos` en inventario_sync.py; caché `herramientas/eb_terrenos.json.gz`; hasta 2,500 consultas por corrida; requiere el secreto de Actions EASYBROKER_API_KEY). NeoJaus: `land.area` y `construction_area` (VERSION_DATOS 3 vuelve a leer las publicables una vez).
 - verifica.casa: ubicación GPS en sitio (precisión y hora), datos de la escritura (superficies, fecha y precio de compra), plano de Magicplan/Polycam con superficies medidas y revisión de VERI; diferencia >10% entre medida y escritura = observación documental. Base para la «Opinión de valor Acierta».
+
+## Logo oficial de Verifica (8-oct-2026)
+- Elegido: pin rojo con casa blanca y palomita roja (en lugar de la puerta) + «VERIFICA» / ACIERTA MAX / PROFESIONALES INMOBILIARIOS, mismo esquema y vector que PULSO.
+- En el sitio: `assets/verifica/marca/` (blanco web, blanco para PDF, versión clara, íconos 512/192/180/32 y manifest para instalar como app). Usado en verifica.casa (encabezado, ícono) y en los reportes PDF (portada y encabezados).
