@@ -275,6 +275,18 @@ function icono(id) { return `<svg class="ico-equipo" viewBox="0 0 64 64" width="
 function guiaHTML(ids) {
   return ids.map(id => { const q = EQUIPO[id]; return `<div class="guia"><div class="guia-cab">${icono(id)}<h4>${esc(q.n)}</h4></div><img src="assets/verifica/equipo/${id}.jpg" alt="Foto: ${esc(q.n)}" onerror="this.remove()"><ol>${q.p.map(x => `<li>${esc(x)}</li>`).join('')}</ol><div class="ref">Referencia: ${esc(q.r)}</div></div>`; }).join('');
 }
+const TOMAS_MATERIALES = [
+  {k: 'fachada', l: 'Fachada completa', g: 'Desde la banqueta de enfrente, que se vea toda la fachada, el techo y la cochera.'},
+  {k: 'muros', l: 'Muros y plafón interior', g: 'En la sala, encuadra una esquina: muro, plafón y unión con el piso.'},
+  {k: 'pisos', l: 'Pisos', g: 'Acercamiento a 50 cm del piso de la sala y otro de una recámara; que se vean las juntas.'},
+  {k: 'cocina', l: 'Cocina', g: 'Toda la cocina, y un acercamiento a la cubierta, la tarja y los gabinetes abiertos.'},
+  {k: 'banos', l: 'Baño principal', g: 'El baño completo y un acercamiento al azulejo, la regadera y el cancel.'},
+  {k: 'ventanas', l: 'Ventanas y cancelería', g: 'Una ventana completa y un acercamiento al marco y al cierre.'},
+  {k: 'puertas', l: 'Puertas', g: 'La puerta principal y una interior, completas.'},
+  {k: 'losa', l: 'Losa o techo', g: 'Desde la azotea: superficie e impermeabilizante. Si hay vigas o techo especial, desde adentro.'},
+  {k: 'escalera', l: 'Escalera y barandal', g: 'La escalera completa desde abajo y un acercamiento al escalón y al barandal.'},
+  {k: 'instalaciones', l: 'Instalaciones visibles', g: 'Tablero eléctrico, calentador y, si hay, paneles solares o hidroneumático.'}
+];
 const LEYENDA = 'Revisión preventiva de alcance básico, limitada a las áreas accesibles el día de la visita. No sustituye peritajes, dictámenes técnicos, avalúos, certificados registrales ni asesoría jurídica especializada cuando resulten necesarios.';
 
 // ───────────────────────── Almacenamiento (IndexedDB) ─────────────────────────
@@ -393,7 +405,7 @@ function pintar() {
   nav.classList.remove('oculto');
   const pasos = [['datos', 'Datos'], ['zonas', 'Zonas'], ['pruebas', 'Pruebas'], ['documentos', 'Documentos'], ['reporte', 'Reporte']];
   nav.innerHTML = pasos.map(([k, l], i) => `<button type="button" data-paso="${k}" ${PASO === k ? 'aria-current="step"' : ''}><span class="n">${i + 1}</span>${l}</button>`).join('');
-  ({datos: pDatos, zonas: ZONA ? pZona : pZonas, pruebas: pPruebas, documentos: pDocumentos, reporte: pReporte})[PASO]();
+  ({datos: pDatos, zonas: ZONA === '__mat' ? pMateriales : ZONA ? pZona : pZonas, pruebas: pPruebas, documentos: pDocumentos, reporte: pReporte})[PASO]();
   window.scrollTo(0, 0);
 }
 async function inicio() {
@@ -457,10 +469,30 @@ function pDatos() {
 function avanceZona(z) { const hechos = z.items.filter(i => i.e).length; const c = z.items.some(i => i.e === 'falla') ? 'falla' : z.items.some(i => i.e === 'obs') ? 'obs' : hechos === z.items.length ? 'ok' : '';
   return {hechos, total: z.items.length, c}; }
 function pZonas() {
+  const mat = EXP.materiales || {}; const tomadas = TOMAS_MATERIALES.filter(x => ((mat.fotos || {})[x.k] || []).length).length;
   $('#app').innerHTML = `<h1>Recorrido por zonas</h1><p class="ayuda">De afuera hacia adentro y de arriba hacia abajo. Toca una zona para revisarla.</p>
+  <button type="button" class="zona" data-materiales="1" style="border-color:#0E5A8A"><span class="punto ${mat.veri ? 'ok' : ''}"></span><span><strong>Materiales y acabados</strong><br><span class="ayuda" style="margin:0">Fotos para que VERI identifique la calidad de construcción</span></span><span class="avance">${tomadas}/${TOMAS_MATERIALES.length}</span></button>
   ${EXP.zonas.map(z => { const a = avanceZona(z); return `<button type="button" class="zona" data-zona="${z.id}"><span class="punto ${a.c}"></span><span><strong>${esc(z.nombre)}</strong></span><span class="avance">${a.hechos}/${a.total}</span></button>`; }).join('')}
   <div class="panel"><label class="campo">Agregar zona<select id="tipoZona">${Object.keys(PLANTILLAS).map(k => `<option>${k}</option>`).join('')}</select></label>
   <label class="campo">Nombre <span class="op">(ej. Recámara 4)</span><input type="text" id="nombreZona"></label><button class="btn sec" type="button" id="agregarZona">Agregar zona</button></div>`;
+}
+function pMateriales() {
+  EXP.materiales = EXP.materiales || {fotos: {}}; const m = EXP.materiales;
+  $('#app').innerHTML = `<button type="button" class="volver" id="aZonas">‹ Todas las zonas</button><h1>Materiales y acabados</h1>
+  <p class="ayuda">Toma cada foto como indica la guía. Con las fotos, VERI identifica materiales, calidad y estado, como en la clasificación de construcción de un avalúo.</p>
+  <div class="panel">${TOMAS_MATERIALES.map(x => `<div class="item"><div class="txt">${esc(x.l)}</div><div class="guia" style="margin-top:0">${esc(x.g)}</div>
+    <div class="fotos" id="mf-${x.k}"></div><label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Tomar foto<input type="file" accept="image/*" capture="environment" class="oculto" data-matfoto="${x.k}" multiple></label></div>`).join('')}</div>
+  <div class="panel"><button class="veri-btn" type="button" id="veriMateriales">Que VERI identifique materiales y calidad</button><div id="veriMatRes">${matHTML(m.veri)}</div></div>
+  <button class="btn" type="button" id="aZonas2">Volver a zonas</button>`;
+  TOMAS_MATERIALES.forEach(x => pintarFotosMat(x.k));
+}
+async function pintarFotosMat(k) { const cont = document.getElementById('mf-' + k); if (!cont) return; const ids = ((EXP.materiales || {}).fotos || {})[k] || [];
+  const datos = await Promise.all(ids.map(id => BD.leerFoto(id)));
+  cont.innerHTML = ids.map((id, j) => datos[j] ? `<figure><img src="${datos[j]}" alt=""><button type="button" aria-label="Quitar foto" data-matquitar="${k}:${id}">×</button></figure>` : '').join(''); }
+function matHTML(v) {
+  if (!v) return ''; const c = v.clasificacion || {};
+  return veriCard(v) + (v.materiales && v.materiales.length ? `<div class="veri-card"><div class="quien">Materiales identificados</div><ul>${v.materiales.map(x => `<li><strong>${esc(x.elemento)}:</strong> ${esc(x.material)} · calidad ${esc(x.calidad)} · ${esc(x.estado)}${x.comentario ? '. ' + esc(x.comentario) : ''}</li>`).join('')}</ul>
+    ${c.calidad_general ? `<div><strong>Clasificación:</strong> calidad ${esc(c.calidad_general)}, estado ${esc(c.estado_general || '')}${c.vida_util_remanente_anios != null ? `, vida útil remanente ≈ ${esc(c.vida_util_remanente_anios)} años de ${esc(c.vida_util_total_anios || '')}` : ''}.</div><div>${esc(c.comentario || '')}</div>` : ''}</div>` : '');
 }
 function pZona() {
   const z = EXP.zonas.find(x => x.id === ZONA); if (!z) { ZONA = null; return pZonas(); }
@@ -568,6 +600,13 @@ document.addEventListener('click', async ev => {
   if (b.dataset.abrir) { EXP = (await BD.todos()).find(e => e.folio === b.dataset.abrir); PASO = 'datos'; ZONA = null; return pintar(); }
   if (b.id === 'cerrar') { await BD.guardar(EXP); EXP = null; return pintar(); }
   if (b.dataset.zona) { ZONA = b.dataset.zona; return pintar(); }
+  if (b.dataset.materiales) { ZONA = '__mat'; return pintar(); }
+  if (b.dataset.matquitar) { const [k, id] = b.dataset.matquitar.split(':'); EXP.materiales.fotos[k] = (EXP.materiales.fotos[k] || []).filter(f => f !== id); BD.borrarFoto(id); guardar(); pintarFotosMat(k); return; }
+  if (b.id === 'veriMateriales') { const m = EXP.materiales || {fotos: {}}; const ids = TOMAS_MATERIALES.flatMap(x => (m.fotos[x.k] || []).slice(-1));
+    if (!ids.length) return aviso('Toma al menos la foto de fachada, pisos y cocina.'); b.disabled = true; b.textContent = 'VERI está identificando materiales…';
+    const tomas = TOMAS_MATERIALES.filter(x => (m.fotos[x.k] || []).length).map(x => x.l);
+    const v = await veri('materiales', Object.assign(datosBase(), {fotos_en_orden: tomas, edad_declarada_anios: EXP.datos.antiguedad || 'no declarada'}), {imagenes: await fotosDe(ids, 8)});
+    b.disabled = false; b.textContent = 'Que VERI identifique materiales y calidad'; if (v) { m.veri = v; EXP.materiales = m; guardar(); $('#veriMatRes').innerHTML = matHTML(v); } return; }
   if (b.id === 'aZonas' || b.id === 'aZonas2') { guardar(); ZONA = null; return pintar(); }
   if (b.id === 'agregarZona') { const tipo = $('#tipoZona').value; EXP.zonas.push(zonaDe(tipo, $('#nombreZona').value.trim() || tipo)); guardar(); return pintar(); }
   if (b.id === 'quitarZona') { if (confirm('¿Quitar esta zona y sus fotos?')) { const z = EXP.zonas.find(x => x.id === ZONA); z.items.forEach(i => i.fotos.forEach(id => BD.borrarFoto(id))); EXP.zonas = EXP.zonas.filter(x => x.id !== ZONA); ZONA = null; guardar(); pintar(); } return; }
@@ -618,7 +657,7 @@ document.addEventListener('click', async ev => {
   if (b.id === 'veriReporte') { const r = evaluar(EXP); b.disabled = true; b.textContent = 'VERI está revisando el expediente…';
     const ctx = Object.assign(datosBase(), {semaforo_general: r.general, sistemas: Object.fromEntries(Object.entries(r.sis).map(([k, s]) => [k, {color: s.color, notas: s.notas}])), documental: r.doc,
       observaciones: EXP.zonas.flatMap(z => z.items.filter(i => ['obs', 'falla'].includes(i.e)).map(i => ({zona: z.nombre, punto: i.t, estado: i.e, nota: i.nota}))),
-      sin_marcar: EXP.zonas.reduce((n, z) => n + z.items.filter(i => !i.e).length, 0), pruebas: EXP.pruebas,
+      sin_marcar: EXP.zonas.reduce((n, z) => n + z.items.filter(i => !i.e).length, 0), pruebas: EXP.pruebas, materiales: (EXP.materiales || {}).veri ? {lista: EXP.materiales.veri.materiales, clasificacion: EXP.materiales.veri.clasificacion} : null,
       documentos: EXP.documentos.map(d => ({documento: d.d, estado: d.e || 'sin revisar', nota: d.nota, veri: d.veri ? d.veri.mensaje : ''}))});
     const v = await veri('reporte', ctx); b.disabled = false; b.textContent = 'Que VERI revise todo y redacte el resumen';
     if (v) { EXP.veriReporte = v; if (v.borrador) { const [res, rec] = v.borrador.split(/\n?-{3,}\n?/);
@@ -662,6 +701,9 @@ document.addEventListener('change', async ev => {
       if (v) { EXP.pruebasVeri[k] = v; guardar(); } const c2 = document.getElementById('pv-' + k); if (c2) c2.innerHTML = veriCard(EXP.pruebasVeri[k]); }
     return;
   }
+  if (t.dataset.matfoto && t.files.length) { const k = t.dataset.matfoto; EXP.materiales = EXP.materiales || {fotos: {}}; EXP.materiales.fotos[k] = EXP.materiales.fotos[k] || [];
+    for (const f of t.files) { try { const data = await comprimir(f); const id = 'm' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); EXP.materiales.fotos[k].push(id); } catch (e) { aviso('No se pudo leer una foto.'); } }
+    t.value = ''; guardar(); pintarFotosMat(k); return; }
   if (t.id === 'planoFile' && t.files.length) { EXP.plano = EXP.plano || [];
     for (const f of t.files) { try { let data, mime = f.type || '';
         if (mime.startsWith('image')) { data = await comprimir(f); mime = 'image/jpeg'; }
@@ -690,6 +732,7 @@ async function exportar() {
   for (const d of EXP.documentos) for (const a of (d.archivos || [])) fotos[a.id] = await BD.leerFoto(a.id);
   for (const ids of Object.values(EXP.pruebasFotos || {})) for (const id of ids) fotos[id] = await BD.leerFoto(id);
   for (const a of (EXP.plano || [])) fotos[a.id] = await BD.leerFoto(a.id);
+  for (const ids of Object.values((EXP.materiales || {}).fotos || {})) for (const id of ids) fotos[id] = await BD.leerFoto(id);
   const blob = new Blob([JSON.stringify({version: 1, expediente: EXP, fotos})], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `respaldo-${EXP.folio}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   aviso('Respaldo exportado');
@@ -753,6 +796,25 @@ async function generarPDF() {
       if (z.nota) { y = espacio(y, 10); doc.setFont('helvetica', 'italic'); doc.setFontSize(9.5); doc.setTextColor(...RGB.tinta); const ls = doc.splitTextToSize('Nota: ' + z.nota, W - 2 * M); doc.text(ls, M, y); y += ls.length * 4.2 + 1; }
       if (nacc.length) { y = espacio(y, 8); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...RGB.suave); const ls = doc.splitTextToSize('No accesible: ' + nacc.join('; '), W - 2 * M); doc.text(ls, M, y); y += ls.length * 4 + 1; }
       doc.setDrawColor(...RGB.linea); doc.line(M, y, W - M, y); y += 6;
+    }
+    // Materiales y acabados (observación visual de VERI)
+    const MV = (EXP.materiales || {}).veri;
+    if (MV && (MV.materiales || []).length) {
+      doc.addPage(); y = encabezado('Materiales y acabados'); y = titulo('Materiales y acabados', y);
+      y = parrafo('Identificación visual asistida por IA a partir de las fotos tomadas en sitio. Es una observación orientativa: no sustituye un avalúo ni pruebas de laboratorio.', y, 9.5);
+      const cl = MV.clasificacion || {};
+      if (cl.calidad_general) { doc.setFillColor(...RGB.navy); doc.roundedRect(M, y, W - 2 * M, 18, 2, 2, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(12);
+        doc.text(`Calidad de construcción: ${cl.calidad_general} | Estado: ${cl.estado_general || '-'}`, M + 5, y + 7.5); doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+        doc.text(cl.vida_util_remanente_anios != null ? `Vida útil remanente estimada: ${cl.vida_util_remanente_anios} años de ${cl.vida_util_total_anios || '-'}` : '', M + 5, y + 13.5); y += 23;
+        if (cl.comentario) y = parrafo(cl.comentario, y, 10); }
+      doc.autoTable({startY: y + 2, margin: {left: M, right: M}, head: [['Elemento', 'Material identificado', 'Calidad', 'Estado', 'Comentario']],
+        body: MV.materiales.map(x => [x.elemento, x.material, x.calidad, x.estado, x.comentario || '']),
+        styles: {fontSize: 8.5, cellPadding: 2, textColor: RGB.tinta, lineColor: RGB.linea, lineWidth: .2}, headStyles: {fillColor: RGB.navy, textColor: 255},
+        columnStyles: {0: {cellWidth: 26, fontStyle: 'bold'}, 2: {cellWidth: 24}, 3: {cellWidth: 18}},
+        didParseCell: c => { if (c.section === 'body' && c.column.index === 3) { const e = String(c.cell.raw).toLowerCase(); const col = e.startsWith('bueno') ? RGB.verde : e.startsWith('regular') ? RGB.amarillo : e.startsWith('malo') ? RGB.rojo : null; if (col) { c.cell.styles.fillColor = col; c.cell.styles.textColor = 255; c.cell.styles.fontStyle = 'bold'; } } }});
+      y = doc.lastAutoTable.finalY + 6;
+      const ids = TOMAS_MATERIALES.flatMap(x => (((EXP.materiales || {}).fotos || {})[x.k] || []).slice(-1)).slice(0, 6);
+      if (ids.length) { let x = M; const fw = 58, fh = 40; y = espacio(y, fh + 4); for (const id of ids) { const data = await BD.leerFoto(id); if (!data) continue; if (x + fw > W - M) { x = M; y += fh + 3; y = espacio(y, fh + 4); } try { doc.addImage(data, 'JPEG', x, y, fw, fh, undefined, 'FAST'); } catch (e) {} x += fw + 3; } y += fh + 4; }
     }
     // Mediciones: solo lo medido, en gráfica con rangos
     doc.addPage(); y = encabezado('Mediciones'); y = titulo('Mediciones: dónde cayó cada lectura', y);
