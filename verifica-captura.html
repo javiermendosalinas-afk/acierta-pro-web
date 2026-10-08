@@ -87,7 +87,9 @@ nav.pasos button[aria-current=step] .n{background:var(--navy);border-color:var(-
 .aviso{background:#FFF7E6;border:1px solid #F0D49A;border-radius:8px;padding:10px 12px;font-size:15px;margin-bottom:12px}
 .oculto{display:none!important}
 .guia{background:#EEF4FB;border:1px solid #C9DAEE;border-radius:8px;padding:12px;margin-top:8px;font-size:15px}
-.guia h4{margin:0 0 6px;font-size:15px;color:var(--navy)}
+.guia h4{margin:0;font-size:15px;color:var(--navy)}
+.guia-cab{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ico-equipo{flex:none;background:#fff;border-radius:10px;padding:4px}
 .guia ol{margin:4px 0 8px;padding-left:20px}
 .guia .ref{color:var(--navy2);font-weight:700}
 .guia img{max-width:160px;border-radius:6px;display:block;margin:6px 0}
@@ -195,8 +197,22 @@ function equiposPara(texto) {
   e.push('visual');
   return [...new Set(e)];
 }
+const ICONOS = {
+  termografica: '<path d="M14 18h30a6 6 0 0 1 6 6v10a6 6 0 0 1-6 6H32l-4 16h-10l3-16h-7a6 6 0 0 1-6-6V24a6 6 0 0 1 6-6z"/><rect x="16" y="22" width="18" height="12" rx="2" fill="#E8F0FA"/><circle cx="25" cy="28" r="3" fill="#DE0A0E" stroke="none"/><circle cx="44" cy="29" r="3"/>',
+  humedad: '<rect x="18" y="8" width="28" height="48" rx="6"/><rect x="23" y="14" width="18" height="12" rx="2" fill="#E8F0FA"/><path d="M32 34c-4 5-6 8-6 11a6 6 0 0 0 12 0c0-3-2-6-6-11z" fill="#DE0A0E" stroke="none"/>',
+  manometro: '<circle cx="32" cy="28" r="16"/><path d="M32 28l8-7" stroke="#DE0A0E"/><circle cx="32" cy="28" r="2" fill="#0A1F3F"/><path d="M26 44v8h12v-8M22 52h20"/>',
+  probador: '<path d="M16 14h32v22a10 10 0 0 1-10 10H26a10 10 0 0 1-10-10z"/><path d="M26 46v10M38 46v10"/><circle cx="25" cy="26" r="3" fill="#DE0A0E" stroke="none"/><circle cx="32" cy="26" r="3" fill="#E0A100" stroke="none"/><circle cx="39" cy="26" r="3" fill="#1E7E45" stroke="none"/>',
+  multimetro: '<path d="M22 4a12 12 0 0 1 20 0l-4 6a6 6 0 0 0-12 0z"/><rect x="18" y="14" width="28" height="44" rx="5"/><rect x="23" y="19" width="18" height="10" rx="2" fill="#E8F0FA"/><circle cx="32" cy="42" r="6"/>',
+  co: '<rect x="26" y="4" width="12" height="54" rx="5"/><rect x="28.5" y="12" width="7" height="14" rx="1.5" fill="#E8F0FA"/><text x="32" y="46" font-size="9" text-anchor="middle" fill="#DE0A0E" stroke="none" font-family="Arial" font-weight="700">CO</text>',
+  gas: '<path d="M30 4h4v16h-4z"/><rect x="20" y="20" width="24" height="38" rx="5"/><rect x="24" y="25" width="16" height="12" rx="2" fill="#E8F0FA"/><path d="M32 42c-3 4-4 6-4 8a4 4 0 0 0 8 0c0-2-1-4-4-8z" fill="#DE0A0E" stroke="none"/>',
+  jabonosa: '<path d="M24 18h14l2 8v28a4 4 0 0 1-4 4H26a4 4 0 0 1-4-4V26z"/><path d="M26 18v-6h10l6 4"/><circle cx="48" cy="26" r="3"/><circle cx="52" cy="36" r="4"/><circle cx="46" cy="44" r="2.5"/>',
+  endoscopio: '<rect x="8" y="12" width="26" height="20" rx="3"/><rect x="11" y="15" width="20" height="14" rx="1.5" fill="#E8F0FA"/><path d="M34 22c10 0 12 8 6 12s-4 12 6 12h8"/><circle cx="56" cy="46" r="3" fill="#DE0A0E" stroke="none"/>',
+  nivel: '<rect x="24" y="16" width="16" height="14" rx="3"/><path d="M32 30v8M32 38l-10 18M32 38l10 18M32 38v18"/><path d="M4 23h18M42 23h18" stroke="#1E9E4E" stroke-dasharray="3 3"/>',
+  visual: '<path d="M10 26h20l8-6v20l-8-6H10z"/><path d="M42 22l8-4M42 30h9M42 38l8 4" stroke="#E0A100"/><rect x="12" y="46" width="40" height="8" rx="2"/><path d="M18 46v4M24 46v3M30 46v4M36 46v3M42 46v4"/>'
+};
+function icono(id) { return `<svg class="ico-equipo" viewBox="0 0 64 64" width="56" height="56" fill="none" stroke="#0A1F3F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[id] || ''}</svg>`; }
 function guiaHTML(ids) {
-  return ids.map(id => { const q = EQUIPO[id]; return `<div class="guia"><h4>${esc(q.n)}</h4><img src="assets/verifica/equipo/${id}.jpg" alt="${esc(q.n)}" onerror="this.remove()"><ol>${q.p.map(x => `<li>${esc(x)}</li>`).join('')}</ol><div class="ref">Referencia: ${esc(q.r)}</div></div>`; }).join('');
+  return ids.map(id => { const q = EQUIPO[id]; return `<div class="guia"><div class="guia-cab">${icono(id)}<h4>${esc(q.n)}</h4></div><img src="assets/verifica/equipo/${id}.jpg" alt="Foto: ${esc(q.n)}" onerror="this.remove()"><ol>${q.p.map(x => `<li>${esc(x)}</li>`).join('')}</ol><div class="ref">Referencia: ${esc(q.r)}</div></div>`; }).join('');
 }
 const LEYENDA = 'Revisión preventiva de alcance básico, limitada a las áreas accesibles el día de la visita. No sustituye peritajes, dictámenes técnicos, avalúos, certificados registrales ni asesoría jurídica especializada cuando resulten necesarios.';
 
@@ -365,7 +381,8 @@ function pZona() {
     <div class="estados" role="group" aria-label="${esc(it.t)}">${ESTADOS.map(([e, l]) => `<button type="button" data-e="${e}" aria-pressed="${it.e === e}">${l}</button>`).join('')}</div>
     <div class="extra"><textarea data-nota="${k}" placeholder="Qué se observa, dónde y medida si aplica">${esc(it.nota)}</textarea>
       <div class="fotos" id="f-${k}"></div>
-      <label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Agregar foto<input type="file" accept="image/*" capture="environment" class="oculto" data-foto="${k}" multiple></label></div>
+      <label class="btn-foto" style="display:inline-flex;align-items:center;margin-top:8px">Agregar foto<input type="file" accept="image/*" capture="environment" class="oculto" data-foto="${k}" multiple></label>
+      <div id="vi-${k}">${veriCard(it.veri)}</div></div>
     ${['obs', 'falla'].includes(it.e) || it.nota || it.fotos.length ? '' : `<button type="button" class="volver" data-detalle="${k}">Agregar nota o foto</button>`}
   </div>`).join('')}</div>
   <div class="panel"><label class="campo">Nota general de la zona <span class="op">(opcional)</span><textarea id="notaZona">${esc(z.nota)}</textarea></label>
@@ -507,9 +524,14 @@ document.addEventListener('input', ev => {
 document.addEventListener('change', async ev => {
   const t = ev.target;
   if (t.dataset.foto != null && t.files.length) {
-    const k = +t.dataset.foto; const it = EXP.zonas.find(x => x.id === ZONA).items[k];
+    const k = +t.dataset.foto; const it = EXP.zonas.find(x => x.id === ZONA).items[k]; const nSub = t.files.length;
     for (const f of t.files) { try { const data = await comprimir(f); const id = 'f' + Date.now() + Math.random().toString(36).slice(2, 6); await BD.foto(id, data); it.fotos.push(id); } catch (e) { aviso('No se pudo leer una foto.'); } }
-    t.value = ''; guardar(); pintarFotos(it, k); return;
+    t.value = ''; guardar(); pintarFotos(it, k);
+    if (SESION) { const z = EXP.zonas.find(x => x.id === ZONA); const cont = document.getElementById('vi-' + k); const nuevas = it.fotos.slice(-Math.min(nSub || 1, 3));
+      if (cont) cont.innerHTML = '<div class="veri-card"><div class="quien">VERI</div>Revisando la foto…</div>';
+      const v = await veri('foto', Object.assign(datosBase(), {zona: z.nombre, punto: it.t, estado_marcado: it.e || 'sin marcar', nota: it.nota, instrumentos_sugeridos: equiposPara(it.t + ' ' + z.tipo).map(id => EQUIPO[id].n)}), {imagenes: await fotosDe(nuevas, 3)});
+      if (v) { it.veri = v; guardar(); } const c2 = document.getElementById('vi-' + k); if (c2) c2.innerHTML = veriCard(it.veri); }
+    return;
   }
   if (t.dataset.docarch != null && t.files.length) {
     const k = +t.dataset.docarch, d = EXP.documentos[k]; d.archivos = d.archivos || [];
