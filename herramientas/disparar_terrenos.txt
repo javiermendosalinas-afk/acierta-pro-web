@@ -1,2 +1,2 @@
-30
-Muestra de fichas para ajustar el lector (2026-10-08T03:14)
+2500
+Lectura de terrenos con pausa y sin marcar fallos (2026-10-08T03:18)

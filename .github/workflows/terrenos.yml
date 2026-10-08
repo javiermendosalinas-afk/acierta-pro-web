@@ -5,7 +5,7 @@ name: Terrenos del inventario (fichas de aciertamax.com)
 # Corre cada lunes, al cambiar herramientas/disparar_terrenos.txt o a mano.
 on:
   schedule:
-    - cron: '0 9 * * 1'       # lunes 03:00 hora de Guadalajara
+    - cron: '0 9 * * 1,4'     # lunes y jueves 03:00 hora de Guadalajara (hasta completar)
   push:
     paths:
       - 'herramientas/disparar_terrenos.txt'
@@ -13,7 +13,7 @@ on:
     inputs:
       maximo:
         description: 'Fichas a leer en esta corrida'
-        default: '4000'
+        default: '2500'
 
 permissions:
   contents: write
@@ -37,7 +37,7 @@ jobs:
         run: |
           N="${{ github.event.inputs.maximo }}"
           [ -z "$N" ] && N=$(grep -oE '^[0-9]+' herramientas/disparar_terrenos.txt | head -1)
-          [ -z "$N" ] && N=4000
+          [ -z "$N" ] && N=2500
           python -u herramientas/inventario_sync.py --solo-terrenos $N
       - name: Guardar
         run: |

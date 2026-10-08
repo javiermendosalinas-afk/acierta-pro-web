@@ -927,13 +927,13 @@ def _guardar_cache_terrenos(cache):
         json.dump(cache, fh, separators=(",", ":"))
 
 
-def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
+def enriquecer_terrenos(filas, max_consultas=2500, pausa=1.2):
     import time as _t
     clave_api = os.environ.get("EASYBROKER_API_KEY", "").strip()
     cache = _cargar_cache_terrenos()
     hoy = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     hace30 = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d")
-    hechas = encontradas = muestras = 0
+    hechas = encontradas = muestras = fallos_seguidos = 0
     s = requests.Session()
     if clave_api:
         s.headers.update({"X-Authorization": clave_api, "Accept": "application/json"})
@@ -959,6 +959,15 @@ def enriquecer_terrenos(filas, max_consultas=4000, pausa=0.3):
                     break
         elif f.get("liga"):
             resp = get_con_reintentos(s, f["liga"])
+            if resp is None:
+                fallos_seguidos += 1
+                hechas -= 0          # cuenta como intento, pero NO se marca «sin dato»
+                if fallos_seguidos >= 20:
+                    print("[AVISO] 20 fichas seguidas sin respuesta: el servidor está frenando; se detiene esta corrida", flush=True)
+                    break
+                _t.sleep(pausa * 4)
+                continue
+            fallos_seguidos = 0
             if resp is not None:
                 if muestras < 3:
                     os.makedirs(DIR_MUESTRAS_FICHAS, exist_ok=True)
