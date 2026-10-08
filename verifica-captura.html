@@ -287,6 +287,27 @@ const TOMAS_MATERIALES = [
   {k: 'escalera', l: 'Escalera y barandal', g: 'La escalera completa desde abajo y un acercamiento al escalón y al barandal.'},
   {k: 'instalaciones', l: 'Instalaciones visibles', g: 'Tablero eléctrico, calentador y, si hay, paneles solares o hidroneumático.'}
 ];
+const CARDINALES = ['Norte', 'Noreste', 'Oriente', 'Sureste', 'Sur', 'Suroeste', 'Poniente', 'Noroeste'];
+const ASOLEAMIENTO = {
+  'Norte': 'Casi sin sol directo en la fachada: luz pareja y casa más fresca; interiores del frente menos asoleados.',
+  'Noreste': 'Sol suave de primera hora: frente fresco el resto del día.',
+  'Oriente': 'Sol de mañana, agradable; tardes frescas en el frente. Muy apreciada en Guadalajara.',
+  'Sureste': 'Sol de mañana y buena luz en invierno; frente templado.',
+  'Sur': 'Mucha luz natural, sobre todo en invierno; frente templado todo el año.',
+  'Suroeste': 'Sol de mediodía y tarde: frente cálido; conviene protección solar.',
+  'Poniente': 'Sol fuerte de tarde: fachada caliente y más gasto en enfriamiento; conviene protección solar en ventanas.',
+  'Noroeste': 'Sol de tarde en verano: frente cálido por las tardes.'
+};
+function cardinal(g) { return CARDINALES[Math.round(((g % 360) + 360) % 360 / 45) % 8]; }
+function medirCompas(seg = 3) { return new Promise((ok, mal) => {
+  const lect = []; let tipo = 'deviceorientationabsolute';
+  const h = e => { let g = null; if (typeof e.webkitCompassHeading === 'number') g = e.webkitCompassHeading; else if (e.absolute && typeof e.alpha === 'number') g = 360 - e.alpha; if (g != null && !isNaN(g)) lect.push(g); };
+  const arrancar = () => { if (!('ondeviceorientationabsolute' in window)) tipo = 'deviceorientation'; window.addEventListener(tipo, h, true);
+    setTimeout(() => { window.removeEventListener(tipo, h, true); if (lect.length < 3) return mal(new Error('sin compás'));
+      const s = lect.reduce((a, g) => [a[0] + Math.sin(g * Math.PI / 180), a[1] + Math.cos(g * Math.PI / 180)], [0, 0]);
+      const prom = (Math.atan2(s[0], s[1]) * 180 / Math.PI + 360) % 360; const disp = Math.max(...lect) - Math.min(...lect); ok({grados: Math.round(prom), lecturas: lect.length, dispersion: Math.round(disp)}); }, seg * 1000); };
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function')
+    DeviceOrientationEvent.requestPermission().then(r => r === 'granted' ? arrancar() : mal(new Error('permiso'))).catch(mal); else arrancar(); }); }
 const LEYENDA = 'Revisión preventiva de alcance básico, limitada a las áreas accesibles el día de la visita. No sustituye peritajes, dictámenes técnicos, avalúos, certificados registrales ni asesoría jurídica especializada cuando resulten necesarios.';
 
 // ───────────────────────── Almacenamiento (IndexedDB) ─────────────────────────
@@ -332,7 +353,7 @@ function veriCard(v) {
     ${v.faltantes && v.faltantes.length ? `<strong>Lo que falta:</strong>${L(v.faltantes)}` : ''}${v.hallazgos && v.hallazgos.length ? `<strong>Hallazgos:</strong>${L(v.hallazgos)}` : ''}${v.pasos && v.pasos.length ? `<strong>Siguiente:</strong>${L(v.pasos)}` : ''}</div>`;
 }
 async function fotosDe(ids, max = 8) { const out = []; for (const id of ids.slice(0, max)) { const d = await BD.leerFoto(id); if (d && d.startsWith('data:image')) out.push(d); } return out; }
-function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia, ubicacion_gps: d.gps || null, escritura: {terreno_m2: d.esc_terreno, construccion_m2: d.esc_construccion, fecha_compra: d.fecha_compra, precio_compra: d.precio_compra}, plano_medido: {terreno_m2: d.plano_terreno, construccion_m2: d.plano_construccion}, incongruencias: congruencia(EXP)}; }
+function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia, ubicacion_gps: d.gps || null, orientacion_fachada: d.orientacion ? `${d.orientacion.cardinal} (${d.orientacion.grados}°)` : null, escritura: {terreno_m2: d.esc_terreno, construccion_m2: d.esc_construccion, fecha_compra: d.fecha_compra, precio_compra: d.precio_compra}, plano_medido: {terreno_m2: d.plano_terreno, construccion_m2: d.plano_construccion}, incongruencias: congruencia(EXP)}; }
 
 // ───────────────────────── Estado ─────────────────────────
 let EXP = null, PASO = 'datos', ZONA = null;
@@ -451,7 +472,12 @@ function pDatos() {
   <div class="fila">${t('antiguedad', 'Antigüedad aproximada <span class="op">(años)</span>', 'number', 'inputmode="numeric"')}${t('servicios', 'Servicios <span class="op">(cisterna, gas LP…)</span>')}</div></div>
   <div class="panel"><h3>Ubicación verificada en sitio</h3><p class="ayuda">Al llegar a la casa, párate en la entrada y regístrala.</p>
   <div id="gpsRes">${d.gps ? `<div class="aviso">Registrada: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (±${Math.round(d.gps.precision)} m) el ${new Date(d.gps.fecha).toLocaleString('es-MX')}. <a href="https://maps.google.com/?q=${d.gps.lat},${d.gps.lon}" target="_blank" rel="noopener">Ver en el mapa</a></div>` : ''}</div>
-  <button class="btn sec" type="button" id="gps">${d.gps ? 'Volver a registrar la ubicación' : 'Estoy en la casa: registrar ubicación'}</button></div>
+  <button class="btn sec" type="button" id="gps">${d.gps ? 'Volver a registrar la ubicación' : 'Estoy en la casa: registrar ubicación'}</button>
+  <h3 style="margin-top:16px">Orientación de la fachada</h3>
+  <div class="guia"><ol><li>Párate en la banqueta, de espaldas a la casa, mirando hacia la calle.</li><li>Aléjate de autos y postes metálicos (alteran el compás).</li><li>Sostén el celular horizontal, con la parte de arriba apuntando al frente.</li><li>Presiona «Medir orientación» y no te muevas 3 segundos.</li></ol></div>
+  <div id="oriRes">${d.orientacion ? `<div class="aviso">La fachada mira al <strong>${esc(d.orientacion.cardinal)}</strong> (${d.orientacion.grados}°, ${d.orientacion.metodo}). ${esc(ASOLEAMIENTO[d.orientacion.cardinal] || '')}</div>` : ''}</div>
+  <div class="acciones"><button class="btn sec" type="button" id="medirOri">Medir orientación</button>
+  <label class="campo" style="margin:0;flex:1;min-width:160px">o elígela a mano<select id="oriManual"><option value="">—</option>${CARDINALES.map(c => `<option ${d.orientacion && d.orientacion.metodo === 'manual' && d.orientacion.cardinal === c ? 'selected' : ''}>${c}</option>`).join('')}</select></label></div></div>
   <div class="panel"><h3>Según la escritura</h3><br><div class="fila">${t('esc_terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('esc_construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}</div>
   <div class="fila">${t('fecha_compra', 'Fecha de compra', 'date')}${t('precio_compra', 'Precio de compra $', 'number', 'inputmode="decimal"')}</div>
   <p class="ayuda" style="margin:0">Súbela en Documentos y pide a VERI que la lea: extrae estos datos por ti.</p></div>
@@ -631,6 +657,11 @@ document.addEventListener('click', async ev => {
     if (j.encontrado) { EXP.datos.numcliente = j.folio; if (!EXP.datos.cliente) EXP.datos.cliente = j.nombre; guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">Cliente encontrado en el CRM: <strong>${esc(j.nombre)}</strong>, folio ${esc(j.folio)}${j.vendedor ? ', asesor ' + esc(j.vendedor) : ''}.</div>`; }
     else { EXP.datos.numcliente = EXP.datos.numcliente || ('VC-' + tel); guardar(); pDatos(); $('#crmRes').innerHTML = `<div class="aviso">No está en el CRM. Se asignó el número provisional <strong>${esc(EXP.datos.numcliente)}</strong>; da de alta al cliente en MAX para tener su folio.</div>`; }
     return; }
+  if (b.id === 'medirOri') { b.disabled = true; b.textContent = 'Midiendo… no te muevas';
+    try { const r = await medirCompas(3); if (r.dispersion > 40) aviso('Lectura inestable (variación de ' + r.dispersion + '°). Aléjate de metales y repite.');
+      EXP.datos.orientacion = {grados: r.grados, cardinal: cardinal(r.grados), metodo: 'compás del celular', fecha: new Date().toISOString()}; guardar(); return pDatos(); }
+    catch (e) { aviso(e.message === 'permiso' ? 'Permite el acceso a los sensores de movimiento y repite.' : 'Este celular no permite leer el compás desde el navegador. Elige la orientación a mano.'); }
+    b.disabled = false; b.textContent = 'Medir orientación'; return; }
   if (b.id === 'gps') { if (!navigator.geolocation) return aviso('Este teléfono no permite obtener la ubicación.'); b.disabled = true; b.textContent = 'Obteniendo ubicación…';
     navigator.geolocation.getCurrentPosition(pos => { EXP.datos.gps = {lat: pos.coords.latitude, lon: pos.coords.longitude, precision: pos.coords.accuracy, fecha: new Date().toISOString()}; guardar(); pDatos();
       if (pos.coords.accuracy > 50) aviso('Precisión baja (±' + Math.round(pos.coords.accuracy) + ' m). Sal a la calle frente a la casa y vuelve a registrar.'); },
@@ -725,6 +756,7 @@ document.addEventListener('change', async ev => {
       for (const [id, data] of Object.entries(r.fotos || {})) await BD.foto(id, data);
       await BD.guardar(r.expediente); aviso('Respaldo importado'); pintar(); } catch (e) { aviso('El archivo no es un respaldo de Acierta Verifica.'); }
   }
+  if (t.id === 'oriManual' && t.value) { const g = CARDINALES.indexOf(t.value) * 45; EXP.datos.orientacion = {grados: g, cardinal: t.value, metodo: 'manual', fecha: new Date().toISOString()}; guardar(); return pDatos(); }
   if (t.dataset.dato || t.dataset.prueba) { if (t.dataset.dato) EXP.datos[t.dataset.dato] = t.value; else EXP.pruebas[t.dataset.prueba] = t.value; guardar(); }
 });
 async function exportar() {
@@ -763,7 +795,7 @@ async function generarPDF() {
     if (pe.lista.length) { doc.setFillColor(...RGB.amarillo); doc.roundedRect(M, 60, 84, 9, 2, 2, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.text('REPORTE DE CAMPO | PRELIMINAR', M + 4, 66); doc.setFont('helvetica', 'normal'); }
     doc.setTextColor(255); doc.setFontSize(11); doc.text(`Folio ${EXP.folio}`, M, 78); doc.text(`Visita: ${d.fecha || ''} ${d.hora || ''}`, W - M, 78, {align: 'right'});
     let y = 108; doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(doc.splitTextToSize(d.direccion || 'Dirección sin capturar', W - 2 * M), M, y); y += 8;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`, d.gps ? `Ubicación verificada en sitio: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (+/- ${Math.round(d.gps.precision)} m), ${new Date(d.gps.fecha).toLocaleString('es-MX')}` : 'Ubicación: sin registro GPS en sitio', (d.esc_construccion || d.plano_construccion) ? `Construcción: escritura ${d.esc_construccion || '-'} m2 | medida ${d.plano_construccion || '-'} m2 | Terreno: escritura ${d.esc_terreno || '-'} m2 | medido ${d.plano_terreno || '-'} m2` : ''].filter(Boolean), M, y); y += 40;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); const lineasPortada = doc.splitTextToSize([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`, d.orientacion ? `Fachada orientada al ${d.orientacion.cardinal} (${d.orientacion.grados} grados): ${ASOLEAMIENTO[d.orientacion.cardinal] || ''}` : '', d.gps ? `Ubicación verificada en sitio: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (+/- ${Math.round(d.gps.precision)} m), ${new Date(d.gps.fecha).toLocaleString('es-MX')}` : 'Ubicación: sin registro GPS en sitio', (d.esc_construccion || d.plano_construccion) ? `Construcción: escritura ${d.esc_construccion || '-'} m2 | medida ${d.plano_construccion || '-'} m2 | Terreno: escritura ${d.esc_terreno || '-'} m2 | medido ${d.plano_terreno || '-'} m2` : ''].filter(Boolean).join('\n'), W - 2 * M); doc.text(lineasPortada, M, y); y += lineasPortada.length * 4.6 + 6;
     const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
     doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
     if (pe.lista.length) { doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Resultado preliminar: hay estudios en proceso.', M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
