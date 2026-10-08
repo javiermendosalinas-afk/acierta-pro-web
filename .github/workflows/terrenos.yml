@@ -10,6 +10,10 @@ on:
     paths:
       - 'herramientas/disparar_terrenos.txt'
   workflow_dispatch:
+    inputs:
+      maximo:
+        description: 'Fichas a leer en esta corrida'
+        default: '4000'
 
 permissions:
   contents: write
@@ -30,7 +34,7 @@ jobs:
       - name: Dependencias
         run: pip install requests beautifulsoup4
       - name: Leer terrenos de las fichas
-        run: python -u herramientas/inventario_sync.py --solo-terrenos 4000
+        run: python -u herramientas/inventario_sync.py --solo-terrenos ${{ github.event.inputs.maximo || '4000' }}
       - name: Guardar
         run: |
           git config user.name "acierta-bot"
