@@ -167,6 +167,7 @@ const DOCUMENTOS = [
   ['Régimen de condominio y reglamento','Escritura constitutiva y reglamento, si es coto o condominio',0],
   ['Licencias de construcción y habitabilidad','Licencia, alineamiento y número oficial, terminación de obra',0],
   ['Uso de suelo','Compatible con el uso que dará el cliente',0],
+  ['Ficha urbanística (Visor Urbano)','Zonificación, usos permitidos, COS, CUS, altura y restricciones del predio',0],
   ['Ocupación','Quién vive hoy; contrato de arrendamiento vigente',0]
 ];
 const ESTADOS = [['ok','Bien'],['obs','Observación'],['falla','Falla'],['na','No aplica'],['nacc','No accesible']];
@@ -174,6 +175,7 @@ const ESTADOS_DOC = [['ok','Correcto'],['obs','Con observación'],['alerta','Con
 function plazoDoc(nombre) { const n = nombre.toLowerCase();
   if (n.includes('gravámenes')) return [5, 'Certificado de libertad o gravamen del RPP: 5 días hábiles (urgente en 24 h al doble)'];
   if (n.includes('registro público')) return [1, 'Consulta de folio real en línea'];
+  if (n.includes('ficha urbanística')) return [1, 'Descarga en visorurbano.jalisco.gob.mx con la cuenta catastral'];
   if (n.includes('licencias') || n.includes('uso de suelo')) return [10, 'Dictamen o constancia municipal: alrededor de 10 días hábiles'];
   if (n.includes('poder') || n.includes('sucesión')) return [3, 'Verificación por el notario de la operación'];
   if (n.includes('agua')) return [3, 'Constancia de no adeudo del organismo de agua'];
@@ -353,7 +355,7 @@ function veriCard(v) {
     ${v.faltantes && v.faltantes.length ? `<strong>Lo que falta:</strong>${L(v.faltantes)}` : ''}${v.hallazgos && v.hallazgos.length ? `<strong>Hallazgos:</strong>${L(v.hallazgos)}` : ''}${v.pasos && v.pasos.length ? `<strong>Siguiente:</strong>${L(v.pasos)}` : ''}</div>`;
 }
 async function fotosDe(ids, max = 8) { const out = []; for (const id of ids.slice(0, max)) { const d = await BD.leerFoto(id); if (d && d.startsWith('data:image')) out.push(d); } return out; }
-function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia, ubicacion_gps: d.gps || null, orientacion_fachada: d.orientacion ? `${d.orientacion.cardinal} (${d.orientacion.grados}°)` : null, escritura: {terreno_m2: d.esc_terreno, construccion_m2: d.esc_construccion, fecha_compra: d.fecha_compra, precio_compra: d.precio_compra}, plano_medido: {terreno_m2: d.plano_terreno, construccion_m2: d.plano_construccion}, incongruencias: congruencia(EXP)}; }
+function datosBase() { const d = EXP.datos; return {inmueble: `${d.tipo}, ${d.direccion}, ${d.colonia}, ${d.municipio}`, terreno_m2: d.terreno, construccion_m2: d.construccion, niveles: d.niveles, antiguedad: d.antiguedad, servicios: d.servicios, cliente: d.cliente, numero_cliente: d.numcliente, lluvia_48h: d.lluvia, ubicacion_gps: d.gps || null, orientacion_fachada: d.orientacion ? `${d.orientacion.cardinal} (${d.orientacion.grados}°)` : null, escritura: {terreno_m2: d.esc_terreno, construccion_m2: d.esc_construccion, fecha_compra: d.fecha_compra, precio_compra: d.precio_compra}, plano_medido: {terreno_m2: d.plano_terreno, construccion_m2: d.plano_construccion}, incongruencias: congruencia(EXP), normatividad: Object.assign({zonificacion: d.zonificacion}, normativa(EXP) || {cos: d.cos, cus: d.cus})}; }
 
 // ───────────────────────── Estado ─────────────────────────
 let EXP = null, PASO = 'datos', ZONA = null;
@@ -412,6 +414,7 @@ function evaluar(e) {
     doc.color = peor(doc.color, c); if (['obs', 'alerta', 'np'].includes(d.e)) doc.notas.push(`${d.d}: ${d.e === 'np' ? 'no presentado' : d.e === 'alerta' ? 'con alerta' : 'con observación'}`);
   });
   congruencia(e).forEach(n => { doc.color = peor(doc.color, 'amarillo'); doc.notas.push(n); });
+  const nv = normativa(e); if (nv) nv.notas.filter(x => x.nivel === 'amarillo').forEach(x => { doc.color = peor(doc.color, 'amarillo'); doc.notas.push(x.texto); });
   let general = 'gris'; Object.values(sis).forEach(s => general = peor(general, s.color)); general = peor(general, doc.color);
   return {sis, doc, general};
 }
@@ -481,6 +484,10 @@ function pDatos() {
   <div class="panel"><h3>Según la escritura</h3><br><div class="fila">${t('esc_terreno', 'Terreno m²', 'number', 'inputmode="decimal"')}${t('esc_construccion', 'Construcción m²', 'number', 'inputmode="decimal"')}</div>
   <div class="fila">${t('fecha_compra', 'Fecha de compra', 'date')}${t('precio_compra', 'Precio de compra $', 'number', 'inputmode="decimal"')}</div>
   <p class="ayuda" style="margin:0">Súbela en Documentos y pide a VERI que la lea: extrae estos datos por ti.</p></div>
+  <div class="panel"><h3>Normatividad urbana (Visor Urbano)</h3><p class="ayuda">Descarga la ficha urbanística en visorurbano.jalisco.gob.mx con la cuenta catastral o ubicando el predio en el mapa, y súbela en Documentos para que VERI la lea.</p>
+  ${t('zonificacion', 'Zonificación <span class="op">(clave y nombre, ej. H4-U Habitacional densidad alta)</span>')}
+  <div class="fila">${t('cos', 'COS <span class="op">(ej. 0.8)</span>', 'number', 'inputmode="decimal" step="0.01"')}${t('cus', 'CUS <span class="op">(ej. 1.6)</span>', 'number', 'inputmode="decimal" step="0.01"')}</div>
+  ${(() => { const r = normativa(EXP); return r ? `<div class="aviso">Desplante máximo: <strong>${r.desplante ?? '-'} m²</strong> · Construcción máxima: <strong>${r.maxima ?? '-'} m²</strong>${r.aprovechamiento != null ? ` · Aprovechamiento actual: <strong>${r.aprovechamiento}%</strong>` : ''}${r.notas.map(x => '<br>' + esc(x.texto)).join('')}</div>` : ''; })()}</div>
   <div class="panel"><h3>Plano medido en sitio</h3><p class="ayuda">Hazlo con Magicplan o Polycam recorriendo la casa, y súbelo aquí (PDF o imagen).</p>
   <div class="fila">${t('plano_terreno', 'Terreno medido m²', 'number', 'inputmode="decimal"')}${t('plano_construccion', 'Construcción medida m²', 'number', 'inputmode="decimal"')}</div>
   <div class="archivos" id="planoArch"></div>
@@ -579,6 +586,18 @@ function pDocumentos() {
     ${(d.archivos || []).length ? `<button class="veri-btn" type="button" data-veridoc="${k}">Que VERI revise este documento</button>` : ''}<div id="vd-${k}">${veriCard(d.veri)}</div></div>`).join('')}</div>
   <button class="btn" type="button" data-paso="reporte">Ver resultado y reporte</button>`;
   EXP.documentos.forEach((d, k) => pintarArchivos(d, k));
+}
+function normativa(e) {
+  const d = e.datos; const n = v => { const x = parseFloat(String(v || '').replace(',', '.')); return Number.isFinite(x) && x > 0 ? x : null; };
+  const terreno = n(d.plano_terreno) || n(d.esc_terreno) || n(d.terreno); const constr = n(d.plano_construccion) || n(d.esc_construccion) || n(d.construccion);
+  const cos = n(d.cos), cus = n(d.cus); if (!terreno || (!cos && !cus)) return null;
+  const r = {terreno, constr, cos, cus, desplante: cos ? Math.round(cos * terreno) : null, maxima: cus ? Math.round(cus * terreno) : null, notas: []};
+  if (r.maxima && constr) { r.aprovechamiento = Math.round(constr / r.maxima * 100);
+    const edad = n(d.antiguedad) || 0; const vr = (((e.materiales || {}).veri || {}).clasificacion || {}).vida_util_remanente_anios;
+    if (constr > r.maxima * 1.05) r.notas.push({nivel: 'amarillo', texto: `La construcción (${constr} m²) excede lo permitido por el CUS (${r.maxima} m²): posible construcción irregular; revisar licencias.`});
+    else if (r.aprovechamiento < 50 && (edad >= 30 || (vr != null && vr <= 20))) r.notas.push({nivel: 'verde', texto: `Potencial de desarrollo: la construcción usa solo el ${r.aprovechamiento}% de lo permitido (${r.maxima} m²) y es una casa de ${edad || 'muchos'} años. El valor está más en el terreno y su potencial que en la construcción.`});
+    else if (r.aprovechamiento < 60) r.notas.push({nivel: 'verde', texto: `Margen para ampliar: se puede construir hasta ${r.maxima} m² (hoy ${constr} m², ${r.aprovechamiento}% de lo permitido).`}); }
+  return r;
 }
 function congruencia(e) {
   const d = e.datos, out = []; const n = v => { const x = parseFloat(v); return Number.isFinite(x) && x > 0 ? x : null; };
@@ -758,6 +777,7 @@ document.addEventListener('change', async ev => {
   }
   if (t.id === 'oriManual' && t.value) { const g = CARDINALES.indexOf(t.value) * 45; EXP.datos.orientacion = {grados: g, cardinal: t.value, metodo: 'manual', fecha: new Date().toISOString()}; guardar(); return pDatos(); }
   if (t.dataset.dato || t.dataset.prueba) { if (t.dataset.dato) EXP.datos[t.dataset.dato] = t.value; else EXP.pruebas[t.dataset.prueba] = t.value; guardar(); }
+  if (t.dataset.dato && ['cos', 'cus', 'terreno', 'construccion', 'antiguedad', 'esc_terreno', 'esc_construccion', 'plano_terreno', 'plano_construccion'].includes(t.dataset.dato) && PASO === 'datos') { const y0 = window.scrollY; pDatos(); window.scrollTo(0, y0); }
 });
 async function exportar() {
   const fotos = {}; for (const z of EXP.zonas) for (const i of z.items) for (const id of i.fotos) fotos[id] = await BD.leerFoto(id);
@@ -798,6 +818,13 @@ async function generarPDF() {
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); const lineasPortada = doc.splitTextToSize([`${d.colonia ? d.colonia + ', ' : ''}${d.municipio}`, `${d.tipo} | terreno ${d.terreno || '-'} m2 | construcción ${d.construccion || '-'} m2 | ${d.niveles || '-'} niveles${d.clave ? ' | clave ' + d.clave : ''}`, `Cliente: ${d.cliente || '-'}${d.numcliente ? ' | No. de cliente ' + d.numcliente : ''}`, `Inspector: ${d.inspector || '-'}`, d.orientacion ? `Fachada orientada al ${d.orientacion.cardinal} (${d.orientacion.grados} grados): ${ASOLEAMIENTO[d.orientacion.cardinal] || ''}` : '', d.gps ? `Ubicación verificada en sitio: ${d.gps.lat.toFixed(6)}, ${d.gps.lon.toFixed(6)} (+/- ${Math.round(d.gps.precision)} m), ${new Date(d.gps.fecha).toLocaleString('es-MX')}` : 'Ubicación: sin registro GPS en sitio', (d.esc_construccion || d.plano_construccion) ? `Construcción: escritura ${d.esc_construccion || '-'} m2 | medida ${d.plano_construccion || '-'} m2 | Terreno: escritura ${d.esc_terreno || '-'} m2 | medido ${d.plano_terreno || '-'} m2` : ''].filter(Boolean).join('\n'), W - 2 * M); doc.text(lineasPortada, M, y); y += lineasPortada.length * 4.6 + 6;
     const col = RGB[r.general]; doc.setFillColor(...col); doc.roundedRect(M, y, W - 2 * M, 30, 3, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
     doc.text(`Semáforo general: ${NOMBRE_COLOR[r.general]}`, M + 8, y + 13); doc.setFont('helvetica', 'normal'); doc.setFontSize(11); doc.text(SENTIDO[r.general], M + 8, y + 22); y += 42;
+    const NV = normativa(EXP);
+    if (NV) { doc.setDrawColor(...RGB.navy); doc.setLineWidth(0.4); const notasNV = NV.notas.map(x => x.texto).join(' ').replace(/²/g, '2'); const lnv = doc.splitTextToSize(notasNV, W - 2 * M - 8);
+      const hBox = 15 + (lnv.length ? lnv.length * 4.4 + 2 : 0); doc.roundedRect(M, y - 4, W - 2 * M, hBox, 2, 2, 'S');
+      doc.setTextColor(...RGB.navy); doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.text(`Normatividad urbana${EXP.datos.zonificacion ? ': ' + EXP.datos.zonificacion : ''}`, M + 4, y + 1.5);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(...RGB.tinta);
+      doc.text(`COS ${NV.cos ?? '-'} | CUS ${NV.cus ?? '-'} | Desplante máximo ${NV.desplante ?? '-'} m2 | Construcción máxima ${NV.maxima ?? '-'} m2${NV.aprovechamiento != null ? ' | Aprovechamiento actual ' + NV.aprovechamiento + '%' : ''}`, M + 4, y + 7);
+      if (lnv.length) doc.text(lnv, M + 4, y + 12.5); y += hBox + 4; }
     if (pe.lista.length) { doc.setTextColor(...RGB.tinta); doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.text('Resultado preliminar: hay estudios en proceso.', M, y); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
       doc.text(doc.splitTextToSize(`${pe.lista.length} concepto(s) en proceso de gabinete. ${pe.final ? 'Reporte final estimado: ' + fechaLarga(pe.final) + '.' : ''} El semáforo puede cambiar al recibirlos.`, W - 2 * M), M, y + 6); }
     doc.setTextColor(...RGB.suave); doc.setFontSize(8.5); doc.text(doc.splitTextToSize(LEYENDA, W - 2 * M), M, H - 26);
