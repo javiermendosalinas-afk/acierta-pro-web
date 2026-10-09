@@ -747,3 +747,9 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 @media (max-width: 560px) { .pulso-cta { grid-template-columns: 84px 1fr; gap: 12px; } .pulso-cta img { width: 84px; } .pulso-cta h3 { font-size: 1.1rem; } }
 
 .pulso-cta-logo{width:min(100%,300px);height:auto;display:block;margin:6px 0 10px}
+
+/* Ventanita de los mapas */
+.mpop{width:210px;font-family:inherit}.mpop-foto{display:block;width:100%;height:120px;border-radius:8px;overflow:hidden;background:#0f1f3d;margin-bottom:6px}
+.mpop-foto img{width:100%;height:100%;object-fit:cover;display:block}.mpop-precio{font-weight:800;font-size:15px;color:#0a1f3f}
+.mpop-tit{font-size:12.5px;color:#444;margin:2px 0 8px;line-height:1.35}
+.mpop-btn{display:block;text-align:center;background:#d62828;color:#fff!important;border-radius:999px;padding:7px 10px;font-weight:700;text-decoration:none}

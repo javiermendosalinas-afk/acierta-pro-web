@@ -144,6 +144,14 @@
   else AM.actualizarUI();
 
   // ── Tarjeta de propiedad ───────────────────────────────
+  // Ventanita de los mapas: foto, precio, título y botón para abrir la ficha
+  AM.popupHTML = function (p, prefijo) {
+    const url = AM.fichaUrl(Object.assign({operacion: 'VENTA'}, p));
+    const tit = (p.titulo || '').length > 70 ? p.titulo.slice(0, 68) + '…' : (p.titulo || '');
+    return `<div class="mpop">${p.foto ? `<a class="mpop-foto" href="${url}">${AM.fotoImg(p.foto, 440, 280, '')}</a>` : ''}
+      <div class="mpop-precio">${prefijo ? AM.esc(prefijo) + ' ' : ''}${AM.precioTxt(Object.assign({operacion: 'VENTA'}, p))}${p.operacion === 'RENTA' ? '/mes' : ''}</div>
+      <div class="mpop-tit">${AM.esc(tit)}</div><a class="mpop-btn" href="${url}">Ver ficha</a></div>`;
+  };
   AM.cardHTML = function (p, opts) {
     opts = opts || {};
     const bits = [];

@@ -346,7 +346,7 @@ function actualizarResultados() {
       if (!p.lat || !p.lon) return;
       L.circleMarker([p.lat, p.lon], {
         radius: 5, color: p.operacion === 'RENTA' ? '#0f1f3d' : '#d62828', fillOpacity: 0.8,
-      }).bindPopup(`<b>${money(p.precio)}</b><br>${p.titulo}`).addTo(markersLayer);
+      }).bindPopup(AM.popupHTML(p), {maxWidth: 240}).addTo(markersLayer);
     });
   }
 }

@@ -164,8 +164,8 @@
     const tarjeta = o => {
       const barra = Math.min(o.neto / 0.10, 1) * 100, refPos = Math.min(M.cetes / 0.10, 1) * 100;
       return `<article class="rp-card" id="op${o.rank}" data-eb="${esc(o.eb)}">
-        <div class="rp-foto">${casaSVG}${o.foto ? `<img src="${esc(o.foto)}" alt="${esc(o.titulo)}" loading="lazy" onerror="this.remove()">` : '<span class="sinfoto">Foto próximamente</span>'}
-          <span class="rp-num">${o.rank}</span>${o.rank <= 3 ? '<span class="rp-fav">★ FAVORITA</span>' : ''}</div>
+        <a class="rp-foto" href="ficha.html?eb=${encodeURIComponent(o.eb)}&op=VENTA" aria-label="Ver ficha completa" style="display:block">${casaSVG}${o.foto ? `<img src="${esc(o.foto)}" alt="${esc(o.titulo)}" loading="lazy" onerror="this.remove()">` : '<span class="sinfoto">Foto próximamente</span>'}
+          <span class="rp-num">${o.rank}</span>${o.rank <= 3 ? '<span class="rp-fav">★ FAVORITA</span>' : ''}</a>
         <div class="rp-cuerpo">
           <div><h3>${esc(o.titulo)}</h3><div class="loc">📍 ${esc(o.colonia)}, ${esc(o.municipio)} · ${Math.round(o.m2)} m²${o.rec ? ' · ' + o.rec + ' rec' : ''} · ${esc(o.eb)}</div></div>
           <div class="rp-precio">${money(o.precio)} <small>· ${money(o.pm2)}/m²</small></div>
@@ -292,7 +292,7 @@
       const z = R.zona_caja;
       L.rectangle([[z.la0, z.lo0], [z.la1, z.lo1]], { color: '#d62828', weight: 2, fillOpacity: 0.05, dashArray: '6 6' }).addTo(m);
       const pts = O.map(o => L.marker([o.lat, o.lon], { icon: L.divIcon({ className: 'cmp-pin', html: '<span>' + o.rank + '</span>', iconSize: [30, 30] }) })
-        .bindPopup('<b>#' + o.rank + '</b> ' + esc(o.colonia) + '<br>' + money(o.precio)).addTo(m));
+        .bindPopup(AM.popupHTML(o, '#' + o.rank), {maxWidth: 240}).addTo(m));
       m.fitBounds(L.featureGroup(pts).getBounds().pad(0.3), { maxZoom: 14 });
     } catch (e) { const el = $('rpMapa'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
   }

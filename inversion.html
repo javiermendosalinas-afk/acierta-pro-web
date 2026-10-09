@@ -216,7 +216,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     if (o.propio) chips.push('<span class="chip c-nota">Acierta Max lo comercializa</span>');
     if (esPreventa) chips.push('<span class="chip c-nota">Preventa: aún no renta</span>');
     return `<div class="icard">
-      <div class="top"><div class="foto">${iconHouse()}${o.foto ? `<img src="${AM.esc(o.foto)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="num">${o.rank}</span></div>
+      <div class="top"><a class="foto" href="${url}" aria-label="Ver ficha" style="display:block">${iconHouse()}${o.foto ? `<img src="${AM.esc(o.foto)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="num">${o.rank}</span></a>
         <div class="cuerpo"><h4>${AM.esc(o.titulo)}</h4><div class="loc">${AM.esc(o.colonia)}, ${AM.esc(o.municipio)} · ${Math.round(o.m2)} m²${o.rec ? ' · ' + o.rec + ' rec' : ''}</div>
           <div class="precio">${money(o.precio)}</div></div></div>
       <div class="fila2">${esPreventa ? '' : `<span class="chip c-med">Neto ${pct(o.netoDespuesIsr)}</span><span class="chip c-med">Plusv. mín. ${pct(o.geq)}</span>`}${o.credito ? `<span class="chip ${o.credito.sePagaSola ? 'c-ok' : 'c-baja'}">${o.credito.sePagaSola ? 'Se paga sola' : 'No se paga sola'}</span>` : ''}${chips.join('')}</div>
@@ -276,7 +276,7 @@ let TODAS = [], currentPolygon = null, drawer = null;
     $('graficaWrap').style.display = mostrar.length ? 'block' : 'none';
     $('notaOrden').style.display = mostrar.length ? 'block' : 'none';
     if (mostrar.length) $('svgBarras').outerHTML = graficaBarras(mostrar, cetesN).replace('<svg', '<svg id="svgBarras"');
-    mostrar.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(`<b>#${o.rank}</b> ${o.colonia}<br>${money(o.precio)}`).addTo(markersLayer); });
+    mostrar.forEach(o => { if (o.lat && o.lon) L.circleMarker([o.lat, o.lon], { radius: 6, color: '#d62828', fillOpacity: 0.85 }).bindPopup(AM.popupHTML(o, '#' + o.rank), {maxWidth: 240}).addTo(markersLayer); });
     $('ctaFinal').style.display = mostrar.length ? 'block' : 'none';
     const folio = new URLSearchParams(location.search).get('folio');
     $('ctaWa').href = 'https://wa.me/523333777337?text=' + encodeURIComponent(`Hola, hice un estudio de inversión en acierta.pro con ${mostrar.length} opciones.${folio ? ' Mi folio es ' + folio + '.' : ''} Me gustaría platicarlo con un asesor.`);

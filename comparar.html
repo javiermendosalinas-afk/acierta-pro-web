@@ -194,7 +194,7 @@
       const pts = conCoord.map((p, i) => {
         const n = P.indexOf(p) + 1;
         return L.marker([p.lat, p.lon], { icon: L.divIcon({ className: 'cmp-pin', html: '<span>' + n + '</span>', iconSize: [30, 30] }) })
-          .bindPopup('<b>' + n + '.</b> ' + AM.esc(corto(p.titulo, 60)) + '<br>' + AM.money(p.precio)).addTo(mapa);
+          .bindPopup(AM.popupHTML(p, n + '.'), {maxWidth: 240}).addTo(mapa);
       });
       mapa.fitBounds(L.featureGroup(pts).getBounds().pad(0.25), { maxZoom: 15 });
     } catch (e) { console.error('mapa comparar:', e); const el = document.getElementById('mapaCmp'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
