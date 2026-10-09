@@ -1,11 +1,12 @@
 {
- "actualizado": "2026-10-04T20:57:30+00:00",
- "total": 9970,
+ "actualizado": "2026-10-09T20:15:07+00:00",
+ "total": 10515,
  "por_segmento": {
-  "comercial": 2098,
-  "vivienda": 7872
+  "comercial": 2334,
+  "vivienda": 8181
  },
  "municipios": [
+  "El Salto",
   "Guadalajara",
   "Tlajomulco de Zúñiga",
   "Tlaquepaque",

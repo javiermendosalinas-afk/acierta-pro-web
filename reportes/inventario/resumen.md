@@ -1,24 +1,24 @@
-# Inventario acierta.pro - corrida 2026-10-04
+# Inventario acierta.pro - corrida 2026-10-09
 
-- Fichas publicadas: **9,970**
-- Por segmento: {'comercial': 2098, 'vivienda': 7872}
-- Por segmento y operacion: {'comercial/RENTA': 1178, 'vivienda/RENTA': 1141, 'vivienda/VENTA': 6731, 'comercial/VENTA': 920}
-- Por municipio: {'Guadalajara': 2934, 'Tlajomulco de Zúñiga': 1632, 'Tlaquepaque': 589, 'Tonalá': 292, 'Zapopan': 4523}
-- Segmento por: {'tipo comercial': 1981, 'por decidir -> vivienda': 1330, 'palabra clave en el titulo': 117, 'tipo de vivienda': 6542}
+- Fichas publicadas: **10,515**
+- Por segmento: {'comercial': 2334, 'vivienda': 8181}
+- Por segmento y operacion: {'comercial/RENTA': 1314, 'vivienda/RENTA': 1237, 'comercial/VENTA': 1020, 'vivienda/VENTA': 6944}
+- Por municipio: {'El Salto': 120, 'Guadalajara': 3105, 'Tlajomulco de Zúñiga': 1727, 'Tlaquepaque': 608, 'Tonalá': 311, 'Zapopan': 4644}
+- Segmento por: {'tipo comercial': 2211, 'palabra clave en el titulo': 123, 'por decidir -> vivienda': 1414, 'tipo de vivienda': 6767}
 
 ## Contra la corrida anterior (mismos 4 municipios)
-- Nuevas: 1,988 | Bajas: 1 | Cambios de precio: 0
+- Nuevas: 1,082 | Bajas: 537 | Cambios de precio: 191
 - Fichas de otros municipios retiradas del sitio: 0
 
 ## Calidad
-- Precios BLOQUEADOS (no publicados, verificar con el originador): 47
-- Precios con AVISO (publicados, conviene revisar): 78
-- Precios por m2 convertidos a total: 166 (el anuncio lo dice: 160 | inferidos, con aviso: 6)
-- Anuncios que dicen 'por m2' pero el numero ya era el total (error de captura en EasyBroker, se publican tal cual con aviso): 33
+- Precios BLOQUEADOS (no publicados, verificar con el originador): 61
+- Precios con AVISO (publicados, conviene revisar): 90
+- Precios por m2 convertidos a total: 176 (el anuncio lo dice: 169 | inferidos, con aviso: 7)
+- Anuncios que dicen 'por m2' pero el numero ya era el total (error de captura en EasyBroker, se publican tal cual con aviso): 36
 - Fotos rescatadas desde la pagina de detalle: 0
 - Fichas sin foto: 0 (descartadas del sitio: 0)
-- Fuera de zona descartadas: 0 | Duplicadas: 58
-- Tope de 100 paginas de EasyBroker: cubierto con doble pasada donde hizo falta
-- Prueba de foto grande: 12/12 fotos con lado mayor >= 900px (929x529, 900x1200, 1200x1097, 876x1200, 1200x900, 1200x900, 1200x900, 1200x761, 1200x900, 800x1200, 1200x554, 1200x675)
+- Fuera de zona descartadas: 60 | Duplicadas: 22
+- AVISO tope EasyBroker: VENTA zapopan: ni con las dos pasadas se cubrio todo (+1800 en la segunda); pueden faltar fichas de precio medio
+- Prueba de foto grande: 11/12 fotos con lado mayor >= 900px (326x451, 1200x900, 1200x675, 1167x677, 900x1200, 1000x1190, 1200x900, 896x1195, 1200x900, 1200x899, 1200x900, 1200x900)
 
 Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv
