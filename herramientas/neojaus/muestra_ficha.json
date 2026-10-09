@@ -1,0 +1,322 @@
+[
+ {
+  "url": "https://neojaus.com/propiedades/bodega-con-uso-de-suelo-en-renta-en-el-sauz-guadalajara-ibr-op294-1087332161",
+  "campos": {
+   "amenities": {},
+   "appears": 15,
+   "apt_floor": null,
+   "apt_total_floors": null,
+   "assigned_to": "987e7907ca3842c7ae1352722eb97437",
+   "bathrooms": null,
+   "can_verify": false,
+   "cat": "2026-10-04T04:15:32.231715+00:00",
+   "construction_area": 9625.19,
+   "construction_year": null,
+   "construction_year_opt": null,
+   "created_by": "987e7907ca3842c7ae1352722eb97437",
+   "ctr": 26.67,
+   "description": "\"Excepcional nave o bodega de gran formato en ubicación estrategica dentro de la zona metropolitana de Guadalajara, ubicado en la esquina de Av. Patria con Av. Colón. Con gran versatilidad de usos y destinos puede ser centro de distribución, bodega de ultima milla, para manufactura ligera, media o pesada. Terreno: 9,412.29 m2, Construcción: 9,625.19 m2 (bodega o nave 8,173.13 m2 y mezanine 1,452.0…",
+   "exclusivity": {
+    "conditions": null,
+    "has_exclusivity": null,
+    "shared_commission": false,
+    "shares_half": null
+   },
+   "floors": null,
+   "from_agent": "987e7907ca3842c7ae1352722eb97437",
+   "half_bathrooms": null,
+   "images": "[\"1791087333-3246.webp\", \"1791087334-683417.webp\", \"1791087336-203969.webp\", \"1791087337-504917.webp\", \"1791087338-644643.webp\", \"1791087340-223166.webp\", \"1791087341-623837.webp\", \"1791087343-125481.webp\", \"1791087344-166075.webp\", \"1791087345-585305.webp\", \"1791087347-002591.webp\", \"1791087348-323372.webp\", \"1791087349-786.webp\", \"1791087351-323978.webp\", \"1791087352-545501.webp\", \"1791087353-96…",
+   "inquiries": 0,
+   "internal_key": null,
+   "is_active": true,
+   "is_from_agent": true,
+   "is_liked": false,
+   "is_renta": true,
+   "is_venta": false,
+   "land": {
+    "area": 9412.29,
+    "front": null,
+    "side": null,
+    "unit": "m2"
+   },
+   "likes": 0,
+   "location": {
+    "coords": {
+     "lat": 20.625628,
+     "lng": -103.388556
+    },
+    "country": "MX",
+    "mexican_state": "jalisco",
+    "municipality": "Guadalajara",
+    "neighborhood": "Jardines El Sauz",
+    "number_ext": "2825",
+    "number_int": null,
+    "state": "jalisco",
+    "street": "Avenida Patria",
+    "zip": "44980"
+   },
+   "monthly_maintenance_fee": null,
+   "months_of_rent_deposit": null,
+   "name": "Bodega con uso de suelo en renta, en El Sauz, Guadalajara | IBR-OP294",
+   "needs_ija": false,
+   "nj_uid": "162D5",
+   "ordered_images": "[{\"order\": 0, \"url\": \"1791087333-3246.webp\"}, {\"order\": 1, \"url\": \"1791087334-683417.webp\"}, {\"order\": 2, \"url\": \"1791087336-203969.webp\"}, {\"order\": 3, \"url\": \"1791087337-504917.webp\"}, {\"order\": 4, \"url\": \"1791087338-644643.webp\"}, {\"order\": 5, \"url\": \"1791087340-223166.webp\"}, {\"order\": 6, \"url\": \"1791087341-623837.webp\"}, {\"order\": 7, \"url\": \"1791087343-125481.webp\"}, {\"order\": 8, \"url\": \"1791…",
+   "other_links": {
+    "matterport": null,
+    "youtube": null
+   },
+   "owner": "987e7907ca3842c7ae1352722eb97437",
+   "parking_spots": null,
+   "pricing": {
+    "rents": {
+     "based_on": "valor_total",
+     "commission": {
+      "commission_type": "percentaje",
+      "currency_type": "mxn",
+      "value": null
+     },
+     "currency_type": "mxn",
+     "formatted_price": "MXN $1,155,023/mes",
+     "original_price": "MXN $1,155,023/mes",
+     "price": 1155023
+    },
+    "sales": null
+   },
+   "property_type": "bodega_comercial",
+   "rooms": null,
+   "shares": 0,
+   "slug": "bodega-con-uso-de-suelo-en-renta-en-el-sauz-guadalajara-ibr-op294-1087332161",
+   "uat": "2026-10-04T04:15:58.682818+00:00",
+   "uid": "b0fb6272556a4a739b5e7aef66e5bba6",
+   "views": 4
+  }
+ },
+ {
+  "url": "https://neojaus.com/propiedades/edificio-comercial-renta-barrio-de-analco-guadalajara-cer-2149-4641189597",
+  "campos": {
+   "amenities": {
+    "garden": true,
+    "kids_playground": true,
+    "multiple_uses_terrace": true,
+    "private_patio": true,
+    "service_room": true,
+    "storage_unit": true
+   },
+   "appears": 68,
+   "apt_floor": null,
+   "apt_total_floors": null,
+   "assigned_to": "987e7907ca3842c7ae1352722eb97437",
+   "bathrooms": null,
+   "can_verify": false,
+   "cat": "2025-04-29T23:38:45.422144+00:00",
+   "construction_area": 4578,
+   "construction_year": 1950,
+   "construction_year_opt": null,
+   "created_by": "987e7907ca3842c7ae1352722eb97437",
+   "ctr": 42.65,
+   "description": "\"Magnifico Inmueble comercial en el tradicional y céntrico Barrio de Analco en Guadalajara. Con excepcional dimensión de Terreno (7,380 m2), posición estratégica (3 frentes), y vocación del suelo versátil (comercial, habitacional, industrial). Esta propiedad tiene el potencial para  implantar o desarrollar cualquier negocio o actividad empresarial, sea comercial o de servicios. Pueden aprovecharse…",
+   "exclusivity": {
+    "conditions": null,
+    "has_exclusivity": true,
+    "shared_commission": true,
+    "shares_half": null
+   },
+   "floors": 3,
+   "from_agent": "987e7907ca3842c7ae1352722eb97437",
+   "half_bathrooms": null,
+   "images": "[\"1745969926-746254.webp\", \"1745969928-367173.webp\", \"1745969930-206211.webp\", \"1745969931-927412.webp\", \"1745969933-60592.webp\", \"1745969935-165096.webp\", \"1745969936-724723.webp\", \"1745969938-544075.webp\", \"1745969940-404441.webp\", \"1745969942-16446.webp\", \"1745969943-804022.webp\", \"1745969945-564088.webp\", \"1745969947-386972.webp\", \"1745969949-086742.webp\", \"1745969950-527338.webp\", \"1745969952…",
+   "inquiries": 0,
+   "internal_key": null,
+   "is_active": true,
+   "is_from_agent": true,
+   "is_liked": false,
+   "is_renta": true,
+   "is_venta": false,
+   "land": {
+    "area": 7392,
+    "front": 103,
+    "side": 123,
+    "unit": "m2"
+   },
+   "likes": 0,
+   "location": {
+    "coords": {
+     "lat": 20.667326,
+     "lng": -103.340094
+    },
+    "country": "MX",
+    "mexican_state": "jalisco",
+    "municipality": "Guadalajara",
+    "neighborhood": "Analco",
+    "number_ext": "377",
+    "number_int": null,
+    "state": "jalisco",
+    "street": "Guadalupe Victoria",
+    "zip": "44450"
+   },
+   "monthly_maintenance_fee": null,
+   "months_of_rent_deposit": null,
+   "name": "Edificio comercial renta, Barrio de Analco, Guadalajara | CER-2149",
+   "needs_ija": false,
+   "nj_uid": "E70",
+   "ordered_images": "[{\"order\": 0, \"url\": \"1745969926-746254.webp\"}, {\"order\": 1, \"url\": \"1745969928-367173.webp\"}, {\"order\": 2, \"url\": \"1745969930-206211.webp\"}, {\"order\": 3, \"url\": \"1745969931-927412.webp\"}, {\"order\": 4, \"url\": \"1745969933-60592.webp\"}, {\"order\": 5, \"url\": \"1745969935-165096.webp\"}, {\"order\": 6, \"url\": \"1745969936-724723.webp\"}, {\"order\": 7, \"url\": \"1745969938-544075.webp\"}, {\"order\": 8, \"url\": \"174…",
+   "other_links": {
+    "matterport": null,
+    "youtube": "https://youtu.be/DNkHMyW_UjI"
+   },
+   "owner": "987e7907ca3842c7ae1352722eb97437",
+   "parking_spots": null,
+   "pricing": {
+    "rents": {
+     "based_on": "valor_total",
+     "commission": {
+      "commission_type": "percentaje",
+      "currency_type": "mxn",
+      "value": 50
+     },
+     "currency_type": "mxn",
+     "formatted_price": "MXN $650,000/mes",
+     "original_price": "MXN $650,000/mes",
+     "price": 650000
+    },
+    "sales": null
+   },
+   "property_type": "edificio",
+   "rooms": null,
+   "shares": 0,
+   "slug": "edificio-comercial-renta-barrio-de-analco-guadalajara-cer-2149-4641189597",
+   "uat": "2026-10-06T02:00:57.117313+00:00",
+   "uid": "3bc7927a15a044a6a9316cb0fe713309",
+   "views": 29
+  }
+ },
+ {
+  "url": "https://neojaus.com/propiedades/oficina-en-renta-central-park-9460593451",
+  "campos": {
+   "amenities": {},
+   "appears": 49,
+   "apt_floor": null,
+   "apt_total_floors": null,
+   "assigned_to": "e8173a17479d45dba61b7f2e3115c33e",
+   "bathrooms": 8,
+   "can_verify": false,
+   "cat": "2026-01-26T20:49:53.648220+00:00",
+   "construction_area": 1329,
+   "construction_year": null,
+   "construction_year_opt": "first_use",
+   "created_by": "e8173a17479d45dba61b7f2e3115c33e",
+   "ctr": 32.65,
+   "description": "Espacios Corporativos en Renta en Torre Central Park Guadalajara\n\nTorre corporativa AAA\nDesarrollo mixto (corporativo, comercial y habitacional)\nEdificio de 25 pisos\nPisos con 4 m de altura\nEspacios sin columnas entre piso\nEspacios de hasta 1329 m2\nEstacionamiento 1  cajón c/40m2\n6 Sótanos de estacionamiento\n8 Elevadores\n1 Elevador de servicio\nVistas panorámicas 360",
+   "exclusivity": {
+    "conditions": null,
+    "has_exclusivity": true,
+    "shared_commission": true,
+    "shares_half": null
+   },
+   "floors": null,
+   "from_agent": "e8173a17479d45dba61b7f2e3115c33e",
+   "half_bathrooms": null,
+   "images": [
+    "1769460594-614236.webp",
+    "1769460595-97553.webp",
+    "1769460597-355962.webp",
+    "1769460598-678021.webp",
+    "1769460599-7548.webp",
+    "1769460600-896165.webp",
+    "1769460602-297644.webp"
+   ],
+   "inquiries": 0,
+   "internal_key": null,
+   "is_active": true,
+   "is_from_agent": true,
+   "is_liked": false,
+   "is_renta": true,
+   "is_venta": false,
+   "land": {
+    "area": null,
+    "front": null,
+    "side": null,
+    "unit": null
+   },
+   "likes": 0,
+   "location": {
+    "coords": {
+     "lat": 20.678156,
+     "lng": -103.399975
+    },
+    "country": "MX",
+    "mexican_state": "jalisco",
+    "municipality": "Guadalajara",
+    "neighborhood": "Vallarta San Jorge",
+    "number_ext": "3555",
+    "number_int": null,
+    "state": "jalisco",
+    "street": "Av Mexico",
+    "zip": "00000"
+   },
+   "monthly_maintenance_fee": 66450,
+   "months_of_rent_deposit": null,
+   "name": "Oficina en Renta - Central Park",
+   "needs_ija": false,
+   "nj_uid": "9E0F",
+   "ordered_images": [
+    {
+     "order": 0,
+     "url": "1769460594-614236.webp"
+    },
+    {
+     "order": 1,
+     "url": "1769460595-97553.webp"
+    },
+    {
+     "order": 2,
+     "url": "1769460597-355962.webp"
+    },
+    {
+     "order": 3,
+     "url": "1769460598-678021.webp"
+    },
+    {
+     "order": 4,
+     "url": "1769460599-7548.webp"
+    },
+    {
+     "order": 5,
+     "url": "1769460600-896165.webp"
+    },
+    {
+     "order": 6,
+     "url": "1769460602-297644.webp"
+    }
+   ],
+   "other_links": {
+    "matterport": null,
+    "youtube": null
+   },
+   "owner": "e8173a17479d45dba61b7f2e3115c33e",
+   "parking_spots": 34,
+   "pricing": {
+    "rents": {
+     "based_on": "valor_total",
+     "commission": {
+      "commission_type": "months",
+      "currency_type": "mxn",
+      "value": 1
+     },
+     "currency_type": "mxn",
+     "formatted_price": "MXN $531,600/mes",
+     "original_price": "MXN $531,600/mes",
+     "price": 531600
+    },
+    "sales": null
+   },
+   "property_type": "oficina",
+   "rooms": null,
+   "shares": 0,
+   "slug": "oficina-en-renta-central-park-9460593451",
+   "uat": "2026-10-01T02:02:25.635982+00:00",
+   "uid": "05d45f0e254e4ef8be13ddafe7c6c0bc",
+   "views": 16
+  }
+ }
+]
