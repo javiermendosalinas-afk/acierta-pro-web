@@ -46,3 +46,5 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://acierta.pro/sitemap.xml
+Sitemap: https://acierta.pro/sitemap-propiedades-1.xml
+Sitemap: https://acierta.pro/sitemap-zonas.xml
