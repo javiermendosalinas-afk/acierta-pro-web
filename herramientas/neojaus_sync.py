@@ -52,12 +52,68 @@ RUTA_CACHE = os.path.join(DIR, "cache.json.gz")
 RUTA_NJ = os.path.join(DIR, "neojaus.json")            # fichas NJ publicables de la última corrida
 SITEMAP = "https://cdn.neojaus.com/sitemaps/all-properties/sitemap-{}.xml"
 CDN_FOTOS = "https://cdn.neojaus.com/properties/{uid}/{nombre}"
+DIR_FICHAS = os.path.join(DIR, "fichas")              # detalle por propiedad; archivo = 2 últimos caracteres de la clave
+_RX_TEL = re.compile(r"(?:\+?\d[\d\s().-]{7,}\d)")
+_RX_MAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+_RX_URL = re.compile(r"(?:https?://|www\.)\S+", re.I)
+_RX_ENTRE_ASESORES = re.compile(r"comisi[oó]n|compart[eoi]|clientes? directos?|whats\s?app|wpp|ll[aá]mame|cont[aá]ctame|inbox|asesor(?:a)? inmobiliari|informes|ag[eé]nd[ae]|cita al|tel[eé]fono|celular|escr[ií]be(?:nos|me)", re.I)
+
+
+def limpiar_descripcion(texto, maximo=2200):
+    """Quita teléfonos, correos, enlaces y notas entre asesores; conserva la descripción del inmueble."""
+    if not texto:
+        return ""
+    lineas = []
+    for ln in re.split(r"\r?\n", str(texto)):
+        ln = ln.strip()
+        if not ln or _RX_ENTRE_ASESORES.search(ln) or _RX_TEL.search(ln) or _RX_MAIL.search(ln) or _RX_URL.search(ln):
+            continue
+        ln = ln.strip(" -·,;:")
+        if len(ln) >= 3:
+            lineas.append(ln)
+    s = "\n".join(lineas)
+    return s[:maximo].rsplit(" ", 1)[0] + "…" if len(s) > maximo else s
+
+
+def detalle_de(p):
+    imgs = sorted(p.get("ordered_images") or [], key=lambda x: x.get("order") or 0)
+    am = p.get("amenities") or {}
+    amen = [k for k, v in am.items() if v] if isinstance(am, dict) else [str(x) for x in am if x]
+    d = {"uid": p.get("uid"), "fotos": [i["url"] for i in imgs if i.get("url")][:24],
+         "descripcion": limpiar_descripcion(p.get("description")),
+         "estacionamientos": p.get("parking_spots"), "medios_banos": p.get("half_bathrooms"),
+         "mantenimiento": p.get("monthly_maintenance_fee"), "anio": p.get("construction_year"),
+         "piso": p.get("apt_floor"), "amenidades": amen[:30]}
+    return {k: v for k, v in d.items() if v not in (None, "", [], 0)}
+
+
+def escribir_fichas(nj_final, cache):
+    """Escribe el detalle de las fichas publicadas en DIR_FICHAS/<00..ff>.json."""
+    import hashlib
+    por = {}
+    detalle = {}
+    for c in cache.values():
+        for r in c.get("regs") or []:
+            if r.get("detalle"):
+                detalle[r["eb"]] = r["detalle"]
+    for r in nj_final:
+        d = detalle.get(r["eb"])
+        if d:
+            por.setdefault(re.sub(r"[^a-z0-9]", "0", r["eb"][-2:].lower()), {})[r["eb"]] = d
+    os.makedirs(DIR_FICHAS, exist_ok=True)
+    for f in os.listdir(DIR_FICHAS):
+        if f.endswith(".json"):
+            os.remove(os.path.join(DIR_FICHAS, f))
+    for k, v in por.items():
+        with open(os.path.join(DIR_FICHAS, k + ".json"), "w", encoding="utf-8") as fh:
+            json.dump(v, fh, ensure_ascii=False, separators=(",", ":"))
+    return sum(len(v) for v in por.values())
 HEADERS = dict(S.HEADERS)
 TRABAJADORES = 3
 PAUSA = 0.6            # por trabajador: ~4-5 fichas por segundo en total
 DIST_DUPLICADO_M = 80
 VERSION_FILTRO = 2      # v2: ya no se exige shared_commission; las 'fuera' de v1 se vuelven a revisar
-VERSION_DATOS = 3       # v3: las publicables guardan terreno y construcción (para la opinión de valor)
+VERSION_DATOS = 4       # v4: además guardan fotos y descripción para la ficha completa en acierta.pro
 TOLERANCIA_PRECIO = 0.03
 
 TIPO_POR_CLAVE = {      # respaldo si el título no trae el tipo
@@ -185,6 +241,7 @@ def leer_ficha(url):
             "eb": nj, "liga": None,     # la pone el sitio de la bolsa (no acierta.pro)
             "foto": foto, "lat": coords.get("lat"), "lon": coords.get("lng"),
             "colonia": loc.get("neighborhood") or "", "fuente": "neojaus", "url_fuente": url,
+            "detalle": detalle_de(p),
         }
         moneda = (pr.get("currency_type") or "mxn").upper()
         if moneda != "MXN":
@@ -400,8 +457,10 @@ def main():
             fh.write("\n" + texto + "\n")
     if args.sin_escribir:
         return
+    n_det = escribir_fichas(nj_final, cache)
+    print(f"Fichas completas (fotos y descripción): {n_det:,} de {len(nj_final):,}", flush=True)
     with open(RUTA_NJ, "w", encoding="utf-8") as fh:
-        json.dump(nj_final, fh, ensure_ascii=False, separators=(",", ":"))
+        json.dump([{k: v for k, v in r.items() if k != "detalle"} for r in nj_final], fh, ensure_ascii=False, separators=(",", ":"))
     # acierta.pro: solo EasyBroker (con la anotación tambien_en para el portal de coaches)
     with open(S.RUTA_DATA, "w", encoding="utf-8") as fh:
         json.dump(eb, fh, ensure_ascii=False, separators=(",", ":"))

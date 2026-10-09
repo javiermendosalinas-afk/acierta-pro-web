@@ -18,6 +18,21 @@
 <meta name="description" content="Precio, análisis de zona, mapa y propiedades similares — mira el detalle completo de esta propiedad en Acierta Max, Guadalajara.">
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<style>
+.ficha-foto{position:relative}
+.ficha-col-foto{min-width:0}
+.galeria-btn{position:absolute;right:14px;bottom:14px;background:rgba(10,31,63,.86);color:#fff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer}
+.galeria-tiras{display:flex;gap:8px;margin-top:10px;overflow-x:auto}
+.galeria-tiras button{flex:none;width:86px;height:64px;border:0;padding:0;border-radius:8px;overflow:hidden;cursor:pointer;background:#e8edf3}
+.galeria-tiras img{width:100%;height:100%;object-fit:cover;display:block}.galeria-tiras .mas{font-weight:800;color:#0a1f3f;font-size:18px}
+.visor{position:fixed;inset:0;z-index:9999;background:rgba(5,12,26,.96);display:flex;align-items:center;justify-content:center}
+.visor img{max-width:94vw;max-height:86vh;object-fit:contain;border-radius:6px}
+.visor button{position:absolute;background:rgba(255,255,255,.12);color:#fff;border:0;cursor:pointer;border-radius:999px;width:52px;height:52px;font-size:34px;line-height:1}
+.visor-x{top:16px;right:16px}.visor-ant{left:14px;top:50%;transform:translateY(-50%)}.visor-sig{right:14px;top:50%;transform:translateY(-50%)}
+.visor-n{position:absolute;bottom:18px;left:0;right:0;text-align:center;color:#cfd8e6;font-size:15px}
+.ficha-desc{white-space:pre-line;line-height:1.65;color:#1b2433}.ficha-desc.corta{max-height:13.5em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent)}
+.ficha-sub{font-size:1.05rem;margin:18px 0 8px}.btn-link{background:none;border:0;color:#d62828;font-weight:700;cursor:pointer;padding:8px 0}
+</style>
 </head>
 <body class="pg">
 
@@ -108,11 +123,11 @@
 
     raiz.innerHTML = `
     <div class="ficha-top">
-      <div class="ficha-foto" ${p.foto ? 'style="background:#0f1f3d"' : ''}>
+      <div class="ficha-col-foto"><div class="ficha-foto" id="fichaFoto" ${p.foto ? 'style="background:#0f1f3d;cursor:zoom-in" role="button" tabindex="0" aria-label="Ver foto en pantalla completa"' : ''}>
         ${AM.iconHouse()}${p.foto ? AM.fotoImg(p.foto, 1200, 800, p.titulo) : ''}
         <span class="card-op">${AM.esc(p.operacion)}</span>
         ${p.foto ? '' : '<span class="ficha-sinfoto">Foto próximamente</span>'}
-      </div>
+      </div></div>
       <div class="ficha-info">
         <div class="ficha-eyebrow">${p.operacion === 'RENTA' ? 'Renta' : 'Venta'} · ${AM.esc(p.tipo)} · ${AM.esc(lugar)}</div>
         <h1>${AM.esc(p.titulo)}</h1>
@@ -129,6 +144,8 @@
         ${AM.compartirHTML(p.titulo, location.origin + '/' + url)}
       </div>
     </div>
+
+    <div id="fichaDetalle"></div>
 
     <section class="ficha-card" id="secAnalisis">
       <h2>¿Está bien de precio?</h2>
@@ -163,7 +180,50 @@
         L.circleMarker([p.lat, p.lon], { radius: 10, color: '#d62828', fillOpacity: 0.85 }).addTo(m);
       } catch (e) { console.error('mapa ficha:', e); const el = document.getElementById('miniMapa'); if (el) el.outerHTML = '<p class="muted">No se pudo mostrar el mapa.</p>'; }
     }
+    // Galería: la foto principal se abre en grande; en NeoJaus se cargan todas las fotos y la descripción
+    let fotos = p.foto ? [p.foto] : [];
+    const caja = document.getElementById('fichaFoto');
+    const abrir = i => { if (fotos.length) visor(fotos, i, p.titulo); };
+    if (caja && p.foto) { caja.addEventListener('click', e => { if (!e.target.closest('.galeria-btn')) abrir(0); }); caja.addEventListener('keydown', e => { if (e.key === 'Enter') abrir(0); }); }
+    if (/^NJ-/.test(p.eb)) {
+      const archivo = p.eb.slice(-2).toLowerCase().replace(/[^a-z0-9]/g, '0');
+      fetch('herramientas/neojaus/fichas/' + archivo + '.json').then(r => r.ok ? r.json() : {}).then(todo => {
+        const d = todo[p.eb]; if (!d) return;
+        if (d.uid && (d.fotos || []).length) fotos = d.fotos.map(n => 'https://cdn.neojaus.com/properties/' + d.uid + '/' + n);
+        if (fotos.length > 1 && caja) {
+          caja.insertAdjacentHTML('beforeend', `<button type="button" class="galeria-btn">Ver las ${fotos.length} fotos</button>`);
+          caja.querySelector('.galeria-btn').addEventListener('click', e => { e.stopPropagation(); abrir(0); });
+          caja.insertAdjacentHTML('afterend', `<div class="galeria-tiras">${fotos.slice(0, 8).map((f, i) => `<button type="button" data-i="${i}" aria-label="Foto ${i + 1}"><img src="${AM.esc(f)}" alt="" loading="lazy"></button>`).join('')}${fotos.length > 8 ? `<button type="button" data-i="8" class="mas">+${fotos.length - 8}</button>` : ''}</div>`);
+          document.querySelectorAll('.galeria-tiras button').forEach(b => b.addEventListener('click', () => abrir(+b.dataset.i)));
+        }
+        const extras = [d.estacionamientos ? d.estacionamientos + ' estacionamiento' + (d.estacionamientos > 1 ? 's' : '') : '', d.medios_banos ? d.medios_banos + ' medio baño' + (d.medios_banos > 1 ? 's' : '') : '',
+          d.mantenimiento ? 'Mantenimiento ' + AM.money(d.mantenimiento) + '/mes' : '', d.anio ? 'Construida en ' + d.anio : '', d.piso ? 'Piso ' + d.piso : ''].filter(Boolean);
+        const amen = (d.amenidades || []).map(a => String(a).replace(/_/g, ' ')).map(a => a.charAt(0).toUpperCase() + a.slice(1));
+        if (d.descripcion || extras.length || amen.length) document.getElementById('fichaDetalle').innerHTML = `<section class="ficha-card"><h2>Descripción</h2>
+          ${d.descripcion ? `<div class="ficha-desc${d.descripcion.length > 700 ? ' corta' : ''}">${AM.esc(d.descripcion)}</div>${d.descripcion.length > 700 ? '<button type="button" class="btn-link" id="verMasDesc">Leer la descripción completa</button>' : ''}` : ''}
+          ${extras.length ? `<h3 class="ficha-sub">Características</h3><div class="chips">${extras.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>` : ''}
+          ${amen.length ? `<h3 class="ficha-sub">Amenidades</h3><div class="chips">${amen.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>` : ''}</section>`;
+        const vm = document.getElementById('verMasDesc'); if (vm) vm.addEventListener('click', () => { document.querySelector('.ficha-desc').classList.remove('corta'); vm.remove(); });
+      }).catch(() => {});
+    }
     AM.actualizarUI();
+  }
+
+  // Visor de fotos a pantalla completa: flechas, teclado y deslizar con el dedo
+  function visor(fotos, i, titulo) {
+    const v = document.createElement('div'); v.className = 'visor'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', 'Fotos de ' + titulo);
+    v.innerHTML = `<button type="button" class="visor-x" aria-label="Cerrar">×</button><button type="button" class="visor-ant" aria-label="Foto anterior">‹</button>
+      <img alt=""><button type="button" class="visor-sig" aria-label="Foto siguiente">›</button><div class="visor-n"></div>`;
+    document.body.appendChild(v); document.body.style.overflow = 'hidden';
+    const img = v.querySelector('img'), n = v.querySelector('.visor-n');
+    const ver = k => { i = (k + fotos.length) % fotos.length; img.src = fotos[i]; n.textContent = (i + 1) + ' de ' + fotos.length; v.querySelector('.visor-ant').hidden = v.querySelector('.visor-sig').hidden = fotos.length < 2; };
+    const cerrar = () => { v.remove(); document.body.style.overflow = ''; document.removeEventListener('keydown', tecla); };
+    const tecla = e => { if (e.key === 'Escape') cerrar(); if (e.key === 'ArrowRight') ver(i + 1); if (e.key === 'ArrowLeft') ver(i - 1); };
+    v.querySelector('.visor-x').onclick = cerrar; v.querySelector('.visor-ant').onclick = () => ver(i - 1); v.querySelector('.visor-sig').onclick = () => ver(i + 1);
+    v.addEventListener('click', e => { if (e.target === v) cerrar(); }); document.addEventListener('keydown', tecla);
+    let x0 = null; v.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, {passive: true});
+    v.addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 40) ver(i + (dx < 0 ? 1 : -1)); x0 = null; });
+    ver(i);
   }
 
   if (!eb) { noEncontrada('Falta el código de la propiedad en la dirección.'); return; }
