@@ -151,3 +151,10 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - `herramientas/generar_seo.py` genera HTML fijo (sin JavaScript): `/propiedades/<municipio>/<clave>-<venta|renta>.html` (una por propiedad, sin gemelas de NeoJaus), `/zonas/<municipio>/<colonia>/<tipo>-en-<op>.html` (3 o más), `/zonas/<municipio>/<tipo>-en-<op>.html` y `/zonas/` (índice). Datos estructurados RealEstateListing, BreadcrumbList y FAQPage. Mapas: `sitemap-propiedades-N.xml` y `sitemap-zonas.xml` (agregados a robots.txt). Estilo compartido `seo.css`.
 - Corre solo al final de las actualizaciones de inventario y de NeoJaus. Primera generación: 17,578 propiedades y 1,439 páginas de zonas.
 - Pendiente de Javier: dar de alta acierta.pro en Google Search Console y Bing Webmaster Tools y enviar los mapas del sitio.
+
+## Contenido para buscadores e IA (10-oct-2026)
+- `verifica.html` (servicio, instrumentos, documental, proceso, precio, reporte de muestra en assets/verifica/, FAQ; datos Service y FAQPage).
+- `nosotros.html` (Acierta Max y perfil de Javier con credenciales; datos RealEstateAgent y Person).
+- `pulso/edicion-01..03.html` (cada PULSO en texto con fuentes; datos Article con citas).
+- `/mercado/` generado por generar_seo.py: medianas por municipio y tipo (venta y renta), colonias más caras y más accesibles, cambio contra la medición de hace 10+ días (`herramientas/mercado/historial.json`); datos Dataset (CC BY 4.0) y FAQPage.
+- Fichas completas de EasyBroker: `detalle_desde_html` en inventario_sync.py (descripción limpia, fotos, amenidades) → `herramientas/eb/fichas/`; ficha.html y páginas para buscadores las usan. VERSION_LECTOR 3: relectura diaria de 2,500 fichas hasta completar.

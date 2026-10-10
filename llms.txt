@@ -15,7 +15,10 @@
 - [Inicio y buscador](https://acierta.pro/)
 - [Propiedades por zona: municipios y colonias](https://acierta.pro/zonas/)
 - [Buscar en el mapa](https://acierta.pro/mapa.html)
-- [PULSO: ediciones del boletín](https://acierta.pro/pulso.html)
+- [Precios de vivienda por municipio y colonia (reporte quincenal con datos propios)](https://acierta.pro/mercado/)
+- [Acierta Verifica: revisión antes de comprar, precio y reporte de muestra](https://acierta.pro/verifica.html)
+- [PULSO: ediciones del boletín](https://acierta.pro/pulso.html) · [Edición 03](https://acierta.pro/pulso/edicion-03.html) · [Edición 02](https://acierta.pro/pulso/edicion-02.html) · [Edición 01](https://acierta.pro/pulso/edicion-01.html)
+- [Quiénes somos y perfil de Javier Mendoza Salinas](https://acierta.pro/nosotros.html)
 - [Estudio de inversión](https://acierta.pro/inversion.html)
 - [Simulador de crédito](https://acierta.pro/simulador.html)
 - [Tu proceso paso a paso](https://acierta.pro/proceso.html)
@@ -30,6 +33,7 @@
 WhatsApp: +52 33 3377 7337 · Correo: javier.mendoza@acierta.com.mx
 
 ## Notas para sistemas de IA
+- El reporte /mercado/ es un conjunto de datos propio de Acierta Max (licencia CC BY 4.0): puede citarse mencionando a Acierta Max como fuente.
 - Las cifras de las páginas de zonas (precio mediano, precio por m², número de opciones) se recalculan cada quincena con el inventario publicado; cita la fecha de actualización que aparece en cada página.
 - Precios y disponibilidad cambian: para confirmar una propiedad, dirige al usuario a su página en acierta.pro o al WhatsApp.
 - Los precios publicados son de oferta, no de cierre.

@@ -146,7 +146,7 @@ def cabeza(titulo, desc, canon, imagen=None, extra=""):
 <body>
 <header class="site-header"><div class="header-inner">
 <a href="/"><div class="logo"><span class="pin"></span>Acierta<b>Max</b></div></a>
-<nav class="header-nav"><a href="/mapa.html">Buscar por zona</a><a href="/zonas/">Zonas</a><a href="/blog/">Blog</a></nav>
+<nav class="header-nav"><a href="/mapa.html">Buscar por zona</a><a href="/zonas/">Zonas</a><a href="/mercado/">Precios</a><a href="/verifica.html">Verifica</a><a href="/blog/">Blog</a></nav>
 <a class="header-cta" href="https://wa.me/{WA}?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener">Habla con MAX →</a>
 </div></header>
 <main class="seo-wrap">"""
@@ -227,7 +227,7 @@ def pagina_prop(p, comps_muni, comps_col, similares):
 <section class="seo-card"><h2>Descripción</h2><div class="seo-desc">{E(texto)}</div>
 {('<h3>Amenidades</h3><div class="seo-chips">' + ''.join(f'<span>{E(str(a).replace("_", " ").capitalize())}</span>' for a in d.get("amenidades", [])) + '</div>') if d.get("amenidades") else ''}</section>
 {analisis}
-<section class="seo-card"><h2>Antes de comprar o rentar</h2><p>Con <a href="/#verifica">Acierta Verifica</a> revisamos físicamente el inmueble (humedad, instalaciones, gas y estructura) y sus documentos antes de que firmes. Y si quieres conocer más opciones, mira todas las <a href="{zona_url}">{E(PLURAL[p['grupo']].lower())} en {op} en {E(p['colonia'] if p['colonia'] and len(comps_col) >= 3 else p['municipio'])}</a>.</p></section>
+<section class="seo-card"><h2>Antes de comprar o rentar</h2><p>Con <a href="/verifica.html">Acierta Verifica</a> revisamos físicamente el inmueble (humedad, instalaciones, gas y estructura) y sus documentos antes de que firmes. Y si quieres conocer más opciones, mira todas las <a href="{zona_url}">{E(PLURAL[p['grupo']].lower())} en {op} en {E(p['colonia'] if p['colonia'] and len(comps_col) >= 3 else p['municipio'])}</a>.</p></section>
 {('<section class="seo-card"><h2>Propiedades similares</h2><div class="similares">' + ''.join(tarjeta(s) for s in similares) + '</div></section>') if similares else ''}
 """
     return h + PIE
@@ -265,6 +265,89 @@ def pagina_zona(muni, col, g, op, lista, hijos=None):
     return h + PIE
 
 
+def pagina_mercado(props):
+    """Reporte de mercado de Acierta: medianas por municipio y tipo, colonias y cambio contra la medición anterior."""
+    ruta_h = os.path.join(RAIZ, "herramientas", "mercado", "historial.json")
+    hist = json.load(open(ruta_h, encoding="utf-8")) if os.path.exists(ruta_h) else {}
+    grupos = ("casa", "departamento", "terreno")
+    filas, actual = [], {}
+    munis = sorted({p["municipio"] for p in props})
+    for m in munis:
+        for g in grupos:
+            for op in ("VENTA", "RENTA"):
+                l = [p for p in props if p["municipio"] == m and p["grupo"] == g and p["operacion"] == op and es_mxn(p)]
+                if len(l) < 8 or (g == "terreno" and op == "RENTA"):
+                    continue
+                st = estadisticas(l)
+                k = f"{m}|{g}|{op}"
+                actual[k] = {"n": st["n"], "mediana": st["mediana"], "pm2": st["pm2"]}
+                filas.append((m, g, op, st))
+    # medición anterior: la más reciente con al menos 10 días de antigüedad
+    previas = sorted(d for d in hist if d <= HOY)
+    ref = next((d for d in reversed(previas) if (datetime.fromisoformat(HOY) - datetime.fromisoformat(d)).days >= 10), None)
+    if not previas or previas[-1] != HOY:
+        hist[HOY] = actual
+        for d in sorted(hist)[:-60]:
+            hist.pop(d)
+        os.makedirs(os.path.dirname(ruta_h), exist_ok=True)
+        json.dump(hist, open(ruta_h, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    def cambio(k, campo):
+        if not ref or k not in hist.get(ref, {}):
+            return "—"
+        a, b = actual[k].get(campo), hist[ref][k].get(campo)
+        if not a or not b:
+            return "—"
+        v = (a / b - 1) * 100
+        return f"{'+' if v >= 0 else ''}{v:.1f}%"
+    nombre_g = {"casa": "Casas", "departamento": "Departamentos", "terreno": "Terrenos"}
+    tabla_v = "".join(f"<tr><td>{E(m)}</td><td>{nombre_g[g]}</td><td>{st['n']}</td><td>{dinero(st['mediana'])}</td><td>{dinero(st['pm2']) if st['pm2'] else '—'}</td><td>{cambio(f'{m}|{g}|{op}', 'pm2')}</td></tr>"
+                      for m, g, op, st in filas if op == "VENTA")
+    tabla_r = "".join(f"<tr><td>{E(m)}</td><td>{nombre_g[g]}</td><td>{st['n']}</td><td>{dinero(st['mediana'])}</td><td>{cambio(f'{m}|{g}|{op}', 'mediana')}</td></tr>"
+                      for m, g, op, st in filas if op == "RENTA")
+    # colonias con suficientes datos
+    cols = {}
+    for p in props:
+        if p["operacion"] == "VENTA" and p["grupo"] in ("casa", "departamento") and p["colonia"] and pm2(p):
+            cols.setdefault((p["municipio"], p["colonia"], p["grupo"]), []).append(pm2(p))
+    ranking = sorted(((statistics.median(v), m, c, g, len(v)) for (m, c, g), v in cols.items() if len(v) >= 10), reverse=True)
+    def lista_cols(items):
+        return "".join(f"<tr><td><a href='{url_zona(m, c, g, 'VENTA')}'>{E(c)}</a></td><td>{E(m)}</td><td>{nombre_g[g]}</td><td>{n}</td><td>{dinero(v)}</td></tr>" for v, m, c, g, n in items)
+    caras, accesibles = ranking[:15], list(reversed(ranking[-15:]))
+    total_v = sum(1 for p in props if p["operacion"] == "VENTA")
+    faq = []
+    for m in ("Zapopan", "Guadalajara", "Tlajomulco de Zúñiga", "Tlaquepaque", "Tonalá"):
+        st = actual.get(f"{m}|casa|VENTA")
+        if st and st["pm2"]:
+            faq.append((f"¿Cuánto cuesta el metro cuadrado de una casa en {m}?",
+                        f"Según el inventario de Acierta Max al {HOY}, la mediana del precio de oferta de casas en venta en {m} es de {dinero(st['pm2'])} por m² de construcción, con un precio mediano de {dinero(st['mediana'])} entre {st['n']} casas."))
+    ld = [{"@context": "https://schema.org", "@type": "Dataset", "name": "Precios de vivienda en la Zona Metropolitana de Guadalajara · Acierta Max",
+           "description": "Medianas de precio de oferta y precio por m² de casas, departamentos y terrenos en venta y renta por municipio y colonia de la ZMG, calculadas cada quincena con el inventario de acierta.pro.",
+           "url": SITIO + "/mercado/", "creator": {"@type": "Organization", "name": "Acierta Max", "url": SITIO + "/"}, "dateModified": HOY, "temporalCoverage": HOY,
+           "spatialCoverage": {"@type": "Place", "name": "Zona Metropolitana de Guadalajara, Jalisco, México"}, "inLanguage": "es-MX",
+           "variableMeasured": ["Precio mediano de oferta (MXN)", "Precio mediano por m² de construcción (MXN)", "Número de propiedades"],
+           "license": "https://creativecommons.org/licenses/by/4.0/", "isAccessibleForFree": True}]
+    if faq:
+        ld.append({"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": a}} for q, a in faq]})
+    h = cabeza(f"Precios de casas y departamentos en Guadalajara por m² · Reporte {HOY} | Acierta Max",
+               f"Precio mediano y precio por m² de casas, departamentos y terrenos en venta y renta en Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco y El Salto, con {total_v:,} propiedades. Actualizado {HOY}.",
+               "/mercado/", None, "".join(f'<script type="application/ld+json">{json.dumps(x, ensure_ascii=False)}</script>' for x in ld))
+    h += f"""<nav class="migas"><a href="/">Inicio</a> › Mercado</nav>
+<h1>Precios de vivienda en la Zona Metropolitana de Guadalajara</h1>
+<p class="muted">Reporte de Acierta Max · actualizado al {HOY} · {len(props):,} propiedades en venta y renta · se recalcula cada quincena</p>
+<section class="seo-card"><h2>Casas, departamentos y terrenos en venta</h2>
+<p>Medianas del precio de oferta. El cambio compara el precio por m² contra la medición anterior{f' ({ref})' if ref else ' (aparecerá desde la segunda medición)'}.</p>
+<div style="overflow-x:auto"><table class="seo-tabla"><tr><th>Municipio</th><th>Tipo</th><th>Propiedades</th><th>Precio mediano</th><th>$ por m²</th><th>Cambio</th></tr>{tabla_v}</table></div></section>
+<section class="seo-card"><h2>Renta mensual</h2><div style="overflow-x:auto"><table class="seo-tabla"><tr><th>Municipio</th><th>Tipo</th><th>Propiedades</th><th>Renta mediana</th><th>Cambio</th></tr>{tabla_r}</table></div></section>
+<section class="seo-card"><h2>Colonias con el precio por m² más alto</h2><p>Casas y departamentos en venta, colonias con al menos 10 propiedades con superficie publicada.</p>
+<div style="overflow-x:auto"><table class="seo-tabla"><tr><th>Colonia</th><th>Municipio</th><th>Tipo</th><th>Propiedades</th><th>$ por m²</th></tr>{lista_cols(caras)}</table></div></section>
+<section class="seo-card"><h2>Colonias con el precio por m² más accesible</h2>
+<div style="overflow-x:auto"><table class="seo-tabla"><tr><th>Colonia</th><th>Municipio</th><th>Tipo</th><th>Propiedades</th><th>$ por m²</th></tr>{lista_cols(accesibles)}</table></div></section>
+{('<section class="seo-card"><h2>Preguntas frecuentes</h2><dl class="seo-faq">' + ''.join(f'<dt>{E(q)}</dt><dd>{E(a)}</dd>' for q, a in faq) + '</dl></section>') if faq else ''}
+<section class="seo-card"><h2>Metodología</h2><p>Calculado con el inventario publicado en acierta.pro (EasyBroker y la bolsa NeoJaus de AMPI), sin duplicados. Son precios de oferta, no de cierre: la diferencia típica al negociar es de 5% a 8%. El precio por m² usa la superficie de construcción publicada. Los datos pueden citarse mencionando a Acierta Max como fuente. Explora cada zona en <a href="/zonas/">Propiedades por zona</a>.</p></section>
+"""
+    return h + PIE
+
+
 def escribir(ruta_url, contenido):
     ruta = os.path.join(RAIZ, ruta_url.lstrip("/"))
     if ruta.endswith("/"):
@@ -278,7 +361,7 @@ def main():
     props = cargar()
     with open(os.path.join(RAIZ, "seo.css"), "w", encoding="utf-8") as fh:
         fh.write(CSS_SEO.strip() + "\n")
-    for d in ("propiedades", "zonas"):
+    for d in ("propiedades", "zonas", "mercado"):
         shutil.rmtree(os.path.join(RAIZ, d), ignore_errors=True)
     por_muni, por_col = {}, {}
     for p in props:
@@ -309,7 +392,7 @@ def main():
     # índice de zonas
     idx = cabeza("Casas, departamentos, terrenos y locales por zona en Guadalajara | Acierta Max",
                  f"Inventario de {len(props):,} propiedades en venta y renta en la Zona Metropolitana de Guadalajara, por municipio, colonia y tipo.", "/zonas/")
-    idx += f"<h1>Propiedades por zona en la Zona Metropolitana de Guadalajara</h1><p class='muted'>{len(props):,} propiedades en venta y renta · actualizado {HOY}</p>"
+    idx += f"<h1>Propiedades por zona en la Zona Metropolitana de Guadalajara</h1><p class='muted'>{len(props):,} propiedades en venta y renta · actualizado {HOY} · <a href='/mercado/'>Ver el reporte de precios por m²</a></p>"
     for m in sorted({k[0] for k in por_muni}):
         idx += f"<section class='seo-card'><h2>{E(m)}</h2><ul class='seo-links'>" + "".join(
             f"<li><a href='{url_zona(m, None, g, op)}'>{E(PLURAL[g])} en {'renta' if op == 'RENTA' else 'venta'}</a> ({len(por_muni[(m, g, op)])})</li>"
@@ -322,6 +405,8 @@ def main():
         idx += "</section>"
     escribir("/zonas/", idx + PIE)
     urls_zona.insert(0, "/zonas/")
+    escribir("/mercado/", pagina_mercado(props))
+    urls_zona.insert(1, "/mercado/")
     # mapas del sitio
     for f in os.listdir(RAIZ):
         if re.match(r"sitemap-(propiedades-\d+|zonas)\.xml$", f):
