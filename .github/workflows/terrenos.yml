@@ -5,7 +5,7 @@ name: Terrenos del inventario (fichas de aciertamax.com)
 # Corre cada lunes, al cambiar herramientas/disparar_terrenos.txt o a mano.
 on:
   schedule:
-    - cron: '0 9 * * 1,4'     # lunes y jueves 03:00 hora de Guadalajara (hasta completar)
+    - cron: '0 9 * * *'       # diario 03:00 hora de Guadalajara (cuando ya estan todas, termina en segundos)
   push:
     paths:
       - 'herramientas/disparar_terrenos.txt'
@@ -25,7 +25,7 @@ concurrency:
 jobs:
   terrenos:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,11 +39,12 @@ jobs:
           [ -z "$N" ] && N=$(grep -oE '^[0-9]+' herramientas/disparar_terrenos.txt | head -1)
           [ -z "$N" ] && N=2500
           python -u herramientas/inventario_sync.py --solo-terrenos $N
+          python -u herramientas/generar_seo.py || echo "Paginas para buscadores: fallo"
       - name: Guardar
         run: |
           git config user.name "acierta-bot"
           git config user.email "acierta-bot@users.noreply.github.com"
-          git add data.json herramientas/eb_terrenos.json.gz herramientas/muestras_fichas 2>/dev/null || true
+          git add data.json herramientas/eb_terrenos.json.gz herramientas/eb propiedades zonas sitemap-propiedades-*.xml sitemap-zonas.xml robots.txt seo.css 2>/dev/null || true
           if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
           git commit -m "Terrenos: fichas de aciertamax.com ($(date -u +%Y-%m-%d))"
           git pull --rebase -X theirs origin main || true

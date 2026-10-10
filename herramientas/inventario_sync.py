@@ -876,7 +876,8 @@ def escribir_xlsx(ruta, registros, fecha):
 # Las fichas sin dato se reintentan después de 30 días.
 RUTA_CACHE_TERRENOS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eb_terrenos.json.gz")
 DIR_MUESTRAS_FICHAS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "muestras_fichas")
-VERSION_LECTOR = 2      # al mejorar el lector, las fichas leídas sin dato se vuelven a leer
+VERSION_LECTOR = 3      # v3: además de terreno, guarda descripción, fotos y amenidades (se releen todas una vez)
+DIR_FICHAS_EB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "eb", "fichas")
 _NUM = r"([\d]{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)"
 _U = r"\s*(?:m²|m2|mts²|mts|metros)"
 _ET_T = r"(?:tama[ñn]o\s+del\s+terreno|superficie\s+(?:de|del|total\s+de)\s+terreno|[áa]rea\s+de\s+terreno|terreno|lote)"
@@ -908,6 +909,71 @@ def terreno_desde_html(html):
                     return round(v, 2)
         return None
     return leer(RX_T, 10, 2_000_000), leer(RX_C, 10, 200_000)
+
+
+_RX_TEL = re.compile(r"(?:\+?\d[\d\s().-]{7,}\d)")
+_RX_MAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+_RX_URL = re.compile(r"(?:https?://|www\.)\S+", re.I)
+_RX_CONTACTO = re.compile(r"comisi[oó]n|compart[eoi]|clientes? directos?|whats\s?app|wpp|ll[aá]mame|cont[aá]ctame|inbox|informes|ag[eé]nd[ae]|cita al|tel[eé]fono|celular|escr[ií]be(?:nos|me)", re.I)
+
+
+def limpiar_descripcion(texto, maximo=2200):
+    """Quita líneas con teléfonos, correos, enlaces o notas entre asesores; conserva la descripción del inmueble."""
+    lineas = []
+    for ln in re.split(r"\r?\n", str(texto or "")):
+        ln = ln.strip()
+        if not ln or _RX_CONTACTO.search(ln) or _RX_TEL.search(ln) or _RX_MAIL.search(ln) or _RX_URL.search(ln):
+            continue
+        ln = ln.strip(" -·,;:")
+        if len(ln) >= 3:
+            lineas.append(ln)
+    s = "\n".join(lineas)
+    return s[:maximo].rsplit(" ", 1)[0] + "…" if len(s) > maximo else s
+
+
+def detalle_desde_html(html):
+    """Descripción, fotos y amenidades de una ficha de aciertamax.com."""
+    sopa = BeautifulSoup(html, "html.parser")
+    d = sopa.select_one("#description")
+    desc = ""
+    if d:
+        for h in d.find_all(["h1", "h2", "h3", "h4"]):
+            h.decompose()
+        for br in d.find_all("br"):
+            br.replace_with("\n")
+        desc = limpiar_descripcion(d.get_text("\n"))
+    fotos, vistos = [], set()
+    for m in re.finditer(r"https://assets\.easybroker\.com/property_images/(\d+/\d+)/[^\"'\s)?]+(\?[^\"'\s)]*)?", html):
+        clave = m.group(1)
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+        from urllib.parse import urlsplit, parse_qsl, urlencode
+        partes = urlsplit(m.group(0).replace("&amp;", "&"))
+        q = [(k, v) for k, v in parse_qsl(partes.query) if k not in ("width", "height")]
+        fotos.append(f"{partes.scheme}://{partes.netloc}{partes.path}" + (("?" + urlencode(q)) if q else ""))
+    a = sopa.select_one("#amenities")
+    amen = [li.get_text(" ", strip=True) for li in a.select("li")] if a else []
+    return {"descripcion": desc, "fotos": fotos[:24], "amenidades": amen[:30]}
+
+
+def escribir_fichas_eb(filas, cache):
+    """Detalle de las fichas de EasyBroker en herramientas/eb/fichas/<2 últimos caracteres>.json."""
+    por = {}
+    for f in filas:
+        eb = f.get("eb") or ""
+        c = cache.get(eb) or {}
+        det = {k: c[k] for k in ("descripcion", "fotos", "amenidades") if c.get(k)}
+        if eb.startswith("EB-") and det:
+            por.setdefault(re.sub(r"[^a-z0-9]", "0", eb[-2:].lower()), {})[eb] = det
+    os.makedirs(DIR_FICHAS_EB, exist_ok=True)
+    for x in os.listdir(DIR_FICHAS_EB):
+        if x.endswith(".json"):
+            os.remove(os.path.join(DIR_FICHAS_EB, x))
+    for k, v in por.items():
+        with open(os.path.join(DIR_FICHAS_EB, k + ".json"), "w", encoding="utf-8") as fh:
+            json.dump(v, fh, ensure_ascii=False, separators=(",", ":"))
+    return sum(len(v) for v in por.values())
 
 
 def _cargar_cache_terrenos():
@@ -944,7 +1010,7 @@ def enriquecer_terrenos(filas, max_consultas=2500, pausa=1.2):
             continue
         vistos.add(eb)
         c = cache.get(eb)
-        if c and (c.get("t") is not None or c.get("c") is not None or (c.get("f", "") >= hace30 and c.get("v", 1) >= VERSION_LECTOR)):
+        if c and c.get("v", 1) >= VERSION_LECTOR and (c.get("t") is not None or c.get("c") is not None or c.get("descripcion") or c.get("f", "") >= hace30):
             continue
         hechas += 1
         dato = None
@@ -975,8 +1041,9 @@ def enriquecer_terrenos(filas, max_consultas=2500, pausa=1.2):
                         fh.write(f"<!-- {f['liga']} -->\n" + resp.text)
                     muestras += 1
                 te, co = terreno_desde_html(resp.text)
-                if te or co:
-                    dato = {"t": te, "c": co, "f": hoy}
+                det = detalle_desde_html(resp.text)
+                if te or co or det["descripcion"] or det["fotos"]:
+                    dato = dict({"t": te, "c": co, "f": hoy}, **{k: v for k, v in det.items() if v})
         cache[eb] = dict(dato or {"t": None, "c": None, "f": hoy}, v=VERSION_LECTOR)
         encontradas += 1 if dato else 0
         if hechas % 250 == 0:
@@ -994,6 +1061,8 @@ def enriquecer_terrenos(filas, max_consultas=2500, pausa=1.2):
             f["terreno"] = round(float(c["t"]), 2); con += 1
         if c.get("c"):
             f["construccion"] = round(float(c["c"]), 2)
+    n_det = escribir_fichas_eb(filas, cache)
+    print(f"Fichas completas de EasyBroker (descripción y fotos): {n_det:,}", flush=True)
     if hechas >= 20 and encontradas == 0:
         print("[AVISO] Ninguna ficha mostró terreno ni construcción: revisar el formato de las fichas de aciertamax.com", flush=True)
     print(f"Terrenos: {hechas} fichas consultadas ({encontradas} con dato) · {con} propiedades con terreno en total"

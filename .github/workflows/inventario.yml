@@ -84,7 +84,7 @@ jobs:
           git add reportes/inventario
           if [ "${{ steps.modo.outputs.prueba }}" != "true" ]; then
             python -u herramientas/generar_seo.py || echo "Paginas para buscadores: fallo, se publica el resto"
-            git add data.json inventario.csv inventario-meta.json inventario-chatgpt.csv inventario-chatgpt.xlsx herramientas/neojaus herramientas/eb_terrenos.json.gz 2>/dev/null || true
+            git add data.json inventario.csv inventario-meta.json inventario-chatgpt.csv inventario-chatgpt.xlsx herramientas/neojaus herramientas/eb_terrenos.json.gz herramientas/eb 2>/dev/null || true
             git add propiedades zonas sitemap-propiedades-*.xml sitemap-zonas.xml robots.txt seo.css 2>/dev/null || true
           fi
           if git diff --cached --quiet; then

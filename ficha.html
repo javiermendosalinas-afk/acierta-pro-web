@@ -185,11 +185,13 @@
     const caja = document.getElementById('fichaFoto');
     const abrir = i => { if (fotos.length) visor(fotos, i, p.titulo); };
     if (caja && p.foto) { caja.addEventListener('click', e => { if (!e.target.closest('.galeria-btn')) abrir(0); }); caja.addEventListener('keydown', e => { if (e.key === 'Enter') abrir(0); }); }
-    if (/^NJ-/.test(p.eb)) {
+    if (/^(NJ|EB)-/.test(p.eb)) {
       const archivo = p.eb.slice(-2).toLowerCase().replace(/[^a-z0-9]/g, '0');
-      fetch('herramientas/neojaus/fichas/' + archivo + '.json').then(r => r.ok ? r.json() : {}).then(todo => {
+      const carpeta = /^NJ-/.test(p.eb) ? 'herramientas/neojaus/fichas/' : 'herramientas/eb/fichas/';
+      fetch(carpeta + archivo + '.json').then(r => r.ok ? r.json() : {}).then(todo => {
         const d = todo[p.eb]; if (!d) return;
         if (d.uid && (d.fotos || []).length) fotos = d.fotos.map(n => 'https://cdn.neojaus.com/properties/' + d.uid + '/' + n);
+        else if ((d.fotos || []).length) fotos = d.fotos.map(f => AM.fotoTam(f, 1600, 1067));
         if (fotos.length > 1 && caja) {
           caja.insertAdjacentHTML('beforeend', `<button type="button" class="galeria-btn">Ver las ${fotos.length} fotos</button>`);
           caja.querySelector('.galeria-btn').addEventListener('click', e => { e.stopPropagation(); abrir(0); });

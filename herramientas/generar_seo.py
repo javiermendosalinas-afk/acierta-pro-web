@@ -80,12 +80,13 @@ def cargar():
         with open(ruta, encoding="utf-8") as fh:
             nj = [r for r in json.load(fh) if not any(str(x.get("clave", "")).startswith("EB-") for x in (r.get("tambien_en") or []))]
     detalle = {}
-    dirf = os.path.join(RAIZ, "herramientas", "neojaus", "fichas")
-    if os.path.isdir(dirf):
-        for f in os.listdir(dirf):
-            if f.endswith(".json"):
-                with open(os.path.join(dirf, f), encoding="utf-8") as fh:
-                    detalle.update(json.load(fh))
+    for sub in (("neojaus", "fichas"), ("eb", "fichas")):
+        dirf = os.path.join(RAIZ, "herramientas", *sub)
+        if os.path.isdir(dirf):
+            for f in os.listdir(dirf):
+                if f.endswith(".json"):
+                    with open(os.path.join(dirf, f), encoding="utf-8") as fh:
+                        detalle.update(json.load(fh))
     props, vistos = [], set()
     for p in eb + nj:
         g = grupo_de(p.get("tipo"))
@@ -173,7 +174,7 @@ def pagina_prop(p, comps_muni, comps_col, similares):
     op = "renta" if p["operacion"] == "RENTA" else "venta"
     lugar = (p["colonia"] + ", " if p["colonia"] else "") + p["municipio"]
     d = p.get("detalle") or {}
-    fotos = [f"https://cdn.neojaus.com/properties/{d['uid']}/{n}" for n in d.get("fotos", [])] if d.get("uid") else []
+    fotos = [f"https://cdn.neojaus.com/properties/{d['uid']}/{n}" for n in d.get("fotos", [])] if d.get("uid") else list(d.get("fotos") or [])
     if not fotos and p.get("foto"):
         fotos = [p["foto"]]
     precio_txt = ("" if es_mxn(p) else "US") + dinero(p["precio"]) + (" al mes" if op == "renta" else "")
@@ -217,7 +218,7 @@ def pagina_prop(p, comps_muni, comps_col, similares):
                f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script><script type="application/ld+json">{json.dumps(ld_migas, ensure_ascii=False)}</script>')
     h += f"""<nav class="migas">{' › '.join(f'<a href="{u}">{E(n)}</a>' for n, u in migas)} › {E(p['eb'])}</nav>
 <div class="seo-top"><div><div class="seo-foto">{f'<img src="{E(foto_tam(fotos[0], 1200, 800))}" alt="{E(p["titulo"])}">' if fotos else ''}</div>
-{('<div class="seo-mini">' + ''.join(f'<img src="{E(f)}" alt="Foto {i + 2} de {E(p["titulo"])}" loading="lazy">' for i, f in enumerate(fotos[1:9])) + '</div>') if len(fotos) > 1 else ''}</div>
+{('<div class="seo-mini">' + ''.join(f'<img src="{E(foto_tam(f, 240, 160))}" alt="Foto {i + 2} de {E(p["titulo"])}" loading="lazy">' for i, f in enumerate(fotos[1:9])) + '</div>') if len(fotos) > 1 else ''}</div>
 <div><div class="seo-eyebrow">{op.capitalize()} · {E(p['tipo'])} · {E(lugar)}</div><h1>{E(p['titulo'])}</h1>
 <div class="seo-precio">{E(precio_txt)} <small style="font-size:1rem;color:#5b6575">{'MXN' if es_mxn(p) else 'USD'}</small></div>
 <div class="seo-chips">{''.join(f'<span>{E(x)}</span>' for x in datos)}</div>
