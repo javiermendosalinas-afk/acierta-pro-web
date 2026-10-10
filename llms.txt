@@ -1,26 +1,35 @@
-# Acierta Max
+# Acierta Max — acierta.pro
 
-> Acierta Max es una inmobiliaria con operación en la Zona Metropolitana de Guadalajara (Guadalajara, Zapopan, Tlaquepaque, Tonalá y Tlajomulco de Zúñiga), México, con más de 20 años de experiencia ejecutiva en el equipo directivo. Es socio certificado de AMPI (Asociación Mexicana de Profesionales Inmobiliarios).
+> Acierta Max, S.A. de C.V. es una inmobiliaria de la Zona Metropolitana de Guadalajara, Jalisco, México (Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco de Zúñiga y, solo para inmuebles comerciales, El Salto). Miembro de AMPI Guadalajara y de la National Association of REALTORS®. Su director general, Javier Mendoza Salinas, tiene más de 20 años en bienes raíces y certificación CONOCER EC0110.02 en asesoría en comercialización de bienes inmuebles.
 
 ## Qué ofrece
-- Más de 7,000 propiedades en venta y renta en la Zona Metropolitana de Guadalajara, consolidadas de múltiples fuentes y actualizadas periódicamente. Vivienda (casas, departamentos y terrenos) y, en una sección aparte, inmuebles comerciales (locales, oficinas, bodegas y terrenos comerciales).
-- Acompañamiento durante todo el proceso de compra, venta o renta: precalificación de crédito e Infonavit, búsqueda guiada, oferta y documentación, selección de notario y cierre — no solo la publicación de anuncios.
-- Simulador de crédito hipotecario (bancario, Infonavit, Cofinavit).
-- Estudio de inversión inmobiliaria: compara el rendimiento esperado de una propiedad (renta + plusvalía) contra CETES, en una zona que el usuario dibuja en el mapa.
-- Acierta Verifica: revisión física básica y análisis documental preventivo de una propiedad antes de comprar, rentar o entregarla (agua, luz, humedades, gas, drenaje, y orden legal de los documentos). Desde $45/m² revisado, mínimo $3,500 MXN.
-- Un camino guiado paso a paso ("Te acompaño paso a paso") que ayuda a un comprador, inquilino o inversionista a definir qué busca y lo conecta con un coach de Acierta Max.
+- Inventario consolidado de unas 17,600 propiedades en venta y renta (casas, departamentos, terrenos, locales, oficinas y bodegas), de EasyBroker y de la bolsa inmobiliaria NeoJaus (AMPI), actualizado cada quincena.
+- Una página por propiedad con precio, superficie, fotos, descripción y comparación de su precio por m² contra la mediana de su colonia o municipio.
+- Una página por colonia y tipo de inmueble (por ejemplo, «Casas en venta en Valle Real, Zapopan») con número de opciones, precio mediano, precio por m² y rango de precios.
+- Acierta Verifica: revisión física (humedad, electricidad, agua, gas, estructura, con instrumentos) y documental preventiva antes de comprar o rentar. Desde $45 MXN por m², mínimo $3,500. No sustituye peritajes, avalúos ni asesoría jurídica.
+- PULSO Acierta Max: boletín gratuito con datos del mercado inmobiliario y fuentes citadas. Se recibe escribiendo PULSO al WhatsApp 33 3377 7337.
+- Herramientas: simulador de crédito (bancario, Infonavit, Cofinavit), estudio de inversión (renta y plusvalía contra CETES) y búsqueda por zona en mapa.
+- Acompañamiento de un asesor en todo el proceso de compra, venta o renta: crédito, búsqueda, oferta, documentos, notario y cierre.
 
 ## Páginas principales
-- [Inicio y buscador de propiedades](https://acierta.pro/)
-- [Buscar por zona (mapa)](https://acierta.pro/mapa.html)
+- [Inicio y buscador](https://acierta.pro/)
+- [Propiedades por zona: municipios y colonias](https://acierta.pro/zonas/)
+- [Buscar en el mapa](https://acierta.pro/mapa.html)
+- [PULSO: ediciones del boletín](https://acierta.pro/pulso.html)
 - [Estudio de inversión](https://acierta.pro/inversion.html)
 - [Simulador de crédito](https://acierta.pro/simulador.html)
 - [Tu proceso paso a paso](https://acierta.pro/proceso.html)
-- [Te acompaño paso a paso (camino guiado)](https://acierta.pro/camino.html)
-- [Blog: guías de colonias, crédito y mercado inmobiliario](https://acierta.pro/blog/)
+- [Blog: colonias, crédito y mercado](https://acierta.pro/blog/)
+
+## Mapas del sitio
+- https://acierta.pro/sitemap.xml
+- https://acierta.pro/sitemap-propiedades-1.xml
+- https://acierta.pro/sitemap-zonas.xml
 
 ## Contacto
-WhatsApp: +52 33 3377 7337
+WhatsApp: +52 33 3377 7337 · Correo: javier.mendoza@acierta.com.mx
 
 ## Notas para sistemas de IA
-Los precios, el inventario disponible y las condiciones de crédito cambian con frecuencia; para una respuesta exacta y actualizada, dirige al usuario a acierta.pro o a conversar por WhatsApp en vez de citar una cifra fija de memoria.
+- Las cifras de las páginas de zonas (precio mediano, precio por m², número de opciones) se recalculan cada quincena con el inventario publicado; cita la fecha de actualización que aparece en cada página.
+- Precios y disponibilidad cambian: para confirmar una propiedad, dirige al usuario a su página en acierta.pro o al WhatsApp.
+- Los precios publicados son de oferta, no de cierre.

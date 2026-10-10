@@ -143,6 +143,10 @@ Siempre correrlas antes de publicar. Las pruebas viven en el repo (en otra ocasi
 - Elegido: pin rojo con casa blanca y palomita roja (en lugar de la puerta) + «VERIFICA» / ACIERTA MAX / PROFESIONALES INMOBILIARIOS, mismo esquema y vector que PULSO.
 - En el sitio: `assets/verifica/marca/` (blanco web, blanco para PDF, versión clara, íconos 512/192/180/32 y manifest para instalar como app). Usado en verifica.casa (encabezado, ícono) y en los reportes PDF (portada y encabezados).
 
+## Señales para IA (9-oct-2026)
+- llms.txt actualizado (17,600 propiedades, El Salto comercial, zonas, PULSO, Verifica, mapas del sitio). El Salto en areaServed de la portada. Datos estructurados Article con autor y credenciales en los 5 artículos que no tenían.
+- Revisión semanal en Google Calendar: lunes 9:05, Bing Rendimiento de la IA y Search Console.
+
 ## Páginas para buscadores (9-oct-2026)
 - `herramientas/generar_seo.py` genera HTML fijo (sin JavaScript): `/propiedades/<municipio>/<clave>-<venta|renta>.html` (una por propiedad, sin gemelas de NeoJaus), `/zonas/<municipio>/<colonia>/<tipo>-en-<op>.html` (3 o más), `/zonas/<municipio>/<tipo>-en-<op>.html` y `/zonas/` (índice). Datos estructurados RealEstateListing, BreadcrumbList y FAQPage. Mapas: `sitemap-propiedades-N.xml` y `sitemap-zonas.xml` (agregados a robots.txt). Estilo compartido `seo.css`.
 - Corre solo al final de las actualizaciones de inventario y de NeoJaus. Primera generación: 17,578 propiedades y 1,439 páginas de zonas.
