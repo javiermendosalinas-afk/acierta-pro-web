@@ -26,16 +26,22 @@
 <header class="site-header">
   <div class="header-inner">
     <div class="logo"><span class="pin"></span>Acierta<b>Max</b></div>
-    <nav class="header-nav">
-      <a href="mapa.html">Buscar por zona 🗺️</a>
-      <a href="simulador.html">Simulador de crédito 💰</a>
-      <a href="proceso.html">Tu proceso paso a paso 🧭</a>
-      <a href="inversion.html">Estudio de inversión 📊</a>
-      <a href="#" id="navVenderRentar">Vender o rentar mi propiedad 📣</a>
-      <a href="verifica.html">Acierta Verifica</a>
-      <a href="pulso.html">PULSO 📈</a>
-      <a href="/blog/">Blog</a>
-    <a href="/zonas/">Zonas</a><a href="/mercado/">Precios por zona</a><a href="nosotros.html">Quiénes somos</a></nav>
+    <nav class="header-nav nav5" aria-label="Menú principal">
+      <details class="nav-menu"><summary><span class="ico">🔎</span> Buscar</summary><div class="nav-drop">
+        <a href="mapa.html"><b>Buscar en el mapa</b><small>Casas, depas y terrenos en la ZMG</small></a>
+        <a href="/zonas/"><b>Zonas</b><small>Por municipio y colonia</small></a>
+        <a href="/mercado/"><b>Precios por zona</b><small>Reporte quincenal de mercado</small></a></div></details>
+      <details class="nav-menu"><summary><span class="ico">🧭</span> Comprar</summary><div class="nav-drop">
+        <a href="proceso.html"><b>Tu proceso paso a paso</b><small>Te acompañamos hasta la firma</small></a>
+        <a href="simulador.html"><b>Simulador de crédito</b><small>Cuánto te prestan y cuánto pagas</small></a>
+        <a href="inversion.html"><b>Estudio de inversión</b><small>Rentabilidad de una propiedad</small></a></div></details>
+      <a href="#" id="navVenderRentar"><span class="ico">📣</span> Vender<span class="largo"> o rentar</span></a>
+      <a href="verifica.html"><span class="ico">✅</span> Verifica</a>
+      <details class="nav-menu"><summary><span class="ico">📈</span> Aprende</summary><div class="nav-drop">
+        <a href="pulso.html"><b>PULSO</b><small>El boletín de Acierta Max</small></a>
+        <a href="/blog/"><b>Blog</b><small>Guías y noticias del mercado</small></a>
+        <a href="nosotros.html"><b>Quiénes somos</b><small>Acierta Max y Javier Mendoza</small></a></div></details>
+    </nav>
     <a class="header-cta" href="https://wa.me/523333777337?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n" target="_blank" rel="noopener">Habla con MAX →</a>
   </div>
 </header>
@@ -334,6 +340,13 @@ document.getElementById('navVenderRentar').addEventListener('click', function (e
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te contacte sobre tu propiedad.' }).then(lanzar);
 });
+</script>
+<script>
+// Menú: solo un submenú abierto a la vez; se cierra al tocar fuera o con Esc
+(function(){const ms=[...document.querySelectorAll('.nav-menu')];
+ ms.forEach(m=>m.addEventListener('toggle',()=>{if(m.open)ms.forEach(o=>{if(o!==m)o.open=false;});}));
+ document.addEventListener('click',e=>{if(!e.target.closest('.nav-menu'))ms.forEach(m=>m.open=false);});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')ms.forEach(m=>m.open=false);});})();
 </script>
 </body>
 </html>
