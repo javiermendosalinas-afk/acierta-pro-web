@@ -307,6 +307,20 @@
    "titulo": "¿Cuánto vale tu casa? Opinión de valor gratis",
    "texto": "Campaña para PROPIETARIOS que quieren vender o rentar (captación de exclusivas, la prioridad comercial de Acierta Max). En acierta.pro/valor.html el propietario ve al instante un rango con precios de publicación por colonia; Acierta Max le entrega una opinión de valor formal GRATIS en 48 horas. Si el mensaje ya trae sus datos (colonia, municipio, m², recámaras, estado, rango), agradécelo y confírmalos; si no, pídelos en un solo mensaje: si quiere vender o rentar, tipo, colonia y municipio, m² de terreno y de construcción, recámaras, estado, y cuándo quiere vender. Con esos datos usa avisar_humano con un resumen que empiece con 'CAPTACIÓN' para que un asesor prepare la opinión de valor y le llame. Explica que el precio correcto vende más rápido, que se publica en acierta.pro e inmobiliaria.pro con alcance a miles de compradores y asesores, y que Acierta Verifica revisa la casa y sus papeles antes de publicar. Nunca prometas un precio; el rango es una referencia de publicación, no de cierre.",
    "relacionado": "VALOR"
+  },
+  {
+   "codigo": "IG-OPENHOUSE",
+   "tipo": "campana",
+   "titulo": "Open House Día de Muertos en Bella Vittoria",
+   "texto": "OPEN HOUSE de Bella Vittoria con tema de Día de Muertos: sábado 31 de octubre de 2026, de 10:00 a 14:00, en Cobre 4232, Lomas de la Victoria, Tlaquepaque (dentro de Periférico, cerca de Plaza del Sol). Departamentos nuevos de 2 recámaras y 2 baños, 70 a 78 m², roof top, lobby, terraza con asadores y seguridad 24 h, entrega inmediata, desde $3,450,000. Gancho: usar el Infonavit (subcuenta de vivienda, ahorro y Cofinavit); Betty, especialista en crédito de Acierta Max, calcula su crédito sin costo. Regalo: a quien aparte una unidad durante el Open House se le obsequia un calentador solar de agua. Antes de firmar, Acierta Verifica revisa el departamento y sus papeles. Página: acierta.pro/open-house.html. Pide nombre, cuántas personas asistirán y la hora aproximada, y si tiene Infonavit, y usa avisar_humano con un resumen que empiece con 'OPEN HOUSE' para registrar su asistencia. Nunca prometas aprobación de crédito.",
+   "relacionado": "EB-VI0283"
+  },
+  {
+   "codigo": "IG-CORREDOR",
+   "tipo": "campana",
+   "titulo": "Invitación a corredores: 4% en el Open House de Bella Vittoria",
+   "texto": "Invitación a corredores y asesores inmobiliarios al Open House de Bella Vittoria (sábado 31 de octubre de 2026, de 10:00 a 14:00, Cobre 4232, Lomas de la Victoria, Tlaquepaque). Normalmente Acierta Max comparte 2% de comisión; para este Open House comparte 4% al corredor cuyo cliente, registrado previamente con Acierta Max, aparte una unidad durante el Open House o en los 15 días siguientes y concrete la compra. Precio desde $3,450,000, acepta Infonavit y Cofinavit, entrega inmediata; regalo de calentador solar al comprador que aparte durante el Open House. Para registrar a su cliente pide: nombre del corredor, inmobiliaria, nombre y teléfono del cliente; luego usa avisar_humano con un resumen que empiece con 'CORREDOR' para que Javier confirme el registro por escrito. Las condiciones finales se confirman por escrito con Acierta Max.",
+   "relacionado": "EB-VI0283"
   }
  ]
 }
