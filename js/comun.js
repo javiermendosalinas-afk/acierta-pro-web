@@ -172,7 +172,7 @@
   <div class="card" data-eb="${AM.esc(AM.clave(p))}">
     <a class="card-media" href="${url}" ${p.foto ? 'style="background:#0f1f3d"' : ''} aria-label="Ver ficha: ${AM.esc(p.titulo)}">
       ${AM.iconHouse()}${p.foto ? AM.fotoImg(p.foto, 720, 480, '', 'loading="lazy"') : ''}
-      <span class="card-op">${AM.esc(p.operacion)}</span>
+      <span class="card-op">${AM.esc(p.operacion)}</span>${AM.selloHTML(p)}
       <span class="card-tipo">${AM.esc(p.tipo)}</span>
     </a>
     <div class="card-body">
@@ -670,5 +670,10 @@
       } finally { clearTimeout(reloj); }
     } catch (e) { return []; }
   })());
-  AM.inventario = () => Promise.all([AM.inventarioEB(), AM.cargarBolsa()]).then(([eb, bolsa]) => eb.concat(bolsa));
+  // Sello "Verificado por Acierta": desarrollos originados por Acierta Max (herramientas/verificadas.json)
+  AM.verificadas = { claves: {}, patrones: [] };
+  AM._verif = fetch('herramientas/verificadas.json').then(r => r.json()).then(j => { AM.verificadas = { claves: j.claves || {}, patrones: (j.patrones || []).map(x => ({ d: x.desarrollo, re: new RegExp(x.regex, 'i') })) }; }).catch(() => {});
+  AM.verificada = p => { if (!p) return ''; if (AM.verificadas.claves[p.eb]) return AM.verificadas.claves[p.eb]; if (!/^EB-/.test(p.eb || '')) return ''; const m = AM.verificadas.patrones.find(x => x.re.test(p.titulo || '')); return m ? m.d : ''; };
+  AM.selloHTML = (p, grande) => { const d = AM.verificada(p); return d ? `<span class="sello-acierta${grande ? ' grande' : ''}" title="Desarrollo comercializado directamente por Acierta Max: ${AM.esc(d)}">✅ Verificado por Acierta</span>` : ''; };
+  AM.inventario = () => Promise.all([AM.inventarioEB(), AM.cargarBolsa(), AM._verif]).then(([eb, bolsa]) => eb.concat(bolsa));
 })();

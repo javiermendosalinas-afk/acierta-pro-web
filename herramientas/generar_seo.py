@@ -71,6 +71,28 @@ def foto_tam(url, w, h):
     return re.sub(r"([?&])height=\d+", rf"\g<1>height={h}", url) if re.search(r"[?&]height=\d+", url) else url + f"&height={h}"
 
 
+def _cargar_verificadas():
+    try:
+        j = json.load(open(os.path.join(RAIZ, "herramientas", "verificadas.json"), encoding="utf-8"))
+        return j.get("claves", {}), [(x["desarrollo"], re.compile(x["regex"], re.I)) for x in j.get("patrones", [])]
+    except Exception:
+        return {}, []
+
+
+VERIF_CLAVES, VERIF_PATRONES = _cargar_verificadas()
+
+
+def verificada(p):
+    if p["eb"] in VERIF_CLAVES:
+        return VERIF_CLAVES[p["eb"]]
+    if not p["eb"].startswith("EB-"):
+        return ""
+    return next((d for d, rx in VERIF_PATRONES if rx.search(p.get("titulo", ""))), "")
+
+
+SELLO = '<span style="position:absolute;right:10px;top:10px;background:#0f7a4a;color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:5px 10px;z-index:2">✅ Verificado por Acierta</span>'
+
+
 def cargar():
     with open(os.path.join(RAIZ, "data.json"), encoding="utf-8") as fh:
         eb = json.load(fh)
@@ -164,7 +186,7 @@ def tarjeta(p):
                         f"{round(p['m2'])} m²" if p.get("m2") else "") if x]
     foto = f'<img src="{E(foto_tam(p["foto"], 720, 480))}" alt="{E(p["titulo"])}" loading="lazy">' if p.get("foto") else ""
     lugar = (p["colonia"] + ", " if p["colonia"] else "") + p["municipio"]
-    return f"""<div class="card"><a class="card-media" href="{u}" style="background:#0f1f3d">{foto}<span class="card-op">{E(p['operacion'])}</span><span class="card-tipo">{E(p['tipo'])}</span></a>
+    return f"""<div class="card"><a class="card-media" href="{u}" style="background:#0f1f3d">{foto}<span class="card-op">{E(p['operacion'])}</span><span class="card-tipo">{E(p['tipo'])}</span>{SELLO if verificada(p) else ''}</a>
 <div class="card-body"><div class="card-price">{'' if es_mxn(p) else 'US'}{dinero(p['precio'])}<span> {'MXN' if es_mxn(p) else 'USD'}{'/mes' if p['operacion'] == 'RENTA' else ''}</span></div>
 <a class="card-title" href="{u}">{E(p['titulo'])}</a><div class="card-loc">📍 {E(lugar)}</div><div class="card-meta">{''.join(f'<span>{E(b)}</span>' for b in bits)}</div>
 <div class="card-cta"><a class="btn-outline" href="{u}">Ver ficha</a></div></div></div>"""
@@ -220,6 +242,7 @@ def pagina_prop(p, comps_muni, comps_col, similares):
 <div class="seo-top"><div><div class="seo-foto">{f'<img src="{E(foto_tam(fotos[0], 1200, 800))}" alt="{E(p["titulo"])}">' if fotos else ''}</div>
 {('<div class="seo-mini">' + ''.join(f'<img src="{E(foto_tam(f, 240, 160))}" alt="Foto {i + 2} de {E(p["titulo"])}" loading="lazy">' for i, f in enumerate(fotos[1:9])) + '</div>') if len(fotos) > 1 else ''}</div>
 <div><div class="seo-eyebrow">{op.capitalize()} · {E(p['tipo'])} · {E(lugar)}</div><h1>{E(p['titulo'])}</h1>
+{('<p style="margin:6px 0 10px"><span style="display:inline-flex;background:#0f7a4a;color:#fff;font-weight:800;border-radius:999px;padding:7px 14px">✅ Verificado por Acierta</span></p><p style="background:#ECFDF3;border:1.5px solid #0f7a4a;border-radius:14px;padding:12px 14px;color:#14532d">' + E(verificada(p)) + ' es un desarrollo que comercializa directamente Acierta Max: conocemos el proyecto, su documentación y su estado, y te acompañamos en todo el proceso.</p>') if verificada(p) else ''}
 <div class="seo-precio">{E(precio_txt)} <small style="font-size:1rem;color:#5b6575">{'MXN' if es_mxn(p) else 'USD'}</small></div>
 <div class="seo-chips">{''.join(f'<span>{E(x)}</span>' for x in datos)}</div>
 <div class="seo-cta"><a class="btn-solid btn-lg" href="{wa}" target="_blank" rel="noopener">Hablar con un asesor por WhatsApp</a>
@@ -241,7 +264,7 @@ def pagina_zona(muni, col, g, op, lista, hijos=None):
     precio_med = dinero(st["mediana"]) + (" al mes" if opn == "renta" else "")
     desc = f"{st['n']} {PLURAL[g].lower()} en {opn} en {lugar}. Precio mediano {precio_med}" + (f", {dinero(st['pm2'])} por m²" if st["pm2"] else "") + ". Fotos, precios y asesoría de Acierta Max."
     canon = url_zona(muni, col, g, op)
-    orden = sorted(lista, key=lambda p: (not p.get("foto"), p["precio"]))
+    orden = sorted(lista, key=lambda p: (not verificada(p), not p.get("foto"), p["precio"]))
     faq = [(f"¿Cuánto cuesta {'rentar' if opn == 'renta' else 'comprar'} {'una' if g in ('casa', 'oficina', 'bodega') else 'un'} {PLURAL[g].lower().rstrip('s').replace('locales comerciale', 'local comercial')} en {lugar}?",
             f"El precio mediano de {PLURAL[g].lower()} en {opn} en {lugar} es de {precio_med}, con un rango de {dinero(st['min'])} a {dinero(st['max'])} entre {st['n']} propiedades publicadas (actualizado {HOY})."),
            (f"¿Cuántas {PLURAL[g].lower()} hay en {opn} en {lugar}?", f"Hoy tenemos {st['n']} {PLURAL[g].lower()} en {opn} en {lugar} en nuestro inventario, que se actualiza cada quincena.")]

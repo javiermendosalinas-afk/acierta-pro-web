@@ -1,0 +1,16 @@
+{
+  "_nota": "Propiedades con el sello 'Verificado por Acierta' (desarrollos originados por Acierta Max). Agregar claves en 'claves'; los 'patrones' marcan automáticamente las nuevas publicaciones de estos desarrollos.",
+  "patrones": [
+    {"desarrollo": "Bella Vittoria", "regex": "bella\\s*vit+oria"},
+    {"desarrollo": "Élevé Valle Real", "regex": "\\b[eé]l[eé]v[eé]\\b"},
+    {"desarrollo": "Villa Dhara · Parque Morelos", "regex": "villa\\s*dhara"}
+  ],
+  "claves": {
+    "EB-XB2532": "Bella Vittoria", "EB-VI0283": "Bella Vittoria", "EB-WG7572": "Bella Vittoria",
+    "EB-WM2996": "Élevé Valle Real",
+    "EB-TP0142": "Villa Dhara · Parque Morelos", "EB-WG7913": "Villa Dhara · Parque Morelos", "EB-SZ6521": "Villa Dhara · Parque Morelos",
+    "EB-SZ6420": "Villa Dhara · Parque Morelos", "EB-SZ6388": "Villa Dhara · Parque Morelos", "EB-QR2777": "Villa Dhara · Parque Morelos",
+    "EB-WJ7113": "Villa Dhara · Parque Morelos", "EB-WD6350": "Villa Dhara · Parque Morelos", "EB-SZ6667": "Villa Dhara · Parque Morelos",
+    "EB-WV7984": "Villa Dhara · Parque Morelos"
+  }
+}
