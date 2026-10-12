@@ -2,6 +2,29 @@
   "_nota": "Ediciones del PULSO. MAX envía por WhatsApp la que tenga \"vigente\": true a quien escriba PULSO. Para publicar una nueva: sube el PDF a assets/pulso/, agrega la edición arriba, pasa \"vigente\" a la nueva y pon \"enviar_correo\": true para que MAX la mande por correo a los suscriptores activos (una sola vez a cada uno, máximo 400 por día). Ninguna se envía por correo masivo por ahora. Al escribir PULSO, un suscrito recibe el menú de ediciones. Una edición con \"publicar_desde\" (AAAA-MM-DD) no se ofrece ni se envía antes de esa fecha.",
   "ediciones": [
     {
+      "numero": "10",
+      "fecha": "2026-11",
+      "publicar_desde": "2026-11-27",
+      "titulo": "PULSO Acierta Max · Edición 10 · Noviembre 2026",
+      "tema": "La alberca viene incluida. Mantenerla te lo cobran cada mes",
+      "archivo": "PULSO_Acierta_Max_10.pdf",
+      "url": "https://acierta.pro/assets/pulso/pulso-10-noviembre-2026.pdf",
+      "pdf_raw": "https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/assets/pulso/pulso-10-noviembre-2026.pdf?v=1",
+      "portada": "/assets/pulso/pulso-10-portada.jpg",
+      "reel": "/assets/pulso/pulso-10-reel.mp4",
+      "vigente": true,
+      "enviar_correo": false,
+      "version_pdf": 1,
+      "palabras": [
+        "mantenimiento",
+        "amenidades",
+        "alberca",
+        "cuota"
+      ],
+      "paginas": 6,
+      "formato": "carta"
+    },
+    {
       "numero": "06",
       "fecha": "2026-11",
       "publicar_desde": "2026-11-11",
