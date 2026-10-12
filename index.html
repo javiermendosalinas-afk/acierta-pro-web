@@ -320,7 +320,7 @@
 <script src="js/comun.js"></script>
 <script>
 (function(){
-  const ORDEN=['Bella Vittoria','Élevé Valle Real','Villa Dhara · Parque Morelos'];
+  const ORDEN=['Bella Vittoria','Élevé Valle Real','Villa Dhara · Parque Morelos','ITESO'];
   AM.inventario().then(todas=>{
     const vistos=new Set();const L=todas.filter(p=>AM.verificada(p)&&p.foto&&!vistos.has(p.eb+p.operacion)&&vistos.add(p.eb+p.operacion));
     if(!L.length)return;
