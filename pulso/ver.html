@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es-MX"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ver el PULSO en pantalla | Acierta Max</title>
+<meta name="description" content="Elige una edición del PULSO de Acierta Max y léela en pantalla, página por página.">
+<meta name="robots" content="noindex,follow"><link rel="canonical" href="https://acierta.pro/pulso.html">
+<meta property="og:title" content="PULSO Acierta Max · Léelo en pantalla"><meta property="og:image" content="https://acierta.pro/assets/pulso/pulso-03-portada.jpg"><meta property="og:url" content="https://acierta.pro/pulso/ver.html">
+<meta name="theme-color" content="#0b1f3a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0b1f3a;--rojo:#d62828;--ambar:#f4b942;--verde:#25D366}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{margin:0;background:var(--navy);color:#fff;font-family:Inter,system-ui,sans-serif}
+a{color:inherit}
+.cab{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;max-width:1100px;margin:0 auto}
+.cab a.marca{font-family:Fraunces,Georgia,serif;font-weight:700;font-size:20px;text-decoration:none}.cab a.marca b{color:var(--rojo)}
+.cab a.vol{font-size:14px;color:#cdd7e6;text-decoration:none}
+.elige{max-width:1100px;margin:0 auto;padding:6px 18px 40px}
+.elige h1{font-family:Fraunces,Georgia,serif;font-size:clamp(1.7rem,5vw,2.6rem);margin:6px 0 6px}.elige p.sub{color:#cdd7e6;margin:0 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:18px}
+.ed{background:#12294a;border-radius:18px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;text-align:left;color:#fff;font:inherit;padding:0}
+.ed:hover,.ed:focus-visible{border-color:var(--ambar);transform:translateY(-3px);outline:none}
+.ed img{width:100%;aspect-ratio:9/14;object-fit:cover;object-position:top;display:block;background:#0e223f}
+.ed div{padding:12px 14px}.ed .n{display:inline-block;background:var(--ambar);color:var(--navy);font-weight:800;font-size:12px;border-radius:999px;padding:3px 9px}
+.ed .nuevo{background:var(--rojo);color:#fff;margin-left:6px}.ed h3{font-size:15px;line-height:1.35;margin:8px 0 4px}.ed small{color:#9fb0c9}
+.visor{position:fixed;inset:0;background:#050d1a;z-index:50;display:flex;flex-direction:column;touch-action:pan-y}
+.barras{display:flex;gap:4px;padding:calc(10px + env(safe-area-inset-top)) 12px 6px}.barras i{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.28);overflow:hidden}.barras i.lista{background:#fff}
+.vcab{display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;font-size:13px;color:#cdd7e6}.vcab button{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:999px;width:38px;height:38px;font-size:20px;cursor:pointer}
+.lienzo{flex:1;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.lienzo img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;border-radius:6px}
+.zona{position:absolute;top:0;bottom:0;width:35%;cursor:pointer}.zona.izq{left:0}.zona.der{right:0;width:65%}
+.flecha{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:50%;width:50px;height:50px;font-size:28px;cursor:pointer;display:none}
+.flecha.a{left:16px}.flecha.s{right:16px}@media(min-width:900px){.flecha{display:block}}
+.fin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 30%,#16305a,#050d1a)}
+.fin .caja{max-width:420px;width:100%;text-align:center}.fin h2{font-family:Fraunces,Georgia,serif;font-size:1.8rem;margin:6px 0 8px}.fin p{color:#cdd7e6;margin:0 0 18px}
+.fin a,.fin button{display:block;width:100%;margin:8px 0;padding:14px;border-radius:999px;font:inherit;font-weight:800;text-decoration:none;border:0;cursor:pointer}
+.b-wa{background:var(--verde);color:#fff}.b-rojo{background:var(--rojo);color:#fff}.b-claro{background:#fff;color:var(--navy)}.b-linea{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5)!important}
+.fin video{width:100%;max-height:55vh;border-radius:12px;background:#000;margin-bottom:8px}
+.cargando{color:#9fb0c9;padding:30px 0}
+</style></head>
+<body>
+<header class="cab"><a class="marca" href="/">Acierta<b>Max</b></a><a class="vol" href="/pulso.html">← Todas las ediciones</a></header>
+<main class="elige" id="elige"><h1>PULSO en pantalla</h1><p class="sub">Elige la edición que quieres ver. Desliza o toca a los lados para avanzar.</p><div class="grid" id="grid"><div class="cargando">Cargando ediciones…</div></div></main>
+<div class="visor" id="visor" hidden>
+  <div class="barras" id="barras"></div>
+  <div class="vcab"><span id="vTit"></span><button type="button" id="cerrar" aria-label="Cerrar">×</button></div>
+  <div class="lienzo" id="lienzo"><img id="img" alt=""><div class="zona izq" id="zIzq"></div><div class="zona der" id="zDer"></div>
+    <button class="flecha a" id="fA" aria-label="Anterior">‹</button><button class="flecha s" id="fS" aria-label="Siguiente">›</button><div class="fin" id="fin" hidden></div></div>
+</div>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id), esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoy=new Date(Date.now()-6*3600e3).toISOString().slice(0,10);
+let EDS=[], ed=null, pag=0;
+const src=(e,i)=>`/assets/pulso/visor/${e.numero}/p${String(i+1).padStart(2,'0')}.jpg`;
+fetch('/pulso/ediciones.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>{
+  EDS=(j.ediciones||[]).filter(e=>e.paginas&&(!e.publicar_desde||e.publicar_desde<=hoy));
+  $('grid').innerHTML=EDS.map((e,k)=>`<button type="button" class="ed" data-n="${esc(e.numero)}"><img src="${src(e,0)}" alt="Portada del PULSO ${esc(e.numero)}" loading="lazy"><div><span class="n">EDICIÓN ${esc(e.numero)}</span>${k===0?'<span class="n nuevo">NUEVA</span>':''}<h3>${esc(e.tema||e.titulo)}</h3><small>${e.paginas} páginas</small></div></button>`).join('')||'<div class="cargando">Pronto habrá ediciones aquí.</div>';
+  document.querySelectorAll('.ed').forEach(b=>b.onclick=()=>abrir(b.dataset.n,0));
+  const q=new URLSearchParams(location.search);if(q.get('ed'))abrir(q.get('ed').padStart(2,'0'),Math.max(0,(+q.get('p')||1)-1));
+}).catch(()=>{$('grid').innerHTML='<div class="cargando">No pudimos cargar las ediciones. <a href="/pulso.html">Ver la página del PULSO</a></div>';});
+function abrir(n,p){ed=EDS.find(e=>e.numero===n);if(!ed){return;}pag=Math.min(p,ed.paginas);$('visor').hidden=false;document.body.style.overflow='hidden';
+  $('vTit').textContent=`PULSO ${ed.numero} · ${ed.tema||''}`.slice(0,60);$('barras').innerHTML=Array.from({length:ed.paginas},()=>'<i></i>').join('');mostrar();}
+function mostrar(){const fin=pag>=ed.paginas;$('fin').hidden=!fin;$('img').style.visibility=fin?'hidden':'visible';
+  document.querySelectorAll('#barras i').forEach((b,i)=>b.classList.toggle('lista',i<=Math.min(pag,ed.paginas-1)&&!(fin&&false)));
+  if(!fin){$('img').src=src(ed,pag);$('img').alt=`PULSO ${ed.numero}, página ${pag+1} de ${ed.paginas}`;[1,2].forEach(k=>{if(pag+k<ed.paginas){const im=new Image();im.src=src(ed,pag+k);}});}
+  else pintarFin();
+  history.replaceState(null,'',`?ed=${ed.numero}&p=${pag+1}`);}
+function pintarFin(){const otras=EDS.filter(e=>e.numero!==ed.numero);
+  $('fin').innerHTML=`<div class="caja"><span style="background:#f4b942;color:#0b1f3a;font-weight:800;border-radius:999px;padding:4px 12px;font-size:12px">PULSO ${esc(ed.numero)}</span><h2>¿Te sirvió?</h2><p>Te lo mandamos a tu WhatsApp y un asesor te ayuda con tus números.</p>
+   ${ed.reel?`<video controls playsinline preload="none" poster="/assets/pulso/pulso-${esc(ed.numero)}-reel.jpg" src="${esc(ed.reel)}"></video>`:''}
+   <a class="b-wa" href="https://wa.me/523333777337?text=${encodeURIComponent('PULSO '+parseInt(ed.numero,10))}" target="_blank" rel="noopener">Recibirlo en WhatsApp</a>
+   <a class="b-rojo" href="https://wa.me/523333777337?text=${encodeURIComponent('Hola, vi el PULSO '+parseInt(ed.numero,10)+' y quiero agendar una visita')}" target="_blank" rel="noopener">Agendar una visita</a>
+   <a class="b-claro" href="${esc(ed.url)}" target="_blank" rel="noopener">Descargar el PDF</a>
+   ${otras.length?`<button type="button" class="b-linea" id="otra">Ver otra edición</button>`:''}
+   <button type="button" class="b-linea" id="deNuevo">Verla de nuevo</button></div>`;
+  const o=$('otra');if(o)o.onclick=cerrar;$('deNuevo').onclick=()=>{pag=0;mostrar();};}
+function ir(d){if(!ed)return;pag=Math.max(0,Math.min(ed.paginas,pag+d));mostrar();}
+function cerrar(){$('visor').hidden=true;document.body.style.overflow='';ed=null;history.replaceState(null,'',location.pathname);}
+$('zIzq').onclick=()=>ir(-1);$('zDer').onclick=()=>ir(1);$('fA').onclick=()=>ir(-1);$('fS').onclick=()=>ir(1);$('cerrar').onclick=cerrar;
+document.addEventListener('keydown',e=>{if($('visor').hidden)return;if(e.key==='ArrowRight'||e.key===' ')ir(1);if(e.key==='ArrowLeft')ir(-1);if(e.key==='Escape')cerrar();});
+let x0=null;$('lienzo').addEventListener('touchstart',e=>{x0=e.touches[0].clientX;},{passive:true});
+$('lienzo').addEventListener('touchend',e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>45){ir(dx<0?1:-1);e.preventDefault();}x0=null;});
+})();
+</script>
+</body></html>

@@ -20,7 +20,9 @@
         "bella vittoria",
         "cofinavit",
         "subcuenta"
-      ]
+      ],
+      "paginas": 23,
+      "formato": "vertical"
     },
     {
       "numero": "03",
@@ -34,7 +36,9 @@
       "reel": "/assets/pulso/pulso-03-reel.mp4",
       "vigente": true,
       "enviar_correo": false,
-      "version_pdf": 1
+      "version_pdf": 1,
+      "paginas": 20,
+      "formato": "vertical"
     },
     {
       "numero": "02",
@@ -48,7 +52,9 @@
       "reel": "/assets/pulso/pulso-02-reel.mp4",
       "vigente": false,
       "enviar_correo": false,
-      "version_pdf": 1
+      "version_pdf": 1,
+      "paginas": 15,
+      "formato": "carta"
     },
     {
       "numero": "01",
@@ -62,7 +68,9 @@
       "reel": "/assets/pulso/pulso-01-reel.mp4",
       "vigente": false,
       "enviar_correo": false,
-      "version_pdf": 4
+      "version_pdf": 4,
+      "paginas": 10,
+      "formato": "vertical"
     }
   ]
 }
