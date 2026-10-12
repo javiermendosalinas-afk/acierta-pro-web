@@ -461,5 +461,45 @@ def main():
     print(f"Páginas para buscadores: {len(urls_prop):,} propiedades · {len(urls_zona):,} de zonas · mapas: {', '.join(mapas)}", flush=True)
 
 
+
+def pulso_programados(hoy=None):
+    """Publica para buscadores las ediciones del PULSO que ya cumplieron su fecha (publicar_desde en pulso/ediciones.json):
+    quita el noindex de su página y la agrega a sitemap.xml y llms.txt. No hace nada antes de la fecha."""
+    import datetime as _dt
+    hoy = hoy or (_dt.datetime.utcnow() - _dt.timedelta(hours=6)).strftime("%Y-%m-%d")
+    try:
+        eds = json.load(open(os.path.join(RAIZ, "pulso", "ediciones.json"), encoding="utf-8")).get("ediciones", [])
+    except Exception:
+        return []
+    publicadas = []
+    for e in eds:
+        n, desde = e.get("numero", ""), e.get("publicar_desde", "")
+        pagina = os.path.join(RAIZ, "pulso", f"edicion-{n}.html")
+        if not desde or desde > hoy or not os.path.exists(pagina):
+            continue
+        h = open(pagina, encoding="utf-8").read()
+        h2 = re.sub(r'\n?<meta name="robots" content="noindex,follow" data-pulso-programado="[^"]*">', "", h)
+        if h2 != h:
+            open(pagina, "w", encoding="utf-8").write(h2)
+        url = f"https://acierta.pro/pulso/edicion-{n}.html"
+        sm = os.path.join(RAIZ, "sitemap.xml")
+        s = open(sm, encoding="utf-8").read()
+        if url not in s:
+            s = s.replace("</urlset>", f"  <url><loc>{url}</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>\n</urlset>")
+            open(sm, "w", encoding="utf-8").write(s)
+        ll = os.path.join(RAIZ, "llms.txt")
+        l = open(ll, encoding="utf-8").read()
+        if url not in l and "[PULSO: ediciones del boletín](https://acierta.pro/pulso.html)" in l:
+            l = l.replace("[PULSO: ediciones del boletín](https://acierta.pro/pulso.html)", f"[PULSO: ediciones del boletín](https://acierta.pro/pulso.html) · [Edición {n}]({url})", 1)
+            open(ll, "w", encoding="utf-8").write(l)
+        publicadas.append(n)
+    if publicadas:
+        print(f"PULSO programado: publicadas para buscadores {', '.join(publicadas)}", flush=True)
+    return publicadas
+
 if __name__ == "__main__":
     main()
+    try:
+        pulso_programados()
+    except Exception as _e:
+        print('PULSO programado: error', _e)
