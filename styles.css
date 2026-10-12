@@ -758,3 +758,14 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .sello-acierta{position:absolute;right:10px;top:10px;background:#0f7a4a;color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:5px 10px;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:2}
 .sello-acierta.grande{position:static;display:inline-flex;font-size:14px;padding:7px 14px;margin:6px 0 10px}
 .sello-explica{background:#ECFDF3;border:1.5px solid #0f7a4a;border-radius:14px;padding:12px 14px;margin:10px 0;color:#14532d;line-height:1.5}
+
+/* Recomendadas por Acierta Max (portada) */
+.recomendadas{background:linear-gradient(180deg,#0f1f3d 0%,#16305a 100%);color:#fff;padding:26px 20px 24px}
+.rec-inner{max-width:1240px;margin:0 auto}.rec-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:14px}
+.rec-eti{display:inline-block;background:#f4b942;color:#0f1f3d;font-weight:800;font-size:13px;border-radius:999px;padding:5px 12px}
+.recomendadas h2{font-family:Fraunces,Georgia,serif;font-size:clamp(1.4rem,3.4vw,2rem);margin:8px 0 4px;color:#fff}.recomendadas p{margin:0;color:#cdd7e6}
+.rec-flechas{display:flex;gap:8px}.rec-flechas button{width:42px;height:42px;border-radius:50%;border:2px solid #fff;background:transparent;color:#fff;font-size:22px;cursor:pointer}
+.rec-tira{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}
+.rec-item{flex:0 0 280px;scroll-snap-align:start}.rec-des{font-weight:800;color:#f4b942;font-size:13px;margin:0 0 6px 4px}
+.rec-item .card{height:100%;color:#1b2433}
+@media(max-width:640px){.rec-flechas{display:none}.rec-item{flex-basis:78%}}

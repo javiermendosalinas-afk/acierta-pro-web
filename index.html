@@ -40,6 +40,15 @@
   </div>
 </header>
 
+<section class="recomendadas" id="recomendadas" hidden>
+  <div class="rec-inner">
+    <div class="rec-cab"><div><span class="rec-eti">⭐ Recomendadas por Acierta Max</span><h2>Desarrollos que comercializamos directamente</h2>
+      <p>Conocemos el proyecto, su documentación y su estado. Te acompañamos de la visita a la firma.</p></div>
+      <div class="rec-flechas"><button type="button" data-d="-1" aria-label="Anteriores">‹</button><button type="button" data-d="1" aria-label="Siguientes">›</button></div></div>
+    <div class="rec-tira" id="recTira"></div>
+  </div>
+</section>
+
 <section class="hero">
   <div class="hero-inner">
     <div class="hero-eyebrow">Zona Metropolitana de Guadalajara · 20 años de experiencia</div>
@@ -303,6 +312,19 @@
 </footer>
 
 <script src="js/comun.js"></script>
+<script>
+(function(){
+  const ORDEN=['Bella Vittoria','Élevé Valle Real','Villa Dhara · Parque Morelos'];
+  AM.inventario().then(todas=>{
+    const vistos=new Set();const L=todas.filter(p=>AM.verificada(p)&&p.foto&&!vistos.has(p.eb+p.operacion)&&vistos.add(p.eb+p.operacion));
+    if(!L.length)return;
+    L.sort((a,b)=>{const da=ORDEN.indexOf(AM.verificada(a)),db=ORDEN.indexOf(AM.verificada(b));return (da<0?9:da)-(db<0?9:db)||(a.operacion===b.operacion?0:a.operacion==='VENTA'?-1:1)||a.precio-b.precio;});
+    const tira=document.getElementById('recTira');tira.innerHTML=L.map(p=>`<div class="rec-item"><div class="rec-des">${AM.esc(AM.verificada(p))}</div>${AM.cardHTML(p,{compact:true})}</div>`).join('');
+    document.getElementById('recomendadas').hidden=false;
+    document.querySelectorAll('.rec-flechas button').forEach(b=>b.onclick=()=>tira.scrollBy({left:(+b.dataset.d)*Math.min(tira.clientWidth*.9,900),behavior:'smooth'}));
+  });
+})();
+</script>
 <script src="app.js"></script>
 <script>
 document.getElementById('navVenderRentar').addEventListener('click', function (e) {
