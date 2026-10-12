@@ -300,6 +300,13 @@
    "titulo": "Acierta Verifica",
    "texto": "Revisión preventiva de un inmueble antes de comprar o rentar: física (humedad con cámara termográfica, instalaciones eléctricas, agua, gas, niveles, drenaje) y documental (escritura, gravámenes, adeudos, facultades del vendedor). Desde $45 por m², mínimo $3,500 en la ZMG; se bonifica si compras o rentas con Acierta Max. No sustituye avalúo, peritaje ni la validación notarial.",
    "relacionado": "VERIFICA"
+  },
+  {
+   "codigo": "IG-VALOR",
+   "tipo": "campana",
+   "titulo": "¿Cuánto vale tu casa? Opinión de valor gratis",
+   "texto": "Campaña para PROPIETARIOS que quieren vender o rentar (captación de exclusivas, la prioridad comercial de Acierta Max). En acierta.pro/valor.html el propietario ve al instante un rango con precios de publicación por colonia; Acierta Max le entrega una opinión de valor formal GRATIS en 48 horas. Si el mensaje ya trae sus datos (colonia, municipio, m², recámaras, estado, rango), agradécelo y confírmalos; si no, pídelos en un solo mensaje: si quiere vender o rentar, tipo, colonia y municipio, m² de terreno y de construcción, recámaras, estado, y cuándo quiere vender. Con esos datos usa avisar_humano con un resumen que empiece con 'CAPTACIÓN' para que un asesor prepare la opinión de valor y le llame. Explica que el precio correcto vende más rápido, que se publica en acierta.pro e inmobiliaria.pro con alcance a miles de compradores y asesores, y que Acierta Verifica revisa la casa y sus papeles antes de publicar. Nunca prometas un precio; el rango es una referencia de publicación, no de cierre.",
+   "relacionado": "VALOR"
   }
  ]
 }

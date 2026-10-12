@@ -1,9 +1,35 @@
 {
   "_nota": "Imágenes y publicaciones de redes con su código. En la publicación va: «Escribe IG-CODIGO al 33 3377 7337» o el enlace https://wa.me/523333777337?text=IG-CODIGO. MAX reconoce el código y contesta sobre ese tema.",
   "campanas": [
-    {"codigo": "IG-INFONAVIT", "titulo": "Usa tu Infonavit para comprar", "texto": "Tu subcuenta de vivienda Infonavit, tu ahorro y Cofinavit (Infonavit más banco) pueden activar la compra de tu casa. Caso ilustrativo del PULSO 05: departamento de $3,450,000 en Bella Vittoria con $600,000 de subcuenta, $500,000 de ahorro, $800,000 de Infonavit al 10.45% y $1,550,000 de banco al 10.5% a 20 años; pago conjunto aproximado de $23,435 al mes. La precalificación se consulta en Mi Cuenta Infonavit; Betty, especialista en crédito de Acierta Max, hace la precalificación formal sin costo.", "relacionado": "PULSO-05"},
-    {"codigo": "IG-FRAUDE", "titulo": "Fraude inmobiliario digital", "texto": "Alerta de la SSPC (3 de octubre de 2026): anuncios falsos, suplantación de identidad y documentos apócrifos en redes. Modalidades: preventa fantasma, falso propietario y falso remate. Antes de entregar dinero, comprueba: quién vende (identidad y facultades), qué puede vender (propiedad, registro y gravámenes) y qué vas a firmar (precio, anticipo, entrega, cancelación y devolución por escrito). Acierta Verifica hace la revisión documental y física previa.", "relacionado": "PULSO-06"},
-    {"codigo": "IG-PREVENTA", "titulo": "Antes de comprar en preventa", "texto": "En preventa pagas hoy por algo que se entregará después: revisa permisos, licencia de construcción, régimen de condominio, contrato de adhesión registrado en Profeco (NOM-247-SE-2021), calendario de entrega y condiciones de devolución. En Jalisco hubo 483 reclamaciones contra inmobiliarias (PULSO 03).", "relacionado": "PULSO-03"},
-    {"codigo": "IG-VERIFICA", "titulo": "Acierta Verifica", "texto": "Revisión preventiva de un inmueble antes de comprar o rentar: física (humedad con cámara termográfica, instalaciones eléctricas, agua, gas, niveles, drenaje) y documental (escritura, gravámenes, adeudos, facultades del vendedor). Desde $45 por m², mínimo $3,500 en la ZMG; se bonifica si compras o rentas con Acierta Max. No sustituye avalúo, peritaje ni la validación notarial.", "relacionado": "VERIFICA"}
+    {
+      "codigo": "IG-INFONAVIT",
+      "titulo": "Usa tu Infonavit para comprar",
+      "texto": "Tu subcuenta de vivienda Infonavit, tu ahorro y Cofinavit (Infonavit más banco) pueden activar la compra de tu casa. Caso ilustrativo del PULSO 05: departamento de $3,450,000 en Bella Vittoria con $600,000 de subcuenta, $500,000 de ahorro, $800,000 de Infonavit al 10.45% y $1,550,000 de banco al 10.5% a 20 años; pago conjunto aproximado de $23,435 al mes. La precalificación se consulta en Mi Cuenta Infonavit; Betty, especialista en crédito de Acierta Max, hace la precalificación formal sin costo.",
+      "relacionado": "PULSO-05"
+    },
+    {
+      "codigo": "IG-FRAUDE",
+      "titulo": "Fraude inmobiliario digital",
+      "texto": "Alerta de la SSPC (3 de octubre de 2026): anuncios falsos, suplantación de identidad y documentos apócrifos en redes. Modalidades: preventa fantasma, falso propietario y falso remate. Antes de entregar dinero, comprueba: quién vende (identidad y facultades), qué puede vender (propiedad, registro y gravámenes) y qué vas a firmar (precio, anticipo, entrega, cancelación y devolución por escrito). Acierta Verifica hace la revisión documental y física previa.",
+      "relacionado": "PULSO-06"
+    },
+    {
+      "codigo": "IG-PREVENTA",
+      "titulo": "Antes de comprar en preventa",
+      "texto": "En preventa pagas hoy por algo que se entregará después: revisa permisos, licencia de construcción, régimen de condominio, contrato de adhesión registrado en Profeco (NOM-247-SE-2021), calendario de entrega y condiciones de devolución. En Jalisco hubo 483 reclamaciones contra inmobiliarias (PULSO 03).",
+      "relacionado": "PULSO-03"
+    },
+    {
+      "codigo": "IG-VERIFICA",
+      "titulo": "Acierta Verifica",
+      "texto": "Revisión preventiva de un inmueble antes de comprar o rentar: física (humedad con cámara termográfica, instalaciones eléctricas, agua, gas, niveles, drenaje) y documental (escritura, gravámenes, adeudos, facultades del vendedor). Desde $45 por m², mínimo $3,500 en la ZMG; se bonifica si compras o rentas con Acierta Max. No sustituye avalúo, peritaje ni la validación notarial.",
+      "relacionado": "VERIFICA"
+    },
+    {
+      "codigo": "IG-VALOR",
+      "titulo": "¿Cuánto vale tu casa? Opinión de valor gratis",
+      "texto": "Campaña para PROPIETARIOS que quieren vender o rentar (captación de exclusivas, la prioridad comercial de Acierta Max). En acierta.pro/valor.html el propietario ve al instante un rango con precios de publicación por colonia; Acierta Max le entrega una opinión de valor formal GRATIS en 48 horas. Si el mensaje ya trae sus datos (colonia, municipio, m², recámaras, estado, rango), agradécelo y confírmalos; si no, pídelos en un solo mensaje: si quiere vender o rentar, tipo, colonia y municipio, m² de terreno y de construcción, recámaras, estado, y cuándo quiere vender. Con esos datos usa avisar_humano con un resumen que empiece con 'CAPTACIÓN' para que un asesor prepare la opinión de valor y le llame. Explica que el precio correcto vende más rápido, que se publica en acierta.pro e inmobiliaria.pro con alcance a miles de compradores y asesores, y que Acierta Verifica revisa la casa y sus papeles antes de publicar. Nunca prometas un precio; el rango es una referencia de publicación, no de cierre.",
+      "relacionado": "VALOR"
+    }
   ]
 }

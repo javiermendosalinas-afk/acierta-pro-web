@@ -429,6 +429,10 @@ def main():
     escribir("/zonas/", idx + PIE)
     urls_zona.insert(0, "/zonas/")
     escribir("/mercado/", pagina_mercado(props))
+    try:
+        generar_valores(props)
+    except Exception as _e:
+        print("Valores por colonia: error", _e)
     urls_zona.insert(1, "/mercado/")
     # mapas del sitio
     for f in os.listdir(RAIZ):
@@ -460,6 +464,41 @@ def main():
         fh.write("\n".join(r) + "\n")
     print(f"Páginas para buscadores: {len(urls_prop):,} propiedades · {len(urls_zona):,} de zonas · mapas: {', '.join(mapas)}", flush=True)
 
+
+
+def generar_valores(props):
+    """mercado/valores.json: rangos de precio por m² (p25, mediana, p75) por operación, tipo, municipio y colonia,
+    para la calculadora «¿Cuánto vale tu casa?». Solo grupos con 5 o más comparables."""
+    import statistics
+    grupos = {}
+    for p in props:
+        tipo = (p.get("tipo") or "").lower()
+        g = "terreno" if "terreno" in tipo else "departamento" if "departamento" in tipo else "casa" if "casa" in tipo else ""
+        if not g or not p.get("precio"):
+            continue
+        sup = p.get("terreno") if g == "terreno" else (p.get("m2") or 0)
+        if not sup or sup < 25:
+            continue
+        v = p["precio"] / sup
+        op = p.get("operacion", "")
+        for clave in ((op, g, p.get("municipio", ""), ""), (op, g, p.get("municipio", ""), (p.get("colonia") or "").strip())):
+            if clave[3] is None:
+                continue
+            grupos.setdefault(clave, []).append(v)
+    def q(a, f):
+        a = sorted(a); i = (len(a) - 1) * f; lo = int(i); hi = min(lo + 1, len(a) - 1)
+        return a[lo] + (a[hi] - a[lo]) * (i - lo)
+    salida = []
+    for (op, g, m, c), vals in grupos.items():
+        if len(vals) < 5 or not m:
+            continue
+        lo, hi = q(vals, .1), q(vals, .9)
+        vals = [x for x in vals if lo <= x <= hi] or vals
+        salida.append({"o": op[:1], "g": g[:1], "m": m, "c": c, "n": len(vals), "p25": round(q(vals, .25)), "p50": round(statistics.median(vals)), "p75": round(q(vals, .75))})
+    os.makedirs(os.path.join(RAIZ, "mercado"), exist_ok=True)
+    json.dump({"actualizado": __import__("datetime").date.today().isoformat(), "rangos": salida},
+              open(os.path.join(RAIZ, "mercado", "valores.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(f"Valores por colonia: {len(salida)} grupos", flush=True)
 
 
 def pulso_programados(hoy=None):
