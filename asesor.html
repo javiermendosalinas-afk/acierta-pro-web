@@ -416,7 +416,8 @@
       token: TOKEN, modo, anexo: $('asAnexo').checked, trato: $('asTrato').value, genero: $('asGenero').value, vio_en_sitio: VIO_EN_SITIO,
       cliente: { nombre: $('asNombre').value.trim(), whatsapp: $('asWa').value.trim(), folio: $('asFolio').value.trim() },
       criterios: $('asCriterios').value.trim(), nota: $('asNota').value.trim(),
-      propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4) })),
+      propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4),
+        titulo: p.titulo, tipo: p.tipo, precio: p.precio, municipio: p.municipio, colonia: p.colonia, recamaras: p.recamaras, banos: p.banos, m2: p.m2, foto: p.foto, lat: p.lat, lon: p.lon, liga: p.liga })),
     };
   }
   function validar(enviar) {
