@@ -241,22 +241,43 @@
     PROPS.push(Object.assign({}, p, { resumen: b.resumen, ventajas: b.ventajas.join('\n') }));
     pintarProps();
   }
-  function pintarOrigenes() {
+  let ORIG = {}, origPend = null;
+  async function consultarOrigenes() {
+    if (!PROPS.length || !TOKEN) return;
+    const r = await post('/originadores', { token: TOKEN, propiedades: PROPS.map(p => ({ eb: p.eb, agente: p.agente || '' })) });
+    if (r.ok && r.j && r.j.ok) { ORIG = r.j.originadores || {}; pintarOrigenes(true); }
+  }
+  function pintarOrigenes(yaConsultado) {
     const box = $('asOrigenes'); if (!box) return;
     if (!PROPS.length) { box.hidden = true; return; }
+    if (!yaConsultado) { clearTimeout(origPend); origPend = setTimeout(consultarOrigenes, 400); }
     const filas = PROPS.map((p, i) => {
-      const nj = /^NJ-/.test(p.eb);
-      const donde = nj ? 'Bolsa NeoJaus' : 'EasyBroker (propia o de colaboración)';
-      const liga = nj && p.url_fuente ? ` · <a href="${esc(p.url_fuente)}" target="_blank" rel="noopener">publicación original ↗</a>` : '';
-      return `<li><strong>${i + 1}. ${esc(p.eb)}</strong> · ${esc(p.titulo || p.tipo || '')} · <span class="as-muted">${donde}</span>${liga}</li>`;
+      const o = ORIG[p.eb]; const nj = /^NJ-/.test(p.eb);
+      const tel = o && o.telefono ? String(o.telefono).replace(/\D/g, '').slice(-10) : '';
+      const info = o ? `<b>${esc(o.inmobiliaria)}</b>${o.asesor ? ' · ' + esc(o.asesor) : ''}${tel ? ` · <a href="tel:+52${tel}">📞 ${tel}</a> · <a href="https://wa.me/52${tel}" target="_blank" rel="noopener">WhatsApp</a>` : ' · <span class="as-muted">sin teléfono aún</span>'}${o.fuente === 'mismo asesor en NeoJaus' ? ' <span class="as-muted">(identificado por otra propiedad del mismo asesor)</span>' : ''}`
+        : `<span class="as-muted">Originador desconocido.</span> <button type="button" class="as-btn claro" style="padding:4px 10px;font-size:12px" data-orig="${i}">Guardar originador</button>`;
+      return `<li style="margin-bottom:6px"><strong>${i + 1}. ${esc(p.eb)}</strong> · ${esc(p.titulo || p.tipo || '')} <span class="as-muted">(${nj ? 'NeoJaus' : 'EasyBroker'})</span><br>${info}
+        <div data-form="${i}" hidden style="margin-top:6px;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+          <input placeholder="Inmobiliaria *" data-f="inmobiliaria"><input placeholder="Asesor" data-f="asesor"><input placeholder="Teléfono (si lo tienes)" data-f="telefono">
+          <button type="button" class="as-btn" data-guardar="${i}">Guardar</button></div></li>`;
     }).join('');
     box.hidden = false;
     box.innerHTML = `<strong>🔎 Originadores de esta propuesta</strong> <span class="as-muted">(solo para ti; no va en el PDF)</span>
       <ul style="margin:8px 0 10px 18px;padding:0">${filas}</ul>
-      <button type="button" class="as-btn claro" id="asCopiarOrig">📋 Copiar instrucción para Claude en Chrome</button>
-      <span class="as-muted" id="asCopiarMsg"></span>`;
+      <p class="as-muted" style="margin:0 0 8px">Si escribes una inmobiliaria que ya está en el directorio, su teléfono se llena solo. En NeoJaus, un registro identifica todas las propiedades del mismo asesor.</p>
+      <button type="button" class="as-btn claro" id="asCopiarOrig">📋 Copiar instrucción para Claude en Chrome</button> <span class="as-muted" id="asCopiarMsg"></span>`;
+    box.querySelectorAll('[data-orig]').forEach(b => b.onclick = () => { const f = box.querySelector(`[data-form="${b.dataset.orig}"]`); f.hidden = !f.hidden; });
+    box.querySelectorAll('[data-guardar]').forEach(b => b.onclick = async () => {
+      const k = +b.dataset.guardar, f = box.querySelector(`[data-form="${k}"]`), val = n => f.querySelector(`[data-f="${n}"]`).value.trim();
+      if (!val('inmobiliaria')) { alert('Escribe el nombre de la inmobiliaria.'); return; }
+      b.disabled = true;
+      const r = await post('/originador/guardar', { token: TOKEN, eb: PROPS[k].eb, agente: PROPS[k].agente || '', inmobiliaria: val('inmobiliaria'), asesor: val('asesor'), telefono: val('telefono') });
+      b.disabled = false;
+      if (r.ok && r.j && r.j.ok) { msg('asMsg', `Originador guardado${r.j.del_directorio ? ' (teléfono tomado del directorio)' : ''}.`, 'ok'); consultarOrigenes(); }
+      else msg('asMsg', (r.j && r.j.error) || 'No se pudo guardar.', 'error');
+    });
     $('asCopiarOrig').onclick = async () => {
-      const claves = PROPS.map(p => p.eb).join(', ');
+      const claves = PROPS.filter(p => !ORIG[p.eb]).map(p => p.eb).join(', ') || PROPS.map(p => p.eb).join(', ');
       const txt = `SOLO LECTURA: no envíes nada a nadie, no pulses "Ver datos de contacto" ni "Contactar", y no cambies nada.\n\n`
         + `1. Busca estas propiedades en mi cuenta de EasyBroker (Bolsa Inmobiliaria o Colaboraciones) y, las que empiezan con NJ-, en la Bolsa de NeoJaus: ${claves}\n`
         + `2. De cada una, dime solo lo que se ve sin pulsar botones: inmobiliaria que la publicó, nombre del asesor, si comparte comisión y qué porcentaje.\n`
