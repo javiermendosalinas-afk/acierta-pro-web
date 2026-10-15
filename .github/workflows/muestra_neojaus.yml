@@ -16,6 +16,7 @@ jobs:
           python-version: '3.12'
       - run: pip install requests
       - run: python herramientas/muestra_neojaus.py
+      - run: python herramientas/muestra_originador_nj.py
       - run: |
           git config user.name "inventario-bot"; git config user.email "inventario-bot@users.noreply.github.com"
-          git add herramientas/neojaus/muestra_ficha.json && git commit -m "Muestra de fichas NeoJaus" && git pull --rebase -q && git push || true
+          git add herramientas/neojaus/muestra_ficha.json herramientas/neojaus/muestra_originador.json && git commit -m "Muestra de fichas NeoJaus" && git pull --rebase -q && git push || true
