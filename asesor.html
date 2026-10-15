@@ -64,17 +64,6 @@
   </section>
 
   <div id="asApp" hidden>
-    <!-- Buscar originador -->
-    <section class="as-card">
-      <h2>Buscar al originador por clave</h2>
-      <p class="as-muted">Escribe la clave de una propiedad (EB-… o NJ-…) para ver quién la publicó.</p>
-      <div class="as-fila">
-        <div><input type="text" id="asOrigClave" placeholder="Ej. NJ-10D65 o EB-XB4792" autocomplete="off"></div>
-        <div style="flex:0 0 auto"><button class="as-btn claro" id="asOrigBuscar">Buscar</button></div>
-      </div>
-      <div id="asOrigRes"></div>
-    </section>
-
     <!-- 2. Cliente -->
     <section class="as-card">
       <h2>1. Cliente</h2>
@@ -100,7 +89,12 @@
     <!-- 3. Propiedades -->
     <section class="as-card">
       <h2>2. Propiedades sugeridas <span class="as-muted" id="asCuenta"></span></h2>
-      <label for="asBuscarEB">Agregar por clave EB, colonia o título</label>
+      <p style="margin:4px 0 12px">Elige las propiedades en acierta.pro con el botón <strong>«＋ Propuesta»</strong> de cada tarjeta; aparecen aquí solas.</p>
+      <div class="as-fila" style="gap:10px;margin-bottom:12px">
+        <a class="as-btn" href="mapa.html" target="_blank" rel="noopener">🗺️ Elegir en el mapa</a>
+        <a class="as-btn claro" href="index.html#buscar" target="_blank" rel="noopener">🔎 Elegir en el buscador</a>
+      </div>
+      <label for="asBuscarEB">O agrégalas por clave, colonia o título</label>
       <input type="text" id="asBuscarEB" placeholder="Ej. EB-WH6158 o Valle Real" autocomplete="off">
       <div class="as-sugerencias" id="asSugerencias" hidden></div>
       <p class="as-muted" id="asInvMsg">Cargando inventario…</p>
@@ -122,6 +116,17 @@
       <div class="as-msg" id="asMsg"></div>
       <div id="asVistaCont"></div>
     </section>
+
+    <!-- Buscar originador -->
+    <details class="as-card"><summary><strong>Herramienta extra: ¿quién publicó una propiedad?</strong> <span class="as-muted">(busca al originador por clave)</span></summary>
+      <p class="as-muted">Escribe la clave de una propiedad (EB-… o NJ-…) para ver quién la publicó.</p>
+      <div class="as-fila">
+        <div><input type="text" id="asOrigClave" placeholder="Ej. NJ-10D65 o EB-XB4792" autocomplete="off"></div>
+        <div style="flex:0 0 auto"><button class="as-btn claro" id="asOrigBuscar">Buscar</button></div>
+      </div>
+      <div id="asOrigRes"></div>
+    </details>
+
   </div>
 </div>
 
@@ -454,6 +459,7 @@
   $('asBuscar').addEventListener('click', buscarCliente);
   $('asVista').addEventListener('click', vistaPrevia);
   $('asIA').addEventListener('click', redactarIA);
+  window.addEventListener('storage', e => { if (e.key === 'propuesta_sel' && TOKEN && INV.length) cargarSeleccion(); });
   $('asEnviar').addEventListener('click', enviar);
   cfg().then(() => { cargarUsuarios(); if (TOKEN) { try { localStorage.setItem('modo_asesor', '1'); } catch (e) {} mostrarApp(); } });
 })();
