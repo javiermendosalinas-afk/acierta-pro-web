@@ -354,14 +354,15 @@
     let sel = [];
     try { sel = JSON.parse(localStorage.getItem('propuesta_sel') || '[]'); } catch (e) {}
     if (!sel.length) return;
-    let n = 0;
+    let n = 0; const faltan = [];
     for (const it of sel) {
       if (PROPS.some(x => x.eb === it.eb)) continue;
-      const p = INV.find(x => x.eb === it.eb && (!it.op || x.operacion === it.op)) || await traerDeEasyBroker(it.eb, it.op);
-      if (p) { agregar(p); n++; }
+      const op = ({ V: 'VENTA', R: 'RENTA' })[String(it.op || '').toUpperCase()] || String(it.op || '').toUpperCase();
+      const p = INV.find(x => x.eb === it.eb && (!op || x.operacion === op)) || INV.find(x => x.eb === it.eb) || await traerDeEasyBroker(it.eb, op);
+      if (p) { agregar(p); n++; } else faltan.push(it.eb);
     }
     pintarProps();
-    if (n) msg('asMsg', `Cargué ${n} propiedad(es) que elegiste en el sitio. Llena los datos del cliente y toca «✨ Redactar con IA».`, 'ok');
+    if (n || faltan.length) msg('asMsg', `Cargué ${n} propiedad(es) que elegiste en el sitio.` + (faltan.length ? ` No encontré: ${faltan.join(', ')} (puede que ya no esté publicada).` : ' Llena los datos del cliente y toca «✨ Redactar con IA».'), faltan.length ? 'error' : 'ok');
   }
 
   async function redactarIA() {

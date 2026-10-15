@@ -15,7 +15,7 @@
     '.prp-barra a,.prp-barra button{color:#fff;font:700 13px system-ui,sans-serif;background:rgba(255,255,255,.15);border:0;border-radius:10px;padding:7px 10px;text-decoration:none;cursor:pointer}';
   document.head.appendChild(css);
   const ebDe = href => { const m = /[?&]eb=([A-Za-z0-9-]+)/.exec(href || ''); return m ? m[1] : ''; };
-  const opDe = href => { const m = /[?&]op=([A-Za-z]+)/.exec(href || ''); return m ? m[1].toUpperCase() : ''; };
+  const opDe = href => { const m = /[?&]op=([A-Za-z]+)/.exec(href || ''); const o = m ? m[1].toUpperCase() : ''; return ({ V: 'VENTA', R: 'RENTA' })[o] || o; };
   function boton(eb, op) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'prp-btn'; b.dataset.eb = eb;
     b.onclick = e => { e.preventDefault(); e.stopPropagation(); alternar(eb, op); };
