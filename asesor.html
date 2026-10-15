@@ -99,6 +99,7 @@
       <div class="as-sugerencias" id="asSugerencias" hidden></div>
       <p class="as-muted" id="asInvMsg">Cargando inventario…</p>
       <div id="asProps"></div>
+      <div id="asOrigenes" class="as-cliente-info" hidden style="margin-top:14px"></div>
       <p class="as-muted">El resumen y las ventajas se proponen solos con los datos de la ficha. Revísalos y ajústalos: <strong>no prometas amenidades que no estén confirmadas</strong>.</p>
     </section>
 
@@ -237,7 +238,34 @@
     PROPS.push(Object.assign({}, p, { resumen: b.resumen, ventajas: b.ventajas.join('\n') }));
     pintarProps();
   }
+  function pintarOrigenes() {
+    const box = $('asOrigenes'); if (!box) return;
+    if (!PROPS.length) { box.hidden = true; return; }
+    const filas = PROPS.map((p, i) => {
+      const nj = /^NJ-/.test(p.eb);
+      const donde = nj ? 'Bolsa NeoJaus' : 'EasyBroker (propia o de colaboración)';
+      const liga = nj && p.url_fuente ? ` · <a href="${esc(p.url_fuente)}" target="_blank" rel="noopener">publicación original ↗</a>` : '';
+      return `<li><strong>${i + 1}. ${esc(p.eb)}</strong> · ${esc(p.titulo || p.tipo || '')} · <span class="as-muted">${donde}</span>${liga}</li>`;
+    }).join('');
+    box.hidden = false;
+    box.innerHTML = `<strong>🔎 Originadores de esta propuesta</strong> <span class="as-muted">(solo para ti; no va en el PDF)</span>
+      <ul style="margin:8px 0 10px 18px;padding:0">${filas}</ul>
+      <button type="button" class="as-btn claro" id="asCopiarOrig">📋 Copiar instrucción para Claude en Chrome</button>
+      <span class="as-muted" id="asCopiarMsg"></span>`;
+    $('asCopiarOrig').onclick = async () => {
+      const claves = PROPS.map(p => p.eb).join(', ');
+      const txt = `SOLO LECTURA: no envíes nada a nadie, no pulses "Ver datos de contacto" ni "Contactar", y no cambies nada.\n\n`
+        + `1. Busca estas propiedades en mi cuenta de EasyBroker (Bolsa Inmobiliaria o Colaboraciones) y, las que empiezan con NJ-, en la Bolsa de NeoJaus: ${claves}\n`
+        + `2. De cada una, dime solo lo que se ve sin pulsar botones: inmobiliaria que la publicó, nombre del asesor, si comparte comisión y qué porcentaje.\n`
+        + `3. Busca cada inmobiliaria en mi hoja "Directorio_inmobiliarias_EasyBroker" (pestañas "Envío", "Directorio" y "NeoJaus") y dime si ya está, con qué teléfono o correo, y si ya le enviamos mensaje (columna "Enviado").\n`
+        + `4. Dame una tabla: clave, inmobiliaria, asesor, comparte comisión, ¿está en mi base?, contacto.`;
+      try { await navigator.clipboard.writeText(txt); $('asCopiarMsg').textContent = ' ✅ Copiada: pégala en el panel de Claude en Chrome.'; }
+      catch (e) { prompt('Copia esta instrucción:', txt); }
+    };
+  }
+
   function pintarProps() {
+    pintarOrigenes();
     $('asCuenta').textContent = PROPS.length ? `(${PROPS.length})` : '';
     $('asProps').innerHTML = PROPS.map((p, i) => `
       <div class="as-prop" data-i="${i}">
