@@ -113,7 +113,7 @@ TRABAJADORES = 3
 PAUSA = 0.6            # por trabajador: ~4-5 fichas por segundo en total
 DIST_DUPLICADO_M = 80
 VERSION_FILTRO = 2      # v2: ya no se exige shared_commission; las 'fuera' de v1 se vuelven a revisar
-VERSION_DATOS = 4       # v4: además guardan fotos y descripción para la ficha completa en acierta.pro
+VERSION_DATOS = 5       # v5: además guardan el código del asesor que publica (originador)
 TOLERANCIA_PRECIO = 0.03
 
 TIPO_POR_CLAVE = {      # respaldo si el título no trae el tipo
@@ -241,6 +241,7 @@ def leer_ficha(url):
             "eb": nj, "liga": None,     # la pone el sitio de la bolsa (no acierta.pro)
             "foto": foto, "lat": coords.get("lat"), "lon": coords.get("lng"),
             "colonia": loc.get("neighborhood") or "", "fuente": "neojaus", "url_fuente": url,
+            "agente": p.get("from_agent") or p.get("owner") or None,   # código interno del asesor que publica (para identificar al originador)
             "detalle": detalle_de(p),
         }
         moneda = (pr.get("currency_type") or "mxn").upper()
