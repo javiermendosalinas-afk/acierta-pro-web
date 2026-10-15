@@ -115,6 +115,7 @@
         <input type="checkbox" id="asAnexo" checked style="width:auto"> Anexar la ficha completa de cada propiedad (fotos, datos, amenidades y descripción)
       </label>
       <div class="as-acciones-final">
+        <button class="as-btn" id="asIA" type="button">✨ Redactar con IA</button>
         <button class="as-btn claro" id="asVista">Vista previa del PDF</button>
         <button class="as-btn rojo" id="asEnviar">Enviar al cliente por WhatsApp</button>
       </div>
@@ -173,6 +174,7 @@
     if (!r.ok) { msg('asLoginMsg', (r.j && r.j.error) || 'No se pudo entrar.', 'error'); return; }
     TOKEN = r.j.token; COACH = r.j.nombre;
     sessionStorage.setItem('as_token', TOKEN); sessionStorage.setItem('as_nombre', COACH);
+    try { localStorage.setItem('modo_asesor', '1'); } catch (e) {}
     $('asClave').value = ''; mostrarApp();
   }
   function salir(texto) {
@@ -201,7 +203,7 @@
       });
       Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
       $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
-      cargarPreparada();
+      await cargarPreparada(); await cargarSeleccion();
     } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
   }
   const plural = (n, s) => `${n} ${s}${Number(n) === 1 ? '' : (s.endsWith('n') ? 'es' : 's')}`;
@@ -315,6 +317,42 @@
     msg('asMsg', faltan.length ? `Propuesta cargada. No encontré: ${faltan.join(', ')}.` : 'Propuesta cargada. Revisa los textos y genera la vista previa.', faltan.length ? 'error' : 'ok');
   }
 
+  async function cargarSeleccion() {
+    let sel = [];
+    try { sel = JSON.parse(localStorage.getItem('propuesta_sel') || '[]'); } catch (e) {}
+    if (!sel.length) return;
+    let n = 0;
+    for (const it of sel) {
+      if (PROPS.some(x => x.eb === it.eb)) continue;
+      const p = INV.find(x => x.eb === it.eb && (!it.op || x.operacion === it.op)) || await traerDeEasyBroker(it.eb, it.op);
+      if (p) { agregar(p); n++; }
+    }
+    pintarProps();
+    if (n) msg('asMsg', `Cargué ${n} propiedad(es) que elegiste en el sitio. Llena los datos del cliente y toca «✨ Redactar con IA».`, 'ok');
+  }
+
+  async function redactarIA() {
+    if (!PROPS.length) { msg('asMsg', 'Primero agrega propiedades a la propuesta.', 'error'); return; }
+    $('asIA').disabled = true; msg('asMsg', 'La IA está analizando las propiedades… (unos 20 segundos)');
+    try {
+      const props = PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, tipo: p.tipo, titulo: p.titulo, precio: p.precio, colonia: p.colonia, municipio: p.municipio,
+        recamaras: p.recamaras, banos: p.banos, m2: p.m2, terreno: p.terreno, construccion: p.construccion, niveles: p.niveles, descripcion: p.descripcion }));
+      const r = await post('/recomendar', { token: TOKEN, criterios: $('asCriterios').value, nota: $('asNota').value, trato: ($('asTrato') || {}).value, propiedades: props });
+      if (!r.ok) { msg('asMsg', (r.j && r.j.error) || 'No se pudo redactar.', 'error'); return; }
+      (r.j.propiedades || []).forEach(x => {
+        const k = PROPS.findIndex(p => p.eb === x.eb); if (k < 0) return;
+        if (x.resumen) PROPS[k].resumen = x.resumen;
+        if (x.ventajas && x.ventajas.length) PROPS[k].ventajas = [].concat(x.ventajas).join('\n');
+      });
+      const orden = r.j.orden || [];
+      if (orden.length) PROPS.sort((a, b) => ((orden.indexOf(a.eb) + 1) || 99) - ((orden.indexOf(b.eb) + 1) || 99));
+      if (r.j.recomendacion) $('asNota').value = r.j.recomendacion;
+      pintarProps();
+      msg('asMsg', '✨ Listo. La IA ordenó las propiedades de la más a la menos recomendada y redactó tu recomendación en «Nota». Revisa y ajusta los textos antes de enviar.', 'ok');
+    } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
+    finally { $('asIA').disabled = false; }
+  }
+
   // ── Originador ──
   async function buscarOriginador() {
     const clave = $('asOrigClave').value.trim().toUpperCase().replace(/\s+/g, '');
@@ -404,6 +442,7 @@
       const r = await post('/propuesta', cuerpo('enviar'));
       if (!r.ok) { msg('asMsg', (r.j && r.j.error) || 'No se pudo enviar.', 'error'); return; }
       const j = r.j;
+      if (j.cliente_ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} }
       if (j.cliente_ok) msg('asMsg', j.via === 'archivo' ? '✅ Enviado: el cliente recibió el PDF por WhatsApp y a ti te llegó una copia.' : '✅ Enviado: el cliente recibió un mensaje con la liga al PDF (su chat estaba cerrado para archivos). A ti te llegó una copia.', 'ok');
       else msg('asMsg', `⚠️ El PDF se generó pero WhatsApp no aceptó el envío al cliente. Mándale esta liga tú mismo: ${j.liga}`, 'error');
     } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
@@ -414,8 +453,9 @@
   $('asClave').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
   $('asBuscar').addEventListener('click', buscarCliente);
   $('asVista').addEventListener('click', vistaPrevia);
+  $('asIA').addEventListener('click', redactarIA);
   $('asEnviar').addEventListener('click', enviar);
-  cfg().then(() => { cargarUsuarios(); if (TOKEN) mostrarApp(); });
+  cfg().then(() => { cargarUsuarios(); if (TOKEN) { try { localStorage.setItem('modo_asesor', '1'); } catch (e) {} mostrarApp(); } });
 })();
 </script>
 </body>
