@@ -3,7 +3,7 @@
   "url": "https://neojaus.com/propiedades/bodega-con-uso-de-suelo-en-renta-en-el-sauz-guadalajara-ibr-op294-1087332161",
   "campos": {
    "amenities": {},
-   "appears": 15,
+   "appears": 19,
    "apt_floor": null,
    "apt_total_floors": null,
    "assigned_to": "987e7907ca3842c7ae1352722eb97437",
@@ -14,7 +14,7 @@
    "construction_year": null,
    "construction_year_opt": null,
    "created_by": "987e7907ca3842c7ae1352722eb97437",
-   "ctr": 26.67,
+   "ctr": 31.58,
    "description": "\"Excepcional nave o bodega de gran formato en ubicación estrategica dentro de la zona metropolitana de Guadalajara, ubicado en la esquina de Av. Patria con Av. Colón. Con gran versatilidad de usos y destinos puede ser centro de distribución, bodega de ultima milla, para manufactura ligera, media o pesada. Terreno: 9,412.29 m2, Construcción: 9,625.19 m2 (bodega o nave 8,173.13 m2 y mezanine 1,452.0…",
    "exclusivity": {
     "conditions": null,
@@ -88,7 +88,7 @@
    "slug": "bodega-con-uso-de-suelo-en-renta-en-el-sauz-guadalajara-ibr-op294-1087332161",
    "uat": "2026-10-04T04:15:58.682818+00:00",
    "uid": "b0fb6272556a4a739b5e7aef66e5bba6",
-   "views": 4
+   "views": 6
   }
  },
  {
@@ -102,7 +102,7 @@
     "service_room": true,
     "storage_unit": true
    },
-   "appears": 68,
+   "appears": 70,
    "apt_floor": null,
    "apt_total_floors": null,
    "assigned_to": "987e7907ca3842c7ae1352722eb97437",
@@ -113,7 +113,7 @@
    "construction_year": 1950,
    "construction_year_opt": null,
    "created_by": "987e7907ca3842c7ae1352722eb97437",
-   "ctr": 42.65,
+   "ctr": 44.29,
    "description": "\"Magnifico Inmueble comercial en el tradicional y céntrico Barrio de Analco en Guadalajara. Con excepcional dimensión de Terreno (7,380 m2), posición estratégica (3 frentes), y vocación del suelo versátil (comercial, habitacional, industrial). Esta propiedad tiene el potencial para  implantar o desarrollar cualquier negocio o actividad empresarial, sea comercial o de servicios. Pueden aprovecharse…",
    "exclusivity": {
     "conditions": null,
@@ -187,14 +187,14 @@
    "slug": "edificio-comercial-renta-barrio-de-analco-guadalajara-cer-2149-4641189597",
    "uat": "2026-10-06T02:00:57.117313+00:00",
    "uid": "3bc7927a15a044a6a9316cb0fe713309",
-   "views": 29
+   "views": 31
   }
  },
  {
   "url": "https://neojaus.com/propiedades/oficina-en-renta-central-park-9460593451",
   "campos": {
    "amenities": {},
-   "appears": 49,
+   "appears": 50,
    "apt_floor": null,
    "apt_total_floors": null,
    "assigned_to": "e8173a17479d45dba61b7f2e3115c33e",
@@ -205,7 +205,7 @@
    "construction_year": null,
    "construction_year_opt": "first_use",
    "created_by": "e8173a17479d45dba61b7f2e3115c33e",
-   "ctr": 32.65,
+   "ctr": 34,
    "description": "Espacios Corporativos en Renta en Torre Central Park Guadalajara\n\nTorre corporativa AAA\nDesarrollo mixto (corporativo, comercial y habitacional)\nEdificio de 25 pisos\nPisos con 4 m de altura\nEspacios sin columnas entre piso\nEspacios de hasta 1329 m2\nEstacionamiento 1  cajón c/40m2\n6 Sótanos de estacionamiento\n8 Elevadores\n1 Elevador de servicio\nVistas panorámicas 360",
    "exclusivity": {
     "conditions": null,
@@ -316,7 +316,7 @@
    "slug": "oficina-en-renta-central-park-9460593451",
    "uat": "2026-10-01T02:02:25.635982+00:00",
    "uid": "05d45f0e254e4ef8be13ddafe7c6c0bc",
-   "views": 16
+   "views": 17
   }
  }
 ]
