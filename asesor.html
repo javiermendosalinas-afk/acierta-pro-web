@@ -111,6 +111,9 @@
       <label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:0 0 12px">
         <input type="checkbox" id="asAnexo" checked style="width:auto"> Anexar la ficha completa de cada propiedad (fotos, datos, amenidades y descripción)
       </label>
+      <label style="display:flex;gap:8px;align-items:center;font-weight:600;margin:0 0 12px">
+        <input type="checkbox" id="asInversion" style="width:auto"> Cliente inversionista: agregar la metodología y el alcance del análisis (aritmético, aún sin Acierta Verifica)
+      </label>
       <div class="as-acciones-final">
         <button class="as-btn" id="asIA" type="button">✨ Redactar con IA</button>
         <button class="as-btn claro" id="asVista">Vista previa del PDF</button>
@@ -405,8 +408,9 @@
     $('asIA').disabled = true; msg('asMsg', 'La IA está analizando las propiedades… (unos 20 segundos)');
     try {
       const props = PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, tipo: p.tipo, titulo: p.titulo, precio: p.precio, colonia: p.colonia, municipio: p.municipio,
-        recamaras: p.recamaras, banos: p.banos, m2: p.m2, terreno: p.terreno, construccion: p.construccion, niveles: p.niveles, descripcion: p.descripcion }));
-      const r = await post('/recomendar', { token: TOKEN, criterios: $('asCriterios').value, nota: $('asNota').value, trato: ($('asTrato') || {}).value, propiedades: props });
+        recamaras: p.recamaras, banos: p.banos, m2: p.m2, terreno: p.terreno, construccion: p.construccion, niveles: p.niveles, descripcion: p.descripcion,
+        mediana_pm2_zona: Math.round((MEDIANAS[grupo(p)] || {}).pm2 || 0) || null }));
+      const r = await post('/recomendar', { token: TOKEN, criterios: $('asCriterios').value, nota: $('asNota').value, trato: ($('asTrato') || {}).value, inversion: !!($('asInversion') && $('asInversion').checked), propiedades: props });
       if (!r.ok) { msg('asMsg', (r.j && r.j.error) || 'No se pudo redactar.', 'error'); return; }
       (r.j.propiedades || []).forEach(x => {
         const k = PROPS.findIndex(p => p.eb === x.eb); if (k < 0) return;
@@ -481,7 +485,9 @@
       cliente: { nombre: $('asNombre').value.trim(), whatsapp: $('asWa').value.trim(), folio: $('asFolio').value.trim() },
       criterios: $('asCriterios').value.trim(), nota: $('asNota').value.trim(),
       propiedades: PROPS.map(p => ({ eb: p.eb, operacion: p.operacion, resumen: p.resumen, ventajas: String(p.ventajas || '').split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4),
-        titulo: p.titulo, tipo: p.tipo, precio: p.precio, municipio: p.municipio, colonia: p.colonia, recamaras: p.recamaras, banos: p.banos, m2: p.m2, foto: p.foto, lat: p.lat, lon: p.lon, liga: p.liga })),
+        titulo: p.titulo, tipo: p.tipo, precio: p.precio, municipio: p.municipio, colonia: p.colonia, recamaras: p.recamaras, banos: p.banos, m2: p.m2, foto: p.foto, lat: p.lat, lon: p.lon, liga: p.liga,
+        mediana_pm2: (MEDIANAS[grupo(p)] || {}).pm2 || null, mediana_n: (MEDIANAS[grupo(p)] || {}).n || null })),
+      inversion: !!($('asInversion') && $('asInversion').checked),
     };
   }
   function validar(enviar) {
