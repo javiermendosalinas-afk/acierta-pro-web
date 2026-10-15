@@ -114,7 +114,8 @@
       <div class="as-acciones-final">
         <button class="as-btn" id="asIA" type="button">✨ Redactar con IA</button>
         <button class="as-btn claro" id="asVista">Vista previa del PDF</button>
-        <button class="as-btn rojo" id="asEnviar">Enviar al cliente por WhatsApp</button>
+        <button class="as-btn rojo" id="asMiWa" type="button">📲 Enviar desde mi WhatsApp</button>
+        <button class="as-btn claro" id="asEnviar" title="Solo funciona si el cliente ya le escribió al 33 3377 7337">Enviar por el WhatsApp de Acierta</button>
       </div>
       <div class="as-msg" id="asMsg"></div>
       <div id="asVistaCont"></div>
@@ -481,6 +482,39 @@
     } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
     finally { $('asVista').disabled = false; }
   }
+  async function enviarMiWhatsApp() {
+    const err = validar(true); if (err) { msg('asMsg', err, 'error'); return; }
+    const nombre = $('asNombre').value.trim(), wa = $('asWa').value.trim();
+    const tel = wa.replace(/\D/g, '').slice(-10);
+    if (tel.length !== 10) { msg('asMsg', 'Revisa el WhatsApp del cliente (10 dígitos).', 'error'); return; }
+    $('asMiWa').disabled = true; msg('asMsg', 'Preparando el PDF para enviarlo desde tu WhatsApp…');
+    try {
+      const r = await post('/propuesta', cuerpo('vista'), true);
+      if (!r.ok) { msg('asMsg', 'No se pudo generar el PDF.', 'error'); return; }
+      const blob = await r.blob();
+      const archivo = `Propuesta_Acierta_Max_${nombre.split(' ')[0] || 'cliente'}.pdf`;
+      const n = PROPS.length;
+      const texto = `Hola ${nombre.split(' ')[0]}, soy ${(sessionStorage.getItem('as_nombre') || 'tu asesor')} de Acierta Max. ` +
+        `Te comparto la propuesta con ${n} ${n === 1 ? 'propiedad' : 'propiedades'} que seleccioné para ti, con el análisis comparativo y sus fichas. ` +
+        `Revísala con calma y dime cuáles te interesan para agendar tu visita.`;
+      const file = new File([blob], archivo, { type: 'application/pdf' });
+      let compartido = false;
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], text: texto }); compartido = true; } catch (e) { if (e && e.name === 'AbortError') { msg('asMsg', 'Envío cancelado.', 'error'); return; } }
+      }
+      if (!compartido) {
+        const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = archivo; document.body.appendChild(a); a.click(); a.remove();
+        window.open(`https://wa.me/52${tel}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener');
+        msg('asMsg', `✅ Descargué el PDF (${archivo}) y abrí el chat de ${nombre} con el mensaje listo. Adjunta el PDF en ese chat (clip 📎 → Documento) y envía.`, 'ok');
+      } else {
+        msg('asMsg', `✅ Listo: elegiste a quién compartir el PDF. Revisa que haya salido en el chat de ${nombre}.`, 'ok');
+      }
+      const reg = await post('/propuesta', cuerpo('registrar'));
+      if (reg.ok && reg.j && reg.j.ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} msg('asMsg', ($('asMsg').textContent || '') + ` Quedó registrada en el CRM${reg.j.folio ? ' (' + reg.j.folio + ')' : ''}.`, 'ok'); }
+    } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
+    finally { $('asMiWa').disabled = false; }
+  }
+
   async function enviar() {
     const err = validar(true); if (err) { msg('asMsg', err, 'error'); return; }
     const nombre = $('asNombre').value.trim(), wa = $('asWa').value.trim();
@@ -502,6 +536,7 @@
   $('asBuscar').addEventListener('click', buscarCliente);
   $('asVista').addEventListener('click', vistaPrevia);
   $('asIA').addEventListener('click', redactarIA);
+  $('asMiWa').addEventListener('click', enviarMiWhatsApp);
   $('asRecargarSel').addEventListener('click', () => { if (INV.length) cargarSeleccion(); else msg('asMsg', 'Cargando inventario, intenta en unos segundos.', 'error'); });
   window.addEventListener('storage', e => { if (e.key === 'propuesta_sel' && TOKEN && INV.length) cargarSeleccion(); });
   $('asEnviar').addEventListener('click', enviar);
