@@ -365,7 +365,13 @@
     for (const it of sel) {
       if (PROPS.some(x => x.eb === it.eb)) continue;
       const op = ({ V: 'VENTA', R: 'RENTA' })[String(it.op || '').toUpperCase()] || String(it.op || '').toUpperCase();
-      const p = INV.find(x => x.eb === it.eb && (!op || x.operacion === op)) || INV.find(x => x.eb === it.eb) || await traerDeEasyBroker(it.eb, op);
+      let p = INV.find(x => x.eb === it.eb && (!op || x.operacion === op)) || INV.find(x => x.eb === it.eb);
+      if (!p && /^NJ-/.test(it.eb)) {
+        const bolsa = await cargarBolsa();
+        p = bolsa.find(x => x.eb === it.eb && (!op || x.operacion === op)) || bolsa.find(x => x.eb === it.eb) || bolsa.find(x => (x.tambien_en || []).some(y => y.clave === it.eb));
+        if (p) p = Object.assign({}, p, { liga: p.liga || p.url_fuente || '' });
+      }
+      if (!p && /^EB-/.test(it.eb)) p = await traerDeEasyBroker(it.eb, op);
       if (p) { agregar(p); n++; } else faltan.push(it.eb);
     }
     pintarProps();
