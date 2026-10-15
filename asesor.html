@@ -93,7 +93,9 @@
       <div class="as-fila" style="gap:10px;margin-bottom:12px">
         <a class="as-btn" href="mapa.html" target="_blank" rel="noopener">🗺️ Elegir en el mapa</a>
         <a class="as-btn claro" href="index.html#buscar" target="_blank" rel="noopener">🔎 Elegir en el buscador</a>
+        <button type="button" class="as-btn claro" id="asRecargarSel">↻ Volver a cargar mi selección</button>
       </div>
+      <p class="as-muted" id="asSelInfo" style="margin:-4px 0 12px"></p>
       <label for="asBuscarEB">O agrégalas por clave, colonia o título</label>
       <input type="text" id="asBuscarEB" placeholder="Ej. EB-WH6158 o Valle Real" autocomplete="off">
       <div class="as-sugerencias" id="asSugerencias" hidden></div>
@@ -350,9 +352,14 @@
     msg('asMsg', faltan.length ? `Propuesta cargada. No encontré: ${faltan.join(', ')}.` : 'Propuesta cargada. Revisa los textos y genera la vista previa.', faltan.length ? 'error' : 'ok');
   }
 
-  async function cargarSeleccion() {
+  function infoSeleccion() {
     let sel = [];
     try { sel = JSON.parse(localStorage.getItem('propuesta_sel') || '[]'); } catch (e) {}
+    const el = $('asSelInfo'); if (el) el.textContent = sel.length ? `Tu selección en el sitio tiene ${sel.length}: ${sel.map(x => x.eb).join(', ')}.` : 'Tu selección en el sitio está vacía.';
+    return sel;
+  }
+  async function cargarSeleccion() {
+    const sel = infoSeleccion();
     if (!sel.length) return;
     let n = 0; const faltan = [];
     for (const it of sel) {
@@ -489,6 +496,7 @@
   $('asBuscar').addEventListener('click', buscarCliente);
   $('asVista').addEventListener('click', vistaPrevia);
   $('asIA').addEventListener('click', redactarIA);
+  $('asRecargarSel').addEventListener('click', () => { if (INV.length) cargarSeleccion(); else msg('asMsg', 'Cargando inventario, intenta en unos segundos.', 'error'); });
   window.addEventListener('storage', e => { if (e.key === 'propuesta_sel' && TOKEN && INV.length) cargarSeleccion(); });
   $('asEnviar').addEventListener('click', enviar);
   cfg().then(() => { cargarUsuarios(); if (TOKEN) { try { localStorage.setItem('modo_asesor', '1'); } catch (e) {} mostrarApp(); } });

@@ -36,9 +36,9 @@
     const s = leer();
     const enFicha = /ficha\.html$/.test(location.pathname) ? ebDe(location.search) : '';
     if (!barra) { barra = document.createElement('div'); barra.className = 'prp-barra'; document.body.appendChild(barra); }
-    let h = `📋 Propuesta: <b>${s.length}</b>`;
+    let h = `<span title="${s.map(x => x.eb).join(', ')}">📋 Propuesta: <b>${s.length}</b></span>`;
     if (enFicha) h += ` <button type="button" id="prpEsta">${tiene(enFicha) ? '✓ Quitar esta' : '＋ Agregar esta'}</button>`;
-    if (s.length) h += ` <a href="asesor.html">Armar en el portal</a> <button type="button" id="prpVaciar">Vaciar</button>`;
+    if (s.length) h += ` <a href="asesor.html" target="portal-asesor">Armar en el portal</a> <button type="button" id="prpVaciar">Vaciar</button>`;
     barra.innerHTML = h; barra.hidden = !s.length && !enFicha;
     const be = document.getElementById('prpEsta'); if (be) be.onclick = () => alternar(enFicha, opDe(location.search));
     const bv = document.getElementById('prpVaciar'); if (bv) bv.onclick = () => { if (confirm('¿Vaciar la propuesta?')) guardar([]); };
