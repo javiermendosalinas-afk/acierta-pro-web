@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Alta como Coach Acierta | Acierta Max</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--cream); }
+  .ca-wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 80px; }
+  .ca-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .ca-top img { height: 38px; }
+  .ca-pasos { display: flex; gap: 6px; margin: 6px 0 16px; }
+  .ca-pasos span { flex: 1; height: 6px; border-radius: 6px; background: var(--gray-light); }
+  .ca-pasos span.on { background: var(--red); }
+  .ca-card { background: #fff; border-radius: 14px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .ca-card h1 { font-size: 1.35rem; margin: 0 0 6px; color: var(--navy); }
+  .ca-card h2 { font-size: 1.1rem; margin: 0 0 10px; color: var(--navy); }
+  .ca-card label { display: block; font-weight: 600; font-size: .92rem; margin: 12px 0 4px; }
+  .ca-card input[type=text], .ca-card input[type=tel], .ca-card input[type=email], .ca-card input[type=password], .ca-card select { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid var(--gray-light); border-radius: 10px; font: inherit; }
+  .ca-btn { display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border-radius: 10px; border: 0; font-weight: 700; cursor: pointer; background: var(--navy); color: #fff; font: inherit; margin-top: 16px; text-decoration: none; }
+  .ca-btn.verde { background: #1f8a4c; }
+  .ca-btn:disabled { opacity: .55; cursor: wait; }
+  .ca-muted { color: var(--gray); font-size: .88rem; line-height: 1.5; }
+  .ca-msg { margin-top: 10px; font-size: .92rem; }
+  .ca-msg.error { color: var(--red-dark); } .ca-msg.ok { color: #157347; }
+  .ca-conv { max-height: 46vh; overflow: auto; border: 1px solid var(--gray-light); border-radius: 10px; padding: 14px 16px; font-size: .86rem; line-height: 1.55; background: #fcfbf8; }
+  .ca-conv h3 { font-size: 1rem; margin: 14px 0 6px; color: var(--navy); }
+  .ca-check { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--gray-light); border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: .9rem; line-height: 1.4; }
+  .ca-check input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; }
+  .ca-codigo { font-size: 2.2rem; font-weight: 800; letter-spacing: 6px; color: var(--navy); text-align: center; background: var(--cream); border-radius: 12px; padding: 14px; margin: 12px 0; }
+  .ca-ok { text-align: center; } .ca-ok .ico { font-size: 3rem; }
+</style>
+</head>
+<body>
+<div class="ca-wrap">
+  <div class="ca-top"><img src="assets/logo/acierta-max-logo.png" alt="Acierta Max"><a class="ca-muted" href="asesor.html">¿Ya tienes acceso? Entra aquí</a></div>
+  <div class="ca-pasos" id="caPasos"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+  <section class="ca-card" id="p1">
+    <h1>Únete como Coach Acierta</h1>
+    <p class="ca-muted">Red de asesores inmobiliarios independientes con la plataforma acierta.pro, prospectos de MAX, marca Acierta Max y contratos registrados ante PROFECO. Tu alta toma unos 10 minutos y necesitas tu INE, tu Constancia de Situación Fiscal y tu celular con WhatsApp.</p>
+    <label for="nombre">Nombre completo</label><input type="text" id="nombre" autocomplete="name" maxlength="80">
+    <label for="wa">WhatsApp (10 dígitos)</label><input type="tel" id="wa" inputmode="numeric" maxlength="14" autocomplete="tel">
+    <label for="correo">Correo electrónico</label><input type="email" id="correo" autocomplete="email" maxlength="120">
+    <button class="ca-btn" id="b1">Comenzar</button><div class="ca-msg" id="m1"></div>
+  </section>
+
+  <section class="ca-card" id="p2" hidden>
+    <h2>2. Tu identidad y datos fiscales</h2>
+    <p class="ca-muted">Se guardan en una carpeta privada de Acierta Max, solo para tu expediente, tu convenio y tus pagos.</p>
+    <label for="ineF">INE, frente (foto o PDF)</label><input type="file" id="ineF" accept="image/*,application/pdf">
+    <label for="ineR">INE, reverso</label><input type="file" id="ineR" accept="image/*,application/pdf">
+    <label for="csf">Constancia de Situación Fiscal (PDF o foto)</label><input type="file" id="csf" accept="application/pdf,image/*">
+    <label for="rfc">RFC (13 caracteres)</label><input type="text" id="rfc" maxlength="13" style="text-transform:uppercase">
+    <label for="reg">Régimen fiscal</label>
+    <select id="reg"><option value="">Elige tu régimen</option><option>Actividades empresariales y profesionales</option><option>Régimen Simplificado de Confianza (RESICO)</option><option>Otro (lo aclaro con Acierta)</option></select>
+    <label for="cert">Certificaciones (opcional)</label><input type="text" id="cert" maxlength="200" placeholder="Ej. CONOCER EC0110.02, AMPI, licencia inmobiliaria">
+    <button class="ca-btn" id="b2">Guardar y continuar</button><div class="ca-msg" id="m2"></div>
+  </section>
+
+  <section class="ca-card" id="p3" hidden>
+    <h2>3. Tu convenio de membresía</h2>
+    <p class="ca-muted" id="verConv">Léelo completo antes de aceptar.</p>
+    <div class="ca-conv" id="conv">Cargando el convenio…</div>
+    <label class="ca-check"><input type="checkbox" id="c1"><span>Leí y acepto el <b>Convenio de Membresía a la Red de Asesores Independientes Acierta</b>.</span></label>
+    <label class="ca-check"><input type="checkbox" id="c2"><span>Declaro que soy <b>asesor independiente</b> y que no existe relación laboral con Acierta Max (Carta de reconocimiento, Anexo A).</span></label>
+    <label class="ca-check"><input type="checkbox" id="c3"><span>Leí y acepto el <a href="aviso-privacidad.html" target="_blank">Aviso de Privacidad</a> de Acierta Max.</span></label>
+    <button class="ca-btn" id="b3">Aceptar y obtener mi código</button><div class="ca-msg" id="m3"></div>
+  </section>
+
+  <section class="ca-card" id="p4" hidden>
+    <h2>4. Firma con tu WhatsApp</h2>
+    <p class="ca-muted">Envía este código <b>desde el WhatsApp que registraste</b> al número de Acierta Max, 33 3377 7337. Enviarlo equivale a tu firma del convenio.</p>
+    <div class="ca-codigo" id="codigo">——————</div>
+    <a class="ca-btn verde" id="waLink" href="#" target="_blank" rel="noopener">Enviar el código por WhatsApp</a>
+    <p class="ca-muted" id="m4" style="margin-top:14px">Esperando tu mensaje… esta página avanza sola cuando llegue.</p>
+  </section>
+
+  <section class="ca-card" id="p5" hidden>
+    <h2>5 y 6. Tu constancia y tu contraseña</h2>
+    <p class="ca-msg ok">✅ Firma registrada. Tu constancia en PDF (convenio, fecha, hora, versión y huella digital) te llega por WhatsApp.</p>
+    <label for="clave">Crea tu contraseña (mínimo 8 caracteres, con letras y números)</label><input type="password" id="clave" autocomplete="new-password">
+    <label for="clave2">Repítela</label><input type="password" id="clave2" autocomplete="new-password">
+    <button class="ca-btn" id="b5">Terminar mi alta</button><div class="ca-msg" id="m5"></div>
+  </section>
+
+  <section class="ca-card ca-ok" id="p6" hidden>
+    <div class="ico">🎉</div><h2>¡Tu alta está completa!</h2>
+    <p class="ca-muted">Acierta Max revisará tus documentos y tu membresía. Cuando apruebe tu acceso te avisaremos por WhatsApp; después entras en <b>acierta.pro/asesor.html</b> eligiendo tu nombre, con la contraseña que creaste.</p>
+    <a class="ca-btn" href="asesor.html">Ir al portal</a>
+  </section>
+  <p class="ca-muted" style="text-align:center;margin-top:18px">Acierta Max, S.A. de C.V. · <a href="aviso-privacidad.html">Aviso de privacidad</a></p>
+</div>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  let BASE = '', ID = sessionStorage.getItem('ca_id') || '';
+  const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function msg(id, t, tipo) { const el = $(id); el.textContent = t || ''; el.className = 'ca-msg' + (tipo ? ' ' + tipo : ''); }
+  function paso(n) { for (let i = 1; i <= 6; i++) $('p' + i).hidden = i !== n; [...$('caPasos').children].forEach((s, i) => s.classList.toggle('on', i < n)); window.scrollTo(0, 0); }
+  async function base() { if (BASE) return BASE; const j = await (await fetch('camino-datos.json')).json(); BASE = j.endpoint.replace(/\/api\/camino\/?$/, ''); return BASE; }
+  async function post(ruta, cuerpo) {
+    const r = await fetch((await base()) + ruta, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo) });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    return { ok: r.ok && j.ok, j };
+  }
+  function leer(file, maxLado) {
+    return new Promise((ok, no) => {
+      if (!file) return no(new Error('falta'));
+      if (file.type === 'application/pdf') { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; fr.readAsDataURL(file); return; }
+      const img = new Image(), url = URL.createObjectURL(file);
+      img.onload = () => { const r = Math.min(1, maxLado / Math.max(img.width, img.height)); const c = document.createElement('canvas');
+        c.width = Math.round(img.width * r); c.height = Math.round(img.height * r); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', 0.85)); };
+      img.onerror = no; img.src = url;
+    });
+  }
+  function md(t) {
+    return t.split('\n').map(l => {
+      l = esc(l).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+      if (l.startsWith('# ')) return `<h3 style="font-size:1.1rem">${l.slice(2)}</h3>`;
+      if (l.startsWith('## ')) return `<h3>${l.slice(3)}</h3>`;
+      return l ? `<p style="margin:4px 0">${l}</p>` : '';
+    }).join('');
+  }
+  $('b1').onclick = async () => {
+    $('b1').disabled = true; msg('m1', 'Un momento…');
+    const r = await post('/api/coach/alta/iniciar', { nombre: $('nombre').value, whatsapp: $('wa').value, correo: $('correo').value });
+    $('b1').disabled = false;
+    if (!r.ok) return msg('m1', r.j.error || 'No se pudo iniciar tu alta.', 'error');
+    ID = r.j.id; sessionStorage.setItem('ca_id', ID); paso(2);
+  };
+  $('b2').onclick = async () => {
+    $('b2').disabled = true; msg('m2', 'Subiendo tus documentos…');
+    try {
+      const [a, b, c] = await Promise.all([leer($('ineF').files[0], 1800), leer($('ineR').files[0], 1800), leer($('csf').files[0], 2200)]);
+      const r = await post('/api/coach/alta/documentos', { id: ID, ine_frente: a, ine_reverso: b, csf: c, rfc: $('rfc').value, regimen: $('reg').value, cert: $('cert').value });
+      if (!r.ok) throw new Error(r.j.error || 'No se pudieron guardar tus documentos.');
+      paso(3); cargarConvenio();
+    } catch (e) { msg('m2', e.message === 'falta' ? 'Sube tu INE por ambos lados y tu Constancia de Situación Fiscal.' : e.message, 'error'); }
+    $('b2').disabled = false;
+  };
+  async function cargarConvenio() {
+    try { const r = await fetch((await base()) + '/api/coach/convenio'); const j = await r.json(); $('conv').innerHTML = md(j.texto); $('verConv').textContent = 'Versión ' + j.version + '. Léelo completo antes de aceptar.'; }
+    catch (e) { $('conv').textContent = 'No se pudo cargar el convenio. Recarga la página.'; }
+  }
+  $('b3').onclick = async () => {
+    if (!($('c1').checked && $('c2').checked && $('c3').checked)) return msg('m3', 'Para continuar, marca las tres casillas.', 'error');
+    $('b3').disabled = true;
+    const r = await post('/api/coach/alta/aceptar', { id: ID, convenio: true, independencia: true, privacidad: true });
+    $('b3').disabled = false;
+    if (!r.ok) return msg('m3', r.j.error || 'No se pudo registrar tu aceptación.', 'error');
+    $('codigo').textContent = r.j.codigo; $('waLink').href = r.j.wa; paso(4); esperarFirma();
+  };
+  async function esperarFirma() {
+    for (let i = 0; i < 180; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const r = await post('/api/coach/alta/estado', { id: ID });
+      if (r.ok && r.j.estatus === 'FIRMADO') return paso(5);
+    }
+    $('m4').textContent = 'No ha llegado tu mensaje. Revisa que lo enviaste desde el WhatsApp que registraste y recarga esta página.';
+  }
+  $('b5').onclick = async () => {
+    if ($('clave').value !== $('clave2').value) return msg('m5', 'Las contraseñas no coinciden.', 'error');
+    $('b5').disabled = true;
+    const r = await post('/api/coach/alta/clave', { id: ID, clave: $('clave').value });
+    $('b5').disabled = false;
+    if (!r.ok) return msg('m5', r.j.error || 'No se pudo guardar tu contraseña.', 'error');
+    sessionStorage.removeItem('ca_id'); paso(6);
+  };
+  (async () => {   // retomar un alta en curso si se recargó la página
+    if (!ID) return paso(1);
+    const r = await post('/api/coach/alta/estado', { id: ID });
+    const e = r.ok ? r.j.estatus : '';
+    if (e === 'INICIADO') paso(2); else if (e === 'DOCUMENTOS') { paso(3); cargarConvenio(); }
+    else if (e === 'ACEPTADO') { paso(3); cargarConvenio(); msg('m3', 'Vuelve a aceptar para ver tu código.', ''); }
+    else if (e === 'FIRMADO') paso(5); else if (e === 'PENDIENTE_APROBACION' || e === 'ACTIVO') paso(6);
+    else { sessionStorage.removeItem('ca_id'); ID = ''; paso(1); }
+  })();
+})();
+</script>
+</body>
+</html>
