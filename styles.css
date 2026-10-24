@@ -787,3 +787,9 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 }
 
 @media (max-width: 375px){.nav5 > a,.nav5 summary{font-size:11.5px;padding:7px 5px}.nav5 summary::after{content:"▾";margin-left:2px}}
+
+/* Acceso para Coaches Acierta (encabezado) */
+.header-coach{font-size:13px;font-weight:700;color:#c7d1e6;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:7px 12px;margin-right:10px;white-space:nowrap;text-decoration:none}
+.header-coach:hover{color:#fff;border-color:#fff}
+.nav-coach{display:none}
+@media (max-width:640px){.header-coach{display:none}.header-nav.nav5 > a.nav-coach{display:inline-block;font-size:14px;padding:6px 2px}.header-nav.nav5 > a,.header-nav.nav5 summary{padding-left:4px;padding-right:4px}}
