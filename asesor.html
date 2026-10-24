@@ -95,6 +95,7 @@
         <a class="as-btn" href="mapa.html" target="_blank" rel="noopener">🗺️ Elegir en el mapa</a>
         <a class="as-btn claro" href="index.html#buscar" target="_blank" rel="noopener">🔎 Elegir en el buscador</a>
         <button type="button" class="as-btn claro" id="asRecargarSel">↻ Volver a cargar mi selección</button>
+        <button type="button" class="as-btn claro" id="asNuevaProp">🗑️ Nueva propuesta</button>
       </div>
       <p class="as-muted" id="asSelInfo" style="margin:-4px 0 12px"></p>
       <label for="asBuscarEB">O agrégalas por clave, colonia o título</label>
@@ -216,6 +217,7 @@
       });
       Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
       $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
+      restaurarBorrador();
       await cargarPreparada(); await cargarSeleccion();
     } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
   }
@@ -245,6 +247,28 @@
     PROPS.push(Object.assign({}, p, { resumen: b.resumen, ventajas: b.ventajas.join('\n') }));
     pintarProps();
   }
+  // ── Propuesta en curso: se guarda sola en este navegador y se recupera al volver ──
+  const CAMPOS_BORRADOR = ['asWa', 'asNombre', 'asFolio', 'asTrato', 'asGenero', 'asCriterios', 'asNota', 'asAnexo', 'asInversion'];
+  const claveBorrador = () => 'as_borrador_' + (COACH || 'coach');
+  function guardarBorrador() {
+    try {
+      const campos = {};
+      CAMPOS_BORRADOR.forEach(id => { const el = $(id); if (el) campos[id] = el.type === 'checkbox' ? el.checked : el.value; });
+      const hayAlgo = PROPS.length || ['asWa', 'asNombre', 'asCriterios', 'asNota'].some(id => (campos[id] || '').trim && campos[id].trim());
+      if (hayAlgo) localStorage.setItem(claveBorrador(), JSON.stringify({ t: Date.now(), campos, props: PROPS }));
+    } catch (e) {}
+  }
+  function restaurarBorrador() {
+    try {
+      const b = JSON.parse(localStorage.getItem(claveBorrador()) || 'null');
+      if (!b || Date.now() - b.t > 7 * 24 * 3600 * 1000) return false;
+      Object.entries(b.campos || {}).forEach(([id, v]) => { const el = $(id); if (!el) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
+      if (Array.isArray(b.props) && b.props.length && !PROPS.length) { PROPS = b.props; pintarProps(); }
+      msg('asMsg', 'Recuperé tu propuesta en curso. Si quieres empezar otra, toca «🗑️ Nueva propuesta».', 'ok');
+      return true;
+    } catch (e) { return false; }
+  }
+  function borrarBorrador() { try { localStorage.removeItem(claveBorrador()); } catch (e) {} }
   let ORIG = {}, origPend = null;
   async function consultarOrigenes() {
     if (!PROPS.length || !TOKEN) return;
@@ -293,6 +317,7 @@
   }
 
   function pintarProps() {
+    setTimeout(guardarBorrador, 0);
     pintarOrigenes();
     $('asCuenta').textContent = PROPS.length ? `(${PROPS.length})` : '';
     $('asProps').innerHTML = PROPS.map((p, i) => `
@@ -538,7 +563,7 @@
         msg('asMsg', `✅ Listo: elegiste a quién compartir el PDF. Revisa que haya salido en el chat de ${nombre}.`, 'ok');
       }
       const reg = await post('/propuesta', cuerpo('registrar'));
-      if (reg.ok && reg.j && reg.j.ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} msg('asMsg', ($('asMsg').textContent || '') + ` Quedó registrada en el CRM${reg.j.folio ? ' (' + reg.j.folio + ')' : ''}.`, 'ok'); }
+      if (reg.ok && reg.j && reg.j.ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} borrarBorrador(); msg('asMsg', ($('asMsg').textContent || '') + ` Quedó registrada en el CRM${reg.j.folio ? ' (' + reg.j.folio + ')' : ''}.`, 'ok'); }
     } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
     finally { $('asMiWa').disabled = false; }
   }
@@ -552,7 +577,7 @@
       const r = await post('/propuesta', cuerpo('enviar'));
       if (!r.ok) { msg('asMsg', (r.j && r.j.error) || 'No se pudo enviar.', 'error'); return; }
       const j = r.j;
-      if (j.cliente_ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} }
+      if (j.cliente_ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} borrarBorrador(); }
       if (j.cliente_ok) msg('asMsg', j.via === 'archivo' ? '✅ Enviado: el cliente recibió el PDF por WhatsApp y a ti te llegó una copia.' : '✅ Enviado: el cliente recibió un mensaje con la liga al PDF (su chat estaba cerrado para archivos). A ti te llegó una copia.', 'ok');
       else msg('asMsg', '⚠️ El WhatsApp de Acierta no pudo entregarla: este cliente todavía no le ha escrito al 33 3377 7337. Usa el botón rojo «📲 Enviar desde mi WhatsApp»; sale desde tu número y queda registrada en el CRM.', 'error');
     } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
@@ -565,6 +590,16 @@
   $('asVista').addEventListener('click', vistaPrevia);
   $('asIA').addEventListener('click', redactarIA);
   $('asMiWa').addEventListener('click', enviarMiWhatsApp);
+  $('asApp').addEventListener('input', () => setTimeout(guardarBorrador, 0));
+  $('asApp').addEventListener('change', () => setTimeout(guardarBorrador, 0));
+  $('asNuevaProp').addEventListener('click', () => {
+    if (!confirm('¿Empezar una propuesta nueva? Se borra la actual de este navegador.')) return;
+    borrarBorrador(); PROPS = []; ORIG = {};
+    CAMPOS_BORRADOR.forEach(id => { const el = $(id); if (!el) return; if (el.type === 'checkbox') el.checked = (id === 'asAnexo'); else if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; });
+    try { localStorage.removeItem('propuesta_sel'); } catch (x) {}
+    $('asClienteInfo').innerHTML = ''; $('asVistaCont').innerHTML = '';
+    pintarProps(); msg('asMsg', 'Listo: propuesta nueva.', 'ok');
+  });
   $('asRecargarSel').addEventListener('click', () => { if (INV.length) cargarSeleccion(); else msg('asMsg', 'Cargando inventario, intenta en unos segundos.', 'error'); });
   window.addEventListener('storage', e => { if (e.key === 'propuesta_sel' && TOKEN && INV.length) cargarSeleccion(); });
   $('asEnviar').addEventListener('click', enviar);
