@@ -1,3 +1,37 @@
+
+== RENTA - Zapopan ==
+  RENTA zapopan [price-desc] pag 1: 18 (acum 18)
+  RENTA zapopan [price-desc] pag 2: 18 (acum 36)
+  RENTA zapopan [price-desc] pag 3: 18 (acum 54)
+  RENTA zapopan [price-desc] pag 4: 18 (acum 72)
+  RENTA zapopan [price-desc] pag 5: 18 (acum 90)
+  RENTA zapopan [price-desc] pag 6: 18 (acum 108)
+  RENTA zapopan [price-desc] pag 7: 18 (acum 126)
+  RENTA zapopan [price-desc] pag 8: 18 (acum 144)
+  RENTA zapopan [price-desc] pag 9: 18 (acum 162)
+  RENTA zapopan [price-desc] pag 10: 18 (acum 180)
+  RENTA zapopan [price-desc] pag 11: 18 (acum 198)
+  RENTA zapopan [price-desc] pag 12: 18 (acum 216)
+  RENTA zapopan [price-desc] pag 13: 18 (acum 234)
+  RENTA zapopan [price-desc] pag 14: 18 (acum 252)
+  RENTA zapopan [price-desc] pag 15: 18 (acum 270)
+  RENTA zapopan [price-desc] pag 16: 18 (acum 288)
+  RENTA zapopan [price-desc] pag 17: 18 (acum 306)
+  RENTA zapopan [price-desc] pag 18: 18 (acum 324)
+  RENTA zapopan [price-desc] pag 19: 18 (acum 342)
+  RENTA zapopan [price-desc] pag 20: 18 (acum 360)
+  RENTA zapopan [price-desc] pag 21: 18 (acum 378)
+  RENTA zapopan [price-desc] pag 22: 18 (acum 396)
+  RENTA zapopan [price-desc] pag 23: 18 (acum 414)
+  RENTA zapopan [price-desc] pag 24: 18 (acum 432)
+  RENTA zapopan [price-desc] pag 25: 18 (acum 450)
+  RENTA zapopan [price-desc] pag 26: 18 (acum 468)
+  RENTA zapopan [price-desc] pag 27: 18 (acum 486)
+  RENTA zapopan [price-desc] pag 28: 18 (acum 504)
+  RENTA zapopan [price-desc] pag 29: 18 (acum 522)
+  RENTA zapopan [price-desc] pag 30: 18 (acum 540)
+  RENTA zapopan [price-desc] pag 31: 18 (acum 558)
+  RENTA zapopan [price-desc] pag 32: 18 (acum 576)
   RENTA zapopan [price-desc] pag 33: 18 (acum 594)
   RENTA zapopan [price-desc] pag 34: 18 (acum 612)
   RENTA zapopan [price-desc] pag 35: 18 (acum 630)
@@ -31,7 +65,8 @@
   RENTA zapopan [price-desc] pag 63: 18 (acum 1134)
   RENTA zapopan [price-desc] pag 64: 18 (acum 1152)
   RENTA zapopan [price-desc] pag 65: 18 (acum 1170)
-  RENTA zapopan [price-desc] pag 66: 16 (acum 1186)
+  RENTA zapopan [price-desc] pag 66: 18 (acum 1188)
+  RENTA zapopan [price-desc] pag 67: 7 (acum 1195)
 
 == RENTA - Tlaquepaque ==
   RENTA tlaquepaque [price-desc] pag 1: 18 (acum 18)
@@ -43,7 +78,7 @@
   RENTA tlaquepaque [price-desc] pag 7: 18 (acum 126)
   RENTA tlaquepaque [price-desc] pag 8: 18 (acum 144)
   RENTA tlaquepaque [price-desc] pag 9: 18 (acum 162)
-  RENTA tlaquepaque [price-desc] pag 10: 7 (acum 169)
+  RENTA tlaquepaque [price-desc] pag 10: 13 (acum 175)
 
 == RENTA - Tonalá ==
   RENTA tonala [price-desc] pag 1: 18 (acum 18)
@@ -66,85 +101,50 @@
   RENTA tlajomulco-de-zuniga [price-desc] pag 13: 18 (acum 234)
   RENTA tlajomulco-de-zuniga [price-desc] pag 14: 18 (acum 252)
   RENTA tlajomulco-de-zuniga [price-desc] pag 15: 18 (acum 270)
-  RENTA tlajomulco-de-zuniga [price-desc] pag 16: 6 (acum 276)
+  RENTA tlajomulco-de-zuniga [price-desc] pag 16: 11 (acum 281)
 
 == RENTA - El Salto ==
   RENTA el-salto [price-desc] pag 1: 18 (acum 18)
   RENTA el-salto [price-desc] pag 2: 18 (acum 36)
   RENTA el-salto [price-desc] pag 3: 18 (acum 54)
-  RENTA el-salto [price-desc] pag 4: 9 (acum 63)
-  terrenos: 250 fichas leídas (250 con dato)
-  terrenos: 500 fichas leídas (500 con dato)
-Fichas completas de EasyBroker (descripción y fotos): 10,550
-Terrenos: 748 fichas consultadas (748 con dato) · 6756 propiedades con terreno en total · vía fichas de aciertamax.com
+  RENTA el-salto [price-desc] pag 4: 14 (acum 68)
+Fichas completas de EasyBroker (descripción y fotos): 10,627
+Terrenos: 189 fichas consultadas (189 con dato) · 6798 propiedades con terreno en total · vía fichas de aciertamax.com
 
-# Inventario acierta.pro - corrida 2026-10-26
+# Inventario acierta.pro - corrida 2026-10-29
 
-- Fichas publicadas: **10,769**
-- Por segmento: {'comercial': 2428, 'vivienda': 8341}
-- Por segmento y operacion: {'comercial/RENTA': 1359, 'vivienda/RENTA': 1349, 'comercial/VENTA': 1069, 'vivienda/VENTA': 6992}
-- Por municipio: {'El Salto': 120, 'Guadalajara': 3184, 'Tlajomulco de Zúñiga': 1789, 'Tlaquepaque': 592, 'Tonalá': 319, 'Zapopan': 4765}
-- Segmento por: {'tipo comercial': 2293, 'por decidir -> vivienda': 1443, 'palabra clave en el titulo': 135, 'tipo de vivienda': 6898}
+- Fichas publicadas: **10,843**
+- Por segmento: {'comercial': 2473, 'vivienda': 8370}
+- Por segmento y operacion: {'comercial/RENTA': 1392, 'vivienda/RENTA': 1375, 'comercial/VENTA': 1081, 'vivienda/VENTA': 6995}
+- Por municipio: {'El Salto': 120, 'Guadalajara': 3230, 'Tlajomulco de Zúñiga': 1810, 'Tlaquepaque': 593, 'Tonalá': 317, 'Zapopan': 4773}
+- Segmento por: {'tipo comercial': 2335, 'por decidir -> vivienda': 1448, 'palabra clave en el titulo': 138, 'tipo de vivienda': 6922}
 
 ## Contra la corrida anterior (mismos 4 municipios)
-- Nuevas: 801 | Bajas: 746 | Cambios de precio: 233
+- Nuevas: 266 | Bajas: 192 | Cambios de precio: 81
 - Fichas de otros municipios retiradas del sitio: 0
 
 ## Calidad
-- Precios BLOQUEADOS (no publicados, verificar con el originador): 61
-- Precios con AVISO (publicados, conviene revisar): 89
-- Precios por m2 convertidos a total: 202 (el anuncio lo dice: 194 | inferidos, con aviso: 8)
+- Precios BLOQUEADOS (no publicados, verificar con el originador): 62
+- Precios con AVISO (publicados, conviene revisar): 87
+- Precios por m2 convertidos a total: 206 (el anuncio lo dice: 198 | inferidos, con aviso: 8)
 - Anuncios que dicen 'por m2' pero el numero ya era el total (error de captura en EasyBroker, se publican tal cual con aviso): 36
 - Fotos rescatadas desde la pagina de detalle: 0
 - Fichas sin foto: 0 (descartadas del sitio: 0)
-- Fuera de zona descartadas: 61 | Duplicadas: 20
+- Fuera de zona descartadas: 67 | Duplicadas: 32
 - AVISO tope EasyBroker: VENTA zapopan: ni con las dos pasadas se cubrio todo (+1800 en la segunda); pueden faltar fichas de precio medio
-- Prueba de foto grande: 10/12 fotos con lado mayor >= 900px (326x451, 900x1200, 675x1200, 1200x900, 800x1200, 1200x675, 1200x735, 800x600, 1200x897, 1200x900, 1200x900, 1200x675)
+- Prueba de foto grande: 9/12 fotos con lado mayor >= 900px (326x451, 717x537, 1200x675, 1200x900, 236x195, 1200x675, 1055x778, 1200x900, 675x1200, 1200x463, 1200x675, 1200x800)
 
 Reportes: reportes/inventario/anomalias_precio.csv, sin_foto.csv y precios_por_m2.csv
-Sitemap de NeoJaus: 30,589 fichas · en caché: 30,101
-Fichas por revisar (nuevas o modificadas): 16,871
-  500 revisadas · {'ok': 449, 'fuera': 51}
-  1,000 revisadas · {'ok': 908, 'fuera': 91, 'baja': 1}
-  1,500 revisadas · {'ok': 1357, 'fuera': 142, 'baja': 1}
-  2,000 revisadas · {'ok': 1815, 'fuera': 184, 'baja': 1}
-  2,500 revisadas · {'ok': 2273, 'fuera': 226, 'baja': 1}
-  3,000 revisadas · {'ok': 2729, 'fuera': 270, 'baja': 1}
-  3,500 revisadas · {'ok': 3173, 'fuera': 326, 'baja': 1}
-  4,000 revisadas · {'ok': 3630, 'fuera': 369, 'baja': 1}
-  4,500 revisadas · {'ok': 4077, 'fuera': 422, 'baja': 1}
-  5,000 revisadas · {'ok': 4439, 'fuera': 560, 'baja': 1}
-  5,500 revisadas · {'ok': 4720, 'fuera': 779, 'baja': 1}
-  6,000 revisadas · {'ok': 4995, 'fuera': 1004, 'baja': 1}
-  6,500 revisadas · {'ok': 5271, 'fuera': 1228, 'baja': 1}
-  7,000 revisadas · {'ok': 5523, 'fuera': 1476, 'baja': 1}
-  7,500 revisadas · {'ok': 5802, 'fuera': 1697, 'baja': 1}
-  8,000 revisadas · {'ok': 6069, 'fuera': 1929, 'baja': 2}
-  8,500 revisadas · {'ok': 6351, 'fuera': 2146, 'baja': 3}
-  9,000 revisadas · {'ok': 6639, 'fuera': 2358, 'baja': 3}
-  9,500 revisadas · {'ok': 6921, 'fuera': 2576, 'baja': 3}
-  10,000 revisadas · {'ok': 7191, 'fuera': 2806, 'baja': 3}
-  10,500 revisadas · {'ok': 7476, 'fuera': 3021, 'baja': 3}
-  11,000 revisadas · {'ok': 7768, 'fuera': 3229, 'baja': 3}
-  11,500 revisadas · {'ok': 8031, 'fuera': 3466, 'baja': 3}
-  12,000 revisadas · {'ok': 8305, 'fuera': 3692, 'baja': 3}
-  12,500 revisadas · {'ok': 8591, 'fuera': 3906, 'baja': 3}
-  13,000 revisadas · {'ok': 8876, 'fuera': 4121, 'baja': 3}
-  13,500 revisadas · {'ok': 9174, 'fuera': 4323, 'baja': 3}
-  14,000 revisadas · {'ok': 9444, 'fuera': 4553, 'baja': 3}
-  14,500 revisadas · {'ok': 9710, 'fuera': 4787, 'baja': 3}
-  15,000 revisadas · {'ok': 9988, 'fuera': 5009, 'baja': 3}
-  15,500 revisadas · {'ok': 10276, 'fuera': 5221, 'baja': 3}
-  16,000 revisadas · {'ok': 10551, 'fuera': 5446, 'baja': 3}
-  16,500 revisadas · {'ok': 10837, 'fuera': 5660, 'baja': 3}
-Revisadas en esta corrida: 16,871 {'ok': 11030, 'fuera': 5838, 'baja': 3} · pendientes para la siguiente: 0
+Sitemap de NeoJaus: 30,589 fichas · en caché: 30,589
+Fichas por revisar (nuevas o modificadas): 0
+Revisadas en esta corrida: 0 {} · pendientes para la siguiente: 0
 
-# NeoJaus (bolsa AMPI) - corrida 2026-10-26
+# NeoJaus (bolsa AMPI) - corrida 2026-10-29
 
-- Fichas en el sitemap de NeoJaus: 30,589 · revisadas en esta corrida: 16,871 · pendientes: 0
-- Resultado de lo revisado: {'ok': 11030, 'fuera': 5838, 'baja': 3} (ok = activa y en la ZMG)
+- Fichas en el sitemap de NeoJaus: 30,589 · revisadas en esta corrida: 0 · pendientes: 0
+- Resultado de lo revisado: {} (ok = activa y en la ZMG)
 - Registros activos en la ZMG: 14,875 · bloqueados por precio o sin foto: 230
-- Gemelas: 3,898 también están en EasyBroker (se conservan en la bolsa y se anotan) · 3,022 repetidas dentro de NeoJaus (se muestra una)
+- Gemelas: 3,847 también están en EasyBroker (se conservan en la bolsa y se anotan) · 3,022 repetidas dentro de NeoJaus (se muestra una)
 - **Fichas de la bolsa NeoJaus: 11,553** · por segmento {'comercial': 2230, 'vivienda': 9323} · por municipio {'El Salto': 100, 'Guadalajara': 3405, 'Tlajomulco de Zúñiga': 1845, 'Tlaquepaque': 642, 'Tonalá': 298, 'Zapopan': 5263}
-- acierta.pro sigue solo con EasyBroker: 10,769 fichas
+- acierta.pro sigue solo con EasyBroker: 10,843 fichas
 Fichas completas (fotos y descripción): 11,359 de 11,553
