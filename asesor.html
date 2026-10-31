@@ -217,7 +217,7 @@
       });
       Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
       $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
-      restaurarBorrador();
+      ofrecerBorrador();
       await cargarPreparada(); await cargarSeleccion();
     } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
   }
@@ -252,6 +252,7 @@
   const claveBorrador = () => 'as_borrador_' + (COACH || 'coach');
   function guardarBorrador() {
     try {
+      const av = document.getElementById('asBorradorAviso'); if (av && (PROPS.length || ($('asNombre') && $('asNombre').value.trim()))) av.remove();
       const campos = {};
       CAMPOS_BORRADOR.forEach(id => { const el = $(id); if (el) campos[id] = el.type === 'checkbox' ? el.checked : el.value; });
       const hayAlgo = PROPS.length || ['asWa', 'asNombre', 'asCriterios', 'asNota'].some(id => (campos[id] || '').trim && campos[id].trim());
@@ -269,6 +270,30 @@
     } catch (e) { return false; }
   }
   function borrarBorrador() { try { localStorage.removeItem(claveBorrador()); } catch (e) {} }
+  // En lugar de recuperar sola la propuesta anterior, se pregunta: continuar o empezar una nueva.
+  function ofrecerBorrador() {
+    let bor = null;
+    try { bor = JSON.parse(localStorage.getItem(claveBorrador()) || 'null'); } catch (e) {}
+    if (!bor || Date.now() - bor.t > 7 * 24 * 3600 * 1000) { borrarBorrador(); return; }
+    const c = bor.campos || {};
+    const quien = (c.asNombre || '').trim() || (c.asWa ? 'el WhatsApp ' + c.asWa : 'un cliente sin nombre');
+    const n = Array.isArray(bor.props) ? bor.props.length : 0;
+    const hace = Math.max(1, Math.round((Date.now() - bor.t) / 60000));
+    const cuando = hace < 60 ? 'hace ' + hace + ' min' : hace < 1440 ? 'hace ' + Math.round(hace / 60) + ' h' : 'hace ' + Math.round(hace / 1440) + ' días';
+    const caja = document.createElement('div');
+    caja.id = 'asBorradorAviso';
+    caja.style.cssText = 'background:#FFF4E5;border-left:5px solid #F28C28;border-radius:10px;padding:12px 14px;margin:10px 0;font-size:.95rem';
+    caja.innerHTML = '<b>Tienes una propuesta sin terminar</b> para <b>' + AM.esc(quien) + '</b> (' + n + ' propiedad' + (n === 1 ? '' : 'es') + ', guardada ' + cuando + ').<br>' +
+      '<button type="button" class="as-btn" id="asBorSeguir" style="margin-top:8px">Continuar esa propuesta</button> ' +
+      '<button type="button" class="as-btn claro" id="asBorNueva" style="margin-top:8px">Empezar una nueva</button>';
+    const ref = $('asMsg'); ref.parentNode.insertBefore(caja, ref);
+    $('asBorSeguir').onclick = () => {
+      Object.entries(c).forEach(([id, v]) => { const el = $(id); if (!el) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
+      if (n) { PROPS = bor.props; pintarProps(); }
+      caja.remove(); msg('asMsg', 'Listo: retomaste la propuesta de ' + quien + '.', 'ok');
+    };
+    $('asBorNueva').onclick = () => { borrarBorrador(); caja.remove(); msg('asMsg', 'Empiezas una propuesta nueva.', 'ok'); };
+  }
   let ORIG = {}, origPend = null;
   async function consultarOrigenes() {
     if (!PROPS.length || !TOKEN) return;

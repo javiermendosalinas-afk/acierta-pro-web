@@ -66,7 +66,8 @@ function aplicarSegmentoEnPantalla() {
   armarColonias();
 }
 
-function applyFilters() {
+function applyFilters(opts) {
+  opts = (opts && opts.type === undefined) ? opts : {};   // si viene de un evento, se ignora
   const texto = AM.norm(document.getElementById('fTexto').value);
   const municipio = document.getElementById('fMunicipio').value;
   const tipo = document.getElementById('fTipo').value;
@@ -110,6 +111,9 @@ function applyFilters() {
   shown = 0;
   grid.innerHTML = '';
   renderNextPage();
+  while (opts.mostrar && shown < Math.min(opts.mostrar, filtered.length)) renderNextPage();
+  if (opts.y) requestAnimationFrame(() => window.scrollTo(0, opts.y));
+  guardarEnURL();
   resultsCount.textContent = `${filtered.length.toLocaleString('es-MX')} resultado${filtered.length !== 1 ? 's' : ''}`;
 }
 
@@ -184,21 +188,51 @@ document.getElementById('fTexto').addEventListener('input', () => {
   textoTimeout = setTimeout(applyFilters, 350);
 });
 
+// ── La búsqueda vive en la liga (se puede compartir) y se recupera al regresar de una ficha ──
+const CAMPOS_URL = { mun: 'fMunicipio', tipo: 'fTipo', pmax: 'fPrecioMax', rec: 'fRecamaras', ban: 'fBanos', m2min: 'fM2Min', m2max: 'fM2Max', niv: 'fNiveles', orden: 'fOrden', q: 'fTexto' };
+function guardarEnURL() {
+  const u = new URL(location.href);
+  u.searchParams.set('op', currentOp || 'todas');
+  Object.entries(CAMPOS_URL).forEach(([k, id]) => { const v = document.getElementById(id).value; if (v) u.searchParams.set(k, v); else u.searchParams.delete(k); });
+  if (!document.getElementById('fFotoPrimero').checked) u.searchParams.set('foto', '0'); else u.searchParams.delete('foto');
+  history.replaceState(null, '', u);
+}
+function leerDeURL() {
+  const q = new URLSearchParams(location.search);
+  const op = q.get('op');
+  if (op) {
+    currentOp = op === 'todas' ? '' : op.toUpperCase();
+    document.querySelectorAll('#opToggle button').forEach(b => b.classList.toggle('active', b.dataset.op === currentOp));
+    armarOpcionesPrecio();
+  }
+  Object.entries(CAMPOS_URL).forEach(([k, id]) => { const v = q.get(k); if (v !== null) document.getElementById(id).value = v; });
+  if (q.get('foto') === '0') document.getElementById('fFotoPrimero').checked = false;
+}
+function posicionGuardada() {
+  try { const s = JSON.parse(sessionStorage.getItem('portada_pos') || 'null'); return s && s.busqueda === location.search ? s : null; } catch (e) { return null; }
+}
+window.addEventListener('pagehide', () => {
+  try { sessionStorage.setItem('portada_pos', JSON.stringify({ busqueda: location.search, mostrar: shown, y: window.scrollY })); } catch (e) {}
+});
+
 aplicarSegmentoEnPantalla();
+leerDeURL();
 fetch('inventario-meta.json').then(r => r.ok ? r.json() : null).catch(() => null)
   .then(meta => { META = meta; return AM.inventarioEB(); })
   .then(data => {
     ALL_PROPS = data;
     renderStats();
     armarColonias();
-    applyFilters();
+    leerDeURL();   // las colonias y opciones ya existen: se vuelven a poner los valores de la liga
+    const pos = posicionGuardada();
+    applyFilters(pos ? { mostrar: pos.mostrar, y: pos.y } : {});
     // la bolsa NeoJaus se agrega cuando llega; si no llega, no pasa nada
     AM.cargarBolsa().then(bolsa => {
       if (!bolsa.length) return;
       ALL_PROPS = data.concat(bolsa);
       renderStats();
       armarColonias();
-      applyFilters();
+      applyFilters({ mostrar: shown, y: window.scrollY });   // conserva lo que el visitante ya está viendo
     });
   })
   .catch(() => {
