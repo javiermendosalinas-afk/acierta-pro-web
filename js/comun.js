@@ -586,11 +586,11 @@
     if (!pm2) return { disponible: false, motivo: 'Esta propiedad no tiene m² o precio registrados, por eso no se puede calcular su precio por m².' };
     const g = AM.grupoDe(p.tipo);
     const usaRec = (g === 'casa' || g === 'departamento') && p.recamaras > 0;
-    const base = all.filter(q => q !== p && q.operacion === p.operacion &&
+    const base = all.filter(q => q !== p && !q.revisar && q.operacion === p.operacion &&
       AM.grupoDe(q.tipo) === g && AM.precioM2(q) &&
       (!usaRec || (q.recamaras > 0 && Math.abs(q.recamaras - p.recamaras) <= 1)));
     const niveles = [];
-    if (p.colonia) niveles.push({ alcance: 'colonia', nombre: p.colonia, f: q => AM.norm(q.colonia) === AM.norm(p.colonia) });
+    if (p.colonia) niveles.push({ alcance: 'colonia', nombre: p.colonia, f: q => q.municipio === p.municipio && AM.norm(q.colonia) === AM.norm(p.colonia) });
     niveles.push({ alcance: 'municipio', nombre: p.municipio, f: q => q.municipio === p.municipio });
 
     for (const nv of niveles) {
@@ -631,7 +631,7 @@
     n = n || 4;
     if (!AM.esMXN(p)) return [];
     const g = AM.grupoDe(p.tipo);
-    let c = all.filter(q => q !== p && q.operacion === p.operacion && AM.grupoDe(q.tipo) === g && q.municipio === p.municipio && AM.esMXN(q));
+    let c = all.filter(q => q !== p && !q.revisar && q.operacion === p.operacion && AM.grupoDe(q.tipo) === g && q.municipio === p.municipio && AM.esMXN(q));
     const cerca = c.filter(q => Math.abs(q.precio - p.precio) <= p.precio * 0.3);
     if (cerca.length >= n) c = cerca;
     const misma = q => (AM.norm(q.colonia) === AM.norm(p.colonia) ? 0 : 1);

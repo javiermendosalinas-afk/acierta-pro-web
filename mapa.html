@@ -280,6 +280,7 @@ function valNum(id) {
 }
 
 function pasaFiltros(p, f) {
+  if (p.revisar) return false;   // información pendiente de confirmar
   if (f.operacion && p.operacion !== f.operacion) return false;
   if (f.tipo && !GRUPOS_TIPO[f.tipo].includes(p.tipo)) return false;
   if (f.municipio && p.municipio !== f.municipio) return false;

@@ -81,6 +81,7 @@ function applyFilters() {
   const gruposTipo = tipo ? (AM.GRUPOS_TIPO[tipo] || [tipo]) : null;
 
   filtered = ALL_PROPS.filter(p => {
+    if (p.revisar) return false;   // información pendiente de confirmar: no se muestra en resultados
     if (AM.segDe(p) !== currentSeg) return false;
     if (currentOp && p.operacion !== currentOp) return false;
     if (municipio && p.municipio !== municipio) return false;
@@ -89,7 +90,7 @@ function applyFilters() {
     if (recamaras) {
       const min = parseInt(recamaras);
       if (!p.recamaras) return false;
-      if (min === 5 ? p.recamaras < 5 : p.recamaras !== min) return false;
+      if (p.recamaras < min) return false;   // mínimo de recámaras, igual que en el mapa
     }
     if (banos && (!p.banos || p.banos < parseInt(banos))) return false;
     if (m2Min && (!p.m2 || p.m2 < parseFloat(m2Min))) return false;

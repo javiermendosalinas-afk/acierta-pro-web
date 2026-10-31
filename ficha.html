@@ -111,12 +111,13 @@
     if (pm2) chips.push(AM.money(pm2) + (p.operacion === 'RENTA' ? '/m² al mes' : '/m²'));
     if (p.niveles) chips.push(p.niveles + (p.niveles === 1 ? ' planta' : ' plantas'));
     chips.push('Código ' + p.eb);
-    const sim = p.operacion === 'VENTA'
+    const sim = (p.operacion === 'VENTA' && AM.esMXN(p))
       ? `<a class="btn-outline btn-lg" href="simulador.html?precio=${Math.round(p.precio)}">Simular crédito</a>` : '';
     const g = AM.grupoDe(p.tipo);
     const procUrl = 'proceso.html?modo=' + (p.operacion === 'RENTA' ? 'renta' : 'compra') + '&' + (p.operacion === 'RENTA' ? 'renta' : 'precio') + '=' + Math.round(p.precio) +
       '&mun=' + encodeURIComponent(p.municipio) + (g !== 'otro' ? '&tipo=' + g : '') + (p.recamaras ? '&rec=' + p.recamaras : '') + (p.m2 ? '&m2=' + Math.round(p.m2) : '');
     const otra = todas.find(x => x.eb === p.eb && x !== p && x.operacion !== p.operacion);
+    const avisoRevision = p.revisar ? `<p class="ficha-otra" style="background:#FFF4E5;border-left:4px solid #F28C28;padding:10px 12px">⚠️ Algunos datos de esta publicación están <b>pendientes de confirmar</b> (por ejemplo, precio o superficie). Pregúntale a tu asesor antes de tomar una decisión.</p>` : '';
     const otraHTML = otra ? `<p class="ficha-otra">También está disponible en <b>${otra.operacion === 'RENTA' ? 'renta' : 'venta'}</b>
       (${AM.money(otra.precio)}${otra.operacion === 'RENTA' ? '/mes' : ''}) — <a href="${AM.fichaUrl(otra)}">ver esa ficha</a></p>` : '';
     const similares = AM.similares(p, todas, 4);
@@ -135,7 +136,7 @@
         <div class="ficha-precio">${AM.precioTxt(p)} <span>${AM.esMXN(p) ? 'MXN' : 'USD'}${p.operacion === 'RENTA' ? '/mes' : ''}</span></div>
         ${p.pm2_pub && p.m2 ? `<div class="ficha-pm2">Publicado a ${AM.money(p.pm2_pub)} ${AM.esMXN(p) ? 'MXN' : 'USD'} por m²${p.operacion === 'RENTA' ? ' al mes' : ''} · precio total calculado con ${Math.round(p.m2).toLocaleString('es-MX')} m²</div>` : ''}
         <div class="chips">${chips.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>
-        ${otraHTML}
+        ${avisoRevision}${otraHTML}
         <div class="ficha-cta">
           <a class="btn-solid btn-lg" id="btnHablarAsesor" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener" data-wa-base="${wa}">Hablar con un asesor por WhatsApp</a>
           <button class="btn-cmp btn-lg" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false">＋ Comparar</button>
