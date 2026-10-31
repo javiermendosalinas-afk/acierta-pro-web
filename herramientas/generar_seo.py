@@ -114,6 +114,8 @@ def cargar():
         g = grupo_de(p.get("tipo"))
         if not g or not p.get("precio") or not p.get("eb") or not p.get("municipio"):
             continue
+        if p.get("revisar"):   # datos pendientes de confirmar: no se publica página ni entra al sitemap
+            continue
         k = (p["eb"], p["operacion"])
         if k in vistos:
             continue

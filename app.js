@@ -2,7 +2,7 @@ let ALL_PROPS = [];
 let filtered = [];
 let shown = 0;
 const PAGE_SIZE = 24;
-let currentOp = '';
+let currentOp = 'VENTA';   // arranca en venta; el visitante puede cambiar a renta o a todas
 let currentSeg = AM.segActual();   // 'vivienda' | 'comercial'  (también por URL: ?seg=comercial)
 let META = null;
 

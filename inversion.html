@@ -305,21 +305,21 @@ document.addEventListener('click', e => {
   };
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con esta propiedad.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir', municipio: '', notas: o.colonia })
-    .then(lanzar);
+    .then(l => { if (l && l.cancelado) return; lanzar(l); });
 });
 document.getElementById('ctaWa').addEventListener('click', function (e) {
   if (AM.leadGuardado()) return;
   e.preventDefault();
   const href = this.href;
   AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te acompañe con tu estudio de inversión.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' })
-    .then(lead => { window.open(href, '_blank', 'noopener'); mostrarConfirmacionCoach(lead); });
+    .then(lead => { if (lead && lead.cancelado) return; window.open(href, '_blank', 'noopener'); mostrarConfirmacionCoach(lead); });
 });
 let CFG = null;
 document.getElementById('btnHablarCoach').addEventListener('click', () => {
   const texto = encodeURIComponent('Hola, estoy viendo mi estudio de inversión en acierta.pro y quiero platicarlo con un coach de Acierta Max.');
   const lanzar = lead => { window.open('https://wa.me/523333777337?text=' + texto + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener'); mostrarConfirmacionCoach(lead); };
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
-  AM.asegurarLead({ motivo: 'Para que un coach de Acierta Max te acompañe como inversionista.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' }).then(lanzar);
+  AM.asegurarLead({ motivo: 'Para que un coach de Acierta Max te acompañe como inversionista.', operacion: 'compra', tipo: $('fTipo').value, uso: 'invertir' }).then(l => { if (l && l.cancelado) return; lanzar(l); });
 });
 
 // Panel que se muestra tras pedir cita con un coach: no se detiene ahí --

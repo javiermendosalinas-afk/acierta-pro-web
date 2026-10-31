@@ -544,9 +544,10 @@
         if (b.id === 'amBtnEnviarWA' || b.id === 'amBtnReenviarWA') enviarCodigo();
       });
 
-      document.getElementById('amModalCerrar').addEventListener('click', () => cerrar(null));
+      // Cerrar (X o fondo) = CANCELAR: no se abre WhatsApp. "Continuar sin registrar" = seguir sin datos.
+      document.getElementById('amModalCerrar').addEventListener('click', () => cerrar({ cancelado: true }));
       document.getElementById('amModalSaltar').addEventListener('click', () => cerrar(null));
-      document.getElementById('amModalFondo').addEventListener('click', e => { if (e.target.id === 'amModalFondo') cerrar(null); });
+      document.getElementById('amModalFondo').addEventListener('click', e => { if (e.target.id === 'amModalFondo') cerrar({ cancelado: true }); });
       document.getElementById('amModalEnviar').addEventListener('click', async () => {
         const nombre = document.getElementById('amNombre').value.trim(), wa = document.getElementById('amWa').value.trim();
         const err = document.getElementById('amModalError'), btn = document.getElementById('amModalEnviar');

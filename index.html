@@ -74,8 +74,8 @@
         <button data-seg="comercial">🏢 Comercial</button>
       </div>
       <div class="op-toggle" id="opToggle" role="group" aria-label="Venta o renta">
-        <button data-op="" class="active">Todas</button>
-        <button data-op="VENTA">Venta</button>
+        <button data-op="">Todas</button>
+        <button data-op="VENTA" class="active">Venta</button>
         <button data-op="RENTA">Renta</button>
       </div>
     </div>
@@ -345,7 +345,7 @@ document.getElementById('navVenderRentar').addEventListener('click', function (e
   const texto = 'Hola, quiero información para vender o rentar mi propiedad con Acierta Max.';
   const lanzar = lead => window.open('https://wa.me/523333777337?text=' + encodeURIComponent(texto) + (lead && lead.vendedor ? encodeURIComponent(` (folio ${lead.folio})`) : ''), '_blank', 'noopener');
   if (AM.leadGuardado()) { lanzar(AM.leadGuardado()); return; }
-  AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te contacte sobre tu propiedad.' }).then(lanzar);
+  AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te contacte sobre tu propiedad.' }).then(l => { if (l && l.cancelado) return; lanzar(l); });
 });
 </script>
 <script>

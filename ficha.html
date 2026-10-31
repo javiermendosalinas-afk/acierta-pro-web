@@ -172,7 +172,7 @@
       const base = this.dataset.waBase, href = this.href;
       AM.asegurarLead({ motivo: 'Para que un asesor de Acierta Max te dé seguimiento sobre esta propiedad.',
         operacion: p.operacion === 'RENTA' ? 'renta' : 'compra', municipio: p.municipio, notas: p.colonia })
-        .then(lead => { window.open(lead && lead.vendedor ? href.replace(base, base + encodeURIComponent(' (folio ' + lead.folio + ')')) : href, '_blank', 'noopener'); });
+        .then(lead => { if (lead && lead.cancelado) return; window.open(lead && lead.vendedor ? href.replace(base, base + encodeURIComponent(' (folio ' + lead.folio + ')')) : href, '_blank', 'noopener'); });
     });
 
     if (p.lat && p.lon && window.L) {
