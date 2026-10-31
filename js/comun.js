@@ -356,7 +356,7 @@
     const tipos = AM.GRUPOS_TIPO[opts.tipo] || [opts.tipo];
     const ok = p => p.moneda === undefined || p.moneda === null || p.moneda === 'MXN';
     const enZona = p => p.lat && p.lon && AM.puntoEnPoligono(p.lat, p.lon, opts.poligono);
-    const base = TODAS.filter(p => ok(p) && p.m2 >= 25 && p.m2 <= 600 && p.precio > 0 && enZona(p) && tipos.includes(p.tipo));
+    const base = TODAS.filter(p => !p.revisar && ok(p) && p.m2 >= 25 && p.m2 <= 600 && p.precio > 0 && enZona(p) && tipos.includes(p.tipo));
     const V = base.filter(p => p.operacion === 'VENTA'), R = base.filter(p => p.operacion === 'RENTA');
     let cand = V.filter(p => p.precio <= opts.tope);
     if (opts.recMin) cand = cand.filter(p => p.recamaras && p.recamaras >= opts.recMin);

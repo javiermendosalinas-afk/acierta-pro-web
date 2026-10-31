@@ -114,7 +114,9 @@
     const sim = (p.operacion === 'VENTA' && AM.esMXN(p))
       ? `<a class="btn-outline btn-lg" href="simulador.html?precio=${Math.round(p.precio)}">Simular crédito</a>` : '';
     const g = AM.grupoDe(p.tipo);
-    const procUrl = 'proceso.html?modo=' + (p.operacion === 'RENTA' ? 'renta' : 'compra') + '&' + (p.operacion === 'RENTA' ? 'renta' : 'precio') + '=' + Math.round(p.precio) +
+    // El importe solo viaja al proceso si está en pesos; en dólares, el cliente captura su presupuesto.
+    const procUrl = 'proceso.html?modo=' + (p.operacion === 'RENTA' ? 'renta' : 'compra') +
+      (AM.esMXN(p) ? '&' + (p.operacion === 'RENTA' ? 'renta' : 'precio') + '=' + Math.round(p.precio) : '') +
       '&mun=' + encodeURIComponent(p.municipio) + (g !== 'otro' ? '&tipo=' + g : '') + (p.recamaras ? '&rec=' + p.recamaras : '') + (p.m2 ? '&m2=' + Math.round(p.m2) : '');
     const otra = todas.find(x => x.eb === p.eb && x !== p && x.operacion !== p.operacion);
     const avisoRevision = p.revisar ? `<p class="ficha-otra" style="background:#FFF4E5;border-left:4px solid #F28C28;padding:10px 12px">⚠️ Algunos datos de esta publicación están <b>pendientes de confirmar</b> (por ejemplo, precio o superficie). Pregúntale a tu asesor antes de tomar una decisión.</p>` : '';

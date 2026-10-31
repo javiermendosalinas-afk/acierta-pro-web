@@ -61,6 +61,8 @@
 
   function resumen(items) {
     const L = [];
+    const enUSD = items.length > 0 && items.every(i => !AM.esMXN(i.p));
+    const din = v => (enUSD ? 'US' : '') + AM.money(v) + (enUSD ? ' USD' : '');
     const ops = [...new Set(items.map(i => i.p.operacion))];
     if (ops.length > 1) L.push({ tipo: 'alerta', t: 'Estás comparando propiedades en <b>venta</b> con propiedades en <b>renta</b>. Sus precios no son comparables entre sí; conviene compararlas por separado.' });
     const mixMoneda = items.some(i => !AM.esMXN(i.p)) && items.some(i => AM.esMXN(i.p));
@@ -72,13 +74,13 @@
     if (conPrecio.length > 1 && ops.length === 1 && !mixMoneda) {
       const promedio = conPrecio.reduce((s, i) => s + i.p.precio, 0) / conPrecio.length;
       const u = conPrecio[0].p.operacion === 'RENTA' ? '/mes' : '';
-      L.push({ t: `Precio promedio de estas ${conPrecio.length} propiedades: <b>${AM.money(promedio)}${u}</b>.` });
+      L.push({ t: `Precio promedio de estas ${conPrecio.length} propiedades: <b>${din(promedio)}${u}</b>.` });
     }
     if (conPrecio.length > 1 && conPrecio[0].p.precio !== conPrecio[conPrecio.length - 1].p.precio && ops.length === 1 && !mixMoneda) {
       const lo = conPrecio[0], hi = conPrecio[conPrecio.length - 1];
       const dif = hi.p.precio - lo.p.precio, pct = Math.round(dif / lo.p.precio * 100);
       const u = lo.p.operacion === 'RENTA' ? '/mes' : '';
-      L.push({ t: `La más económica es <b>${AM.esc(corto(lo.p.titulo, 60))}</b> (${AM.money(lo.p.precio)}${u}). Entre la más barata y la más cara hay <b>${AM.money(dif)}${u}</b> de diferencia (${pct}%).` });
+      L.push({ t: `La más económica es <b>${AM.esc(corto(lo.p.titulo, 60))}</b> (${din(lo.p.precio)}${u}). Entre la más barata y la más cara hay <b>${din(dif)}${u}</b> de diferencia (${pct}%).` });
     }
     const conPm2 = items.filter(i => AM.precioM2(i.p));
     if (conPm2.length > 1 && grupos.length === 1 && ops.length === 1) {
@@ -151,7 +153,7 @@
     ].join('');
 
     const res = resumen(items);
-    const listaTxt = P.map((p, i) => `${i + 1}) ${p.titulo} (${p.eb}, ${p.operacion === 'RENTA' ? 'renta' : 'venta'}) ${AM.money(p.precio)}${p.operacion === 'RENTA' ? '/mes' : ''}`).join('\n');
+    const listaTxt = P.map((p, i) => `${i + 1}) ${p.titulo} (${p.eb}, ${p.operacion === 'RENTA' ? 'renta' : 'venta'}) ${AM.precioTxt(p)}${AM.esMXN(p) ? '' : ' USD'}${p.operacion === 'RENTA' ? '/mes' : ''}`).join('\n');
     const link = location.origin + '/comparar.html?ids=' + items.map(i => AM.clave(i.p)).join(',');
     const wa = encodeURIComponent('Hola, quiero que un asesor me ayude a decidir entre estas propiedades:\n' + listaTxt + '\n\nComparación: ' + link);
 
