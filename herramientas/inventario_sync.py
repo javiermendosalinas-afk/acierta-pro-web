@@ -145,6 +145,15 @@ FRENO_COMBO = 0.5     # un municipio+operacion no puede caer a menos de 50% de l
 FRENO_TOTAL = 0.7     # el total no puede caer a menos de 70% de lo anterior
 FRENO_SIN_FOTO = 0.05 # si mas de 5% no tiene foto, algo fallo: no se descartan
 
+RENTA_MINIMA = 11000   # política de Acierta Max (oct-2026): no se publican rentas menores de $11,000 al mes
+
+
+def sin_rentas_bajas(filas):
+    """Quita las rentas en pesos menores de RENTA_MINIMA al mes."""
+    return [f for f in filas if not (f.get("operacion") == "RENTA" and (f.get("moneda") in (None, "", "MXN"))
+                                     and (f.get("precio") or 0) and f["precio"] < RENTA_MINIMA)]
+
+
 RUTA_DATA = "data.json"
 RUTA_CSV = "inventario.csv"
 RUTA_META = "inventario-meta.json"
@@ -1077,6 +1086,7 @@ def solo_terrenos(max_consultas):
         print("No hay data.json"); return
     antes = sum(1 for f in filas if f.get("terreno"))
     enriquecer_terrenos(filas, max_consultas=max_consultas)
+    filas = sin_rentas_bajas(filas)
     with open(RUTA_DATA, "w", encoding="utf-8") as fh:
         json.dump(filas, fh, ensure_ascii=False, separators=(",", ":"))
     print(f"data.json: {antes} → {sum(1 for f in filas if f.get('terreno'))} propiedades con terreno", flush=True)
@@ -1251,6 +1261,7 @@ def main():
         enriquecer_terrenos(salida)
     os.makedirs(DIR_REPORTES, exist_ok=True)
     if not args.sin_escribir:
+        salida = sin_rentas_bajas(salida)
         with open(RUTA_DATA, "w", encoding="utf-8") as fh:
             json.dump(salida, fh, ensure_ascii=False, separators=(",", ":"))
         escribir_csv(RUTA_CSV, salida)
