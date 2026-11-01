@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mis preferencias de atención · Coach Acierta</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<style>
+  body{background:var(--cream)} .cp{max-width:760px;margin:0 auto;padding:20px 16px 80px}
+  .card{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  h1{font-size:1.35rem;color:var(--navy);margin:0 0 4px} h2{font-size:1.05rem;color:var(--navy);margin:0 0 10px}
+  .dias{display:flex;flex-wrap:wrap;gap:8px} .dias label{border:1px solid var(--gray-light);border-radius:999px;padding:7px 12px;cursor:pointer;user-select:none}
+  .dias input{margin-right:6px} .fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .fila input[type=number],.fila input[type=time]{padding:9px;border:1px solid var(--gray-light);border-radius:9px;font:inherit;width:150px}
+  #mapa{height:420px;border-radius:12px} .nota{color:var(--gray);font-size:.88rem;line-height:1.45}
+  .btn{display:inline-block;border:0;border-radius:10px;padding:12px 20px;font:inherit;font-weight:700;background:var(--navy);color:#fff;cursor:pointer}
+  .btn.claro{background:#eef1f6;color:var(--navy)} .msg{margin-top:10px;font-weight:600} .msg.ok{color:#157347} .msg.err{color:var(--red-dark)}
+</style>
+</head>
+<body>
+<div class="cp">
+  <div class="card"><h1>Mis preferencias de atención</h1>
+    <p class="nota" id="hola">Elige cuándo, qué y dónde quieres atender clientes. MAX solo te enviará los que cumplan lo que elijas; los demás los atiende Javier.</p></div>
+
+  <div class="card"><h2>1. Días y horario</h2>
+    <div class="dias" id="dias"></div>
+    <div class="fila">De <input type="time" id="hIni" value="09:00"> a <input type="time" id="hFin" value="19:00"></div>
+    <p class="nota">En cualquier momento puedes escribirle a MAX «no disponible» para pausar, y «disponible» para volver.</p></div>
+
+  <div class="card"><h2>2. Operaciones y montos</h2>
+    <div class="fila"><label><input type="checkbox" id="aVenta" checked> Atiendo <b>venta</b></label></div>
+    <div class="fila">De $ <input type="number" id="vMin" min="0" step="50000" placeholder="0"> a $ <input type="number" id="vMax" min="0" step="50000" placeholder="sin límite"></div>
+    <div class="fila" style="margin-top:14px"><label><input type="checkbox" id="aRenta"> Atiendo <b>renta</b></label></div>
+    <div class="fila">De $ <input type="number" id="rMin" min="0" step="1000" placeholder="11000"> a $ <input type="number" id="rMax" min="0" step="1000" placeholder="sin límite"> al mes</div>
+    <p class="nota">Deja el máximo vacío si no tienes límite.</p></div>
+
+  <div class="card"><h2>3. Mi zona</h2>
+    <p class="nota">Toca el ícono del <b>pentágono</b> (arriba a la izquierda del mapa) y marca los puntos alrededor de la zona que quieres atender; toca el primer punto para cerrarla. Puedes dibujar varias zonas. Se vale que se encimen con las de otros coaches.</p>
+    <div id="mapa"></div>
+    <div class="fila"><button class="btn claro" id="borrar" type="button">Borrar mis zonas</button> <span class="nota" id="nZonas">0 zonas</span></div></div>
+
+  <button class="btn" id="guardar" type="button">Guardar mis preferencias</button>
+  <div class="msg" id="msg"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id), q=new URLSearchParams(location.search), W=q.get('w')||'', T=q.get('t')||'';
+  const DIAS=[['lun','Lunes'],['mar','Martes'],['mie','Miércoles'],['jue','Jueves'],['vie','Viernes'],['sab','Sábado'],['dom','Domingo']];
+  $('dias').innerHTML=DIAS.map(([k,n])=>`<label><input type="checkbox" value="${k}" ${['lun','mar','mie','jue','vie'].includes(k)?'checked':''}>${n}</label>`).join('');
+  const map=L.map('mapa').setView([20.6597,-103.3496],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map);
+  const capa=new L.FeatureGroup().addTo(map);
+  map.addControl(new L.Control.Draw({edit:{featureGroup:capa,remove:true},draw:{polygon:{allowIntersection:false,showArea:false,shapeOptions:{color:'#1D3A8A'}},rectangle:{shapeOptions:{color:'#1D3A8A'}},polyline:false,circle:false,marker:false,circlemarker:false}}));
+  const contar=()=>{$('nZonas').textContent=capa.getLayers().length+' zona'+(capa.getLayers().length===1?'':'s');};
+  map.on(L.Draw.Event.CREATED,e=>{capa.addLayer(e.layer);contar();}); map.on(L.Draw.Event.DELETED,contar);
+  $('borrar').onclick=()=>{capa.clearLayers();contar();};
+  let BASE='';
+  const base=async()=>{if(BASE)return BASE;const j=await (await fetch('camino-datos.json')).json();BASE=j.endpoint.replace(/\/api\/camino\/?$/,'');return BASE;};
+  const msg=(t,c)=>{$('msg').textContent=t;$('msg').className='msg '+(c||'');};
+  (async()=>{
+    try{const r=await fetch((await base())+'/api/coach/prefs?w='+encodeURIComponent(W)+'&t='+encodeURIComponent(T));const j=await r.json();
+      if(!j.ok){msg(j.error||'Liga no válida.','err');$('guardar').disabled=true;return;}
+      if(j.nombre)$('hola').textContent='Hola, '+j.nombre.split(' ')[0]+'. Elige cuándo, qué y dónde quieres atender clientes. MAX solo te enviará los que cumplan lo que elijas; los demás los atiende Javier.';
+      const p=j.prefs||{};
+      if(p.DIAS){const d=p.DIAS.split(',');document.querySelectorAll('#dias input').forEach(i=>i.checked=d.includes(i.value));}
+      if(p.HORA_INI)$('hIni').value=p.HORA_INI; if(p.HORA_FIN)$('hFin').value=p.HORA_FIN;
+      if(p.ATIENDE_VENTA)$('aVenta').checked=p.ATIENDE_VENTA.startsWith('S'); if(p.ATIENDE_RENTA)$('aRenta').checked=p.ATIENDE_RENTA.startsWith('S');
+      [['VENTA_MIN','vMin'],['VENTA_MAX','vMax'],['RENTA_MIN','rMin'],['RENTA_MAX','rMax']].forEach(([k,id])=>{if(p[k]&&p[k]!=='0')$(id).value=p[k];});
+      try{(JSON.parse(p.ZONAS||'[]')).forEach(z=>capa.addLayer(L.polygon(z,{color:'#1D3A8A'})));if(capa.getLayers().length)map.fitBounds(capa.getBounds(),{padding:[20,20]});}catch(e){}
+      contar();
+    }catch(e){msg('No pude cargar tus datos. Revisa tu conexión y recarga la página.','err');}
+  })();
+  $('guardar').onclick=async()=>{
+    const dias=[...document.querySelectorAll('#dias input:checked')].map(i=>i.value);
+    const zonas=capa.getLayers().map(l=>{let ll=l.getLatLngs();while(Array.isArray(ll[0]))ll=ll[0];return ll.map(p=>[p.lat,p.lng]);});
+    if(!dias.length)return msg('Elige al menos un día.','err');
+    if(!$('aVenta').checked&&!$('aRenta').checked)return msg('Elige venta, renta o ambas.','err');
+    if(!zonas.length)return msg('Dibuja al menos una zona en el mapa.','err');
+    $('guardar').disabled=true;msg('Guardando…');
+    try{const r=await fetch((await base())+'/api/coach/prefs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({w:W,t:T,dias,hora_ini:$('hIni').value,hora_fin:$('hFin').value,
+        atiende_venta:$('aVenta').checked,venta_min:$('vMin').value,venta_max:$('vMax').value,atiende_renta:$('aRenta').checked,renta_min:$('rMin').value,renta_max:$('rMax').value,zonas})});
+      const j=await r.json(); if(!j.ok)throw new Error(j.error||'No se pudo guardar.');
+      msg('✅ ¡Listo! Guardé tus preferencias. MAX te avisará por WhatsApp.','ok');
+    }catch(e){msg(e.message,'err');}
+    $('guardar').disabled=false;
+  };
+})();
+</script>
+</body>
+</html>
