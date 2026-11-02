@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Mi tablero · Coach Acierta</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body{background:var(--cream)} .ct{max-width:640px;margin:0 auto;padding:18px 14px 60px}
+  .card{background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  h1{font-size:1.3rem;color:var(--navy);margin:0} .sub{color:var(--gray);margin:4px 0 0;font-size:.92rem}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kpi{background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .kpi b{display:block;font-size:1.7rem;color:var(--navy);font-variant-numeric:tabular-nums} .kpi span{font-size:.8rem;color:var(--gray)}
+  .met{margin:14px 0} .met .t{display:flex;justify-content:space-between;font-size:.92rem;margin-bottom:5px}
+  .met .t em{font-style:normal;color:var(--gray);font-size:.82rem}
+  .barra{position:relative;height:16px;background:#eef1f6;border-radius:8px;overflow:visible;margin:4px 0}
+  .barra .yo{height:100%;border-radius:8px;background:var(--navy)} .barra .eq{position:absolute;top:-4px;bottom:-4px;width:3px;background:#F28C28;border-radius:2px}
+  .ley{display:flex;gap:14px;font-size:.8rem;color:var(--gray);margin-top:6px} .ley i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+  .lugar{display:inline-block;background:#E8F5EE;color:#157347;border-radius:999px;padding:2px 9px;font-size:.78rem;font-weight:700}
+  .lugar.bajo{background:#FDECEC;color:#B42318} .consejo{background:#FFF4E5;border-left:4px solid #F28C28}
+  .err{color:var(--red-dark);font-weight:600}
+</style>
+</head>
+<body>
+<div class="ct">
+  <div class="card"><h1 id="titulo">Mi tablero</h1><p class="sub" id="sub">Cargando…</p></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card" id="comp" hidden><b>Tú contra el promedio del equipo</b>
+    <div class="ley"><span><i style="background:var(--navy)"></i>Tú</span><span><i style="background:#F28C28"></i>Promedio del equipo</span></div>
+    <div id="mets"></div></div>
+  <div class="card consejo" id="consejo" hidden></div>
+</div>
+<script>
+(async function(){
+  const $=id=>document.getElementById(id), q=new URLSearchParams(location.search);
+  try{
+    const base=(await (await fetch('camino-datos.json')).json()).endpoint.replace(/\/api\/camino\/?$/,'');
+    const r=await fetch(base+'/api/coach/tablero?w='+encodeURIComponent(q.get('w')||'')+'&t='+encodeURIComponent(q.get('t')||''));
+    const j=await r.json();
+    if(!j.ok){$('sub').innerHTML='<span class="err"></span>';$('sub').firstChild.textContent=j.error||'Liga no válida.';return;}
+    const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const mes=MESES[Number(j.mes.slice(5,7))-1]+' '+j.mes.slice(0,4);
+    $('titulo').textContent='Hola, '+(j.nombre||'').split(' ')[0];
+    $('sub').textContent='Así vas en '+mes+' (equipo de '+j.equipo+' personas).';
+    const y=j.yo,p=j.promedio,l=j.lugar;
+    const k=[['recibidos','Recibidos'],['llamados','Llamados'],['cierres','Cierres']];
+    $('kpis').innerHTML='';k.forEach(([c,n])=>{const d=document.createElement('div');d.className='kpi';d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=y[c];d.querySelector('span').textContent=n;$('kpis').appendChild(d);});
+    const mets=[['recibidos','Clientes recibidos'],['llamados','Llamados'],['seguimiento','En seguimiento'],['citas','Citas'],['visitas','Visitas'],['cierres','Cierres']];
+    $('mets').innerHTML='';
+    mets.forEach(([c,n])=>{
+      const max=Math.max(1,y[c],p[c]); const div=document.createElement('div'); div.className='met';
+      const bajo=l[c]>Math.ceil(j.equipo/2);
+      div.innerHTML='<div class="t"><span></span><em></em></div><div class="barra"><div class="yo"></div><div class="eq"></div></div>';
+      div.querySelector('.t span').textContent=n+': '+y[c];
+      const em=div.querySelector('.t em'); em.textContent='equipo '+p[c]+' · ';
+      const lg=document.createElement('span'); lg.className='lugar'+(bajo?' bajo':''); lg.textContent='lugar '+l[c]+' de '+j.equipo; em.appendChild(lg);
+      div.querySelector('.yo').style.width=(100*y[c]/max)+'%'; div.querySelector('.eq').style.left='calc('+(100*p[c]/max)+'% - 1px)';
+      $('mets').appendChild(div);
+    });
+    $('comp').hidden=false;
+    const c=$('consejo'); c.hidden=false;
+    c.textContent = y.recibidos && j.tasa_llamado < 80
+      ? 'Has llamado al '+j.tasa_llamado+'% de tus clientes (equipo: '+j.tasa_llamado_equipo+'%). Llamar en la primera hora es lo que más cierra: hoy dale prioridad a los que aún no contactas, y cuéntale a MAX cómo te fue.'
+      : (y.recibidos ? '¡Vas muy bien con las llamadas! Ahora el siguiente paso es convertir esas pláticas en citas: propón dos horarios concretos para visitar.' : 'Aún no recibes clientes este mes. Revisa que tus preferencias (horario, montos y zona) estén completas escribiéndole «preferencias» a MAX.');
+  }catch(e){$('sub').textContent='No pude cargar tu tablero. Revisa tu conexión y recarga.';}
+})();
+</script>
+</body>
+</html>
