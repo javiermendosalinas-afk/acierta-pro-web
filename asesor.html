@@ -146,7 +146,9 @@
   const $ = id => document.getElementById(id);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('es-MX');
-  let API = '', TOKEN = sessionStorage.getItem('as_token') || '', COACH = sessionStorage.getItem('as_nombre') || '';
+  window.name = 'portal-asesor';   // el sitio regresa a esta misma pestaña
+  const _ses = (() => { try { const s = JSON.parse(localStorage.getItem('as_sesion') || 'null'); return s && Date.now() - s.t < 12 * 3600 * 1000 ? s : null; } catch (e) { return null; } })();
+  let API = '', TOKEN = sessionStorage.getItem('as_token') || (_ses && _ses.token) || '', COACH = sessionStorage.getItem('as_nombre') || (_ses && _ses.nombre) || '';
   let INV = [], MEDIANAS = {}, PROPS = [], vistaUrl = '', VIO_EN_SITIO = false, BOLSA = null;
   // Bolsa NeoJaus: no se publica en acierta.pro; solo se consulta para hallar al originador
   const URL_BOLSA = 'https://raw.githubusercontent.com/javiermendosalinas-afk/acierta-pro-web/main/herramientas/neojaus/neojaus.json';
@@ -188,11 +190,12 @@
     if (!r.ok) { msg('asLoginMsg', (r.j && r.j.error) || 'No se pudo entrar.', 'error'); return; }
     TOKEN = r.j.token; COACH = r.j.nombre;
     sessionStorage.setItem('as_token', TOKEN); sessionStorage.setItem('as_nombre', COACH);
+    try { localStorage.setItem('as_sesion', JSON.stringify({ token: TOKEN, nombre: COACH, t: Date.now() })); } catch (e) {}
     try { localStorage.setItem('modo_asesor', '1'); } catch (e) {}
     $('asClave').value = ''; mostrarApp();
   }
   function salir(texto) {
-    TOKEN = ''; sessionStorage.removeItem('as_token'); sessionStorage.removeItem('as_nombre');
+    TOKEN = ''; sessionStorage.removeItem('as_token'); sessionStorage.removeItem('as_nombre'); try { localStorage.removeItem('as_sesion'); } catch (e) {}
     $('asApp').hidden = true; $('asLogin').hidden = false; $('asSesion').innerHTML = '';
     msg('asLoginMsg', texto || '', texto ? 'error' : '');
   }
@@ -217,7 +220,7 @@
       });
       Object.keys(pm2).forEach(k => { MEDIANAS[k] = { pm2: mediana(pm2[k]), n: pm2[k].length, m2: mediana(m2[k] || []) }; });
       $('asInvMsg').textContent = `Inventario cargado: ${INV.length.toLocaleString('es-MX')} propiedades.`;
-      ofrecerBorrador();
+      restaurarBorrador();
       await cargarPreparada(); await cargarSeleccion();
     } catch (e) { $('asInvMsg').textContent = 'No se pudo cargar el inventario. Recarga la página.'; }
   }
@@ -265,7 +268,8 @@
       if (!b || Date.now() - b.t > 7 * 24 * 3600 * 1000) return false;
       Object.entries(b.campos || {}).forEach(([id, v]) => { const el = $(id); if (!el) return; if (el.type === 'checkbox') el.checked = !!v; else el.value = v; });
       if (Array.isArray(b.props) && b.props.length && !PROPS.length) { PROPS = b.props; pintarProps(); }
-      msg('asMsg', 'Recuperé tu propuesta en curso. Si quieres empezar otra, toca «🗑️ Nueva propuesta».', 'ok');
+      const quien = ((b.campos || {}).asNombre || '').trim();
+      msg('asMsg', 'Continúas la propuesta' + (quien ? ' de ' + quien : '') + ' con tus datos y propiedades. Si quieres empezar otra, toca «🗑️ Nueva propuesta».', 'ok');
       return true;
     } catch (e) { return false; }
   }

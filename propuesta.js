@@ -38,10 +38,17 @@
     if (!barra) { barra = document.createElement('div'); barra.className = 'prp-barra'; document.body.appendChild(barra); }
     let h = `<span title="${s.map(x => x.eb).join(', ')}">📋 Propuesta: <b>${s.length}</b></span>`;
     if (enFicha) h += ` <button type="button" id="prpEsta">${tiene(enFicha) ? '✓ Quitar esta' : '＋ Agregar esta'}</button>`;
-    if (s.length) h += ` <a href="asesor.html" target="portal-asesor">Armar en el portal</a> <button type="button" id="prpVaciar">Vaciar</button>`;
+    if (s.length) h += ` <a href="asesor.html" id="prpPortal" style="background:#F28C28">✅ Continuar en el portal</a> <button type="button" id="prpVaciar" title="Quitar todas las propiedades de la selección" style="background:transparent;opacity:.75;font-weight:500">Quitar todas</button>`;
     barra.innerHTML = h; barra.hidden = !s.length && !enFicha;
     const be = document.getElementById('prpEsta'); if (be) be.onclick = () => alternar(enFicha, opDe(location.search));
-    const bv = document.getElementById('prpVaciar'); if (bv) bv.onclick = () => { if (confirm('¿Vaciar la propuesta?')) guardar([]); };
+    const bv = document.getElementById('prpVaciar'); if (bv) bv.onclick = () => { if (confirm('¿Quitar TODAS las propiedades de tu selección? Los datos del cliente en el portal no se borran.')) guardar([]); };
+    const bp = document.getElementById('prpPortal'); if (bp) bp.onclick = e => {
+      // Regresa a la pestaña del portal ya abierta (sin recargarla: no se pierde nada); si no existe, la abre.
+      e.preventDefault();
+      let w = null; try { w = window.open('', 'portal-asesor'); } catch (x) {}
+      try { if (!w || w.location.href === 'about:blank') { if (w) w.location.href = 'asesor.html'; else location.href = 'asesor.html'; } else w.focus(); }
+      catch (x) { location.href = 'asesor.html'; }
+    };
   }
   function iniciar() { escanear(); pintarBarra(); new MutationObserver(() => { clearTimeout(iniciar.t); iniciar.t = setTimeout(escanear, 250); }).observe(document.body, { childList: true, subtree: true }); }
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', iniciar) : iniciar();
