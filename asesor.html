@@ -569,31 +569,26 @@
     const nombre = $('asNombre').value.trim(), wa = $('asWa').value.trim();
     const tel = wa.replace(/\D/g, '').slice(-10);
     if (tel.length !== 10) { msg('asMsg', 'Revisa el WhatsApp del cliente (10 dígitos).', 'error'); return; }
-    $('asMiWa').disabled = true; msg('asMsg', 'Preparando el PDF para enviarlo desde tu WhatsApp…');
+    // La pestaña de WhatsApp se abre YA, dentro del clic, para que el navegador no la bloquee.
+    let ventana = null;
+    try { ventana = window.open('', '_blank'); if (ventana) ventana.document.write('<p style="font:16px system-ui;padding:24px">Preparando la propuesta de Acierta Max…</p>'); } catch (e) {}
+    $('asMiWa').disabled = true; msg('asMsg', 'Preparando la liga de la propuesta…');
     try {
-      const r = await post('/propuesta', cuerpo('vista'), true);
-      if (!r.ok) { msg('asMsg', 'No se pudo generar el PDF.', 'error'); return; }
-      const blob = await r.blob();
-      const archivo = `Propuesta_Acierta_Max_${nombre.split(' ')[0] || 'cliente'}.pdf`;
+      const r = await post('/propuesta', cuerpo('liga'));
+      if (!r.ok || !r.j || !r.j.liga) { if (ventana) ventana.close(); msg('asMsg', (r.j && r.j.error) || 'No se pudo generar la propuesta.', 'error'); return; }
       const n = PROPS.length;
-      const texto = `Hola ${nombre.split(' ')[0]}, soy ${(sessionStorage.getItem('as_nombre') || 'tu asesor')} de Acierta Max. ` +
-        `Te comparto la propuesta con ${n} ${n === 1 ? 'propiedad' : 'propiedades'} que seleccioné para ti, con el análisis comparativo y sus fichas. ` +
+      const texto = `Hola ${nombre.split(' ')[0]}, soy ${(sessionStorage.getItem('as_nombre') || COACH || 'tu asesor')} de Acierta Max. ` +
+        `Te comparto la propuesta con ${n} ${n === 1 ? 'propiedad' : 'propiedades'} que seleccioné para ti, con el análisis comparativo y sus fichas:\n${r.j.liga}\n\n` +
         `Revísala con calma y dime cuáles te interesan para agendar tu visita.`;
-      const file = new File([blob], archivo, { type: 'application/pdf' });
-      let compartido = false;
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], text: texto }); compartido = true; } catch (e) { if (e && e.name === 'AbortError') { msg('asMsg', 'Envío cancelado.', 'error'); return; } }
-      }
-      if (!compartido) {
-        const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = archivo; document.body.appendChild(a); a.click(); a.remove();
-        window.open(`https://wa.me/52${tel}?text=${encodeURIComponent(texto)}`, '_blank', 'noopener');
-        msg('asMsg', `✅ Descargué el PDF (${archivo}) y abrí el chat de ${nombre} con el mensaje listo. Adjunta el PDF en ese chat (clip 📎 → Documento) y envía.`, 'ok');
-      } else {
-        msg('asMsg', `✅ Listo: elegiste a quién compartir el PDF. Revisa que haya salido en el chat de ${nombre}.`, 'ok');
-      }
+      const url = `https://wa.me/52${tel}?text=${encodeURIComponent(texto)}`;
+      if (ventana && !ventana.closed) { ventana.location.href = url; }
+      msg('asMsg', '', 'ok');
+      const caja = $('asMsg'); caja.textContent = `✅ Listo: se abrió el chat de ${nombre} con el mensaje y la liga de la propuesta. Solo toca «Enviar» en WhatsApp. `;
+      const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.className = 'as-btn rojo'; a.style.marginTop = '8px'; a.style.display = 'inline-block';
+      a.textContent = '📲 Abrir el chat de ' + nombre.split(' ')[0]; caja.appendChild(document.createElement('br')); caja.appendChild(a);
       const reg = await post('/propuesta', cuerpo('registrar'));
-      if (reg.ok && reg.j && reg.j.ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} borrarBorrador(); msg('asMsg', ($('asMsg').textContent || '') + ` Quedó registrada en el CRM${reg.j.folio ? ' (' + reg.j.folio + ')' : ''}.`, 'ok'); }
-    } catch (e) { msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
+      if (reg.ok && reg.j && reg.j.ok) { try { localStorage.removeItem('propuesta_sel'); } catch (e) {} borrarBorrador(); }
+    } catch (e) { if (ventana) try { ventana.close(); } catch (x) {} msg('asMsg', 'No se pudo conectar con el servidor.', 'error'); }
     finally { $('asMiWa').disabled = false; }
   }
 
@@ -630,6 +625,23 @@
     pintarProps(); msg('asMsg', 'Listo: propuesta nueva.', 'ok');
   });
   $('asRecargarSel').addEventListener('click', () => { if (INV.length) cargarSeleccion(); else msg('asMsg', 'Cargando inventario, intenta en unos segundos.', 'error'); });
+  // «Ver ficha» se abre dentro del portal (sin cambiar de pestaña)
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href^="ficha.html?eb="]');
+    if (!a || !document.getElementById('asApp').contains(a)) return;
+    e.preventDefault();
+    let cap = document.getElementById('asFichaCapa');
+    if (!cap) {
+      cap = document.createElement('div'); cap.id = 'asFichaCapa';
+      cap.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(10,20,40,.55);display:flex;flex-direction:column;padding:12px';
+      cap.innerHTML = '<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button type="button" class="as-btn" id="asFichaCerrar">✕ Cerrar y volver a la propuesta</button></div><iframe id="asFichaIf" style="flex:1;border:0;border-radius:12px;background:#fff;width:100%"></iframe>';
+      document.body.appendChild(cap);
+      cap.querySelector('#asFichaCerrar').onclick = () => { cap.style.display = 'none'; cap.querySelector('#asFichaIf').src = 'about:blank'; };
+      cap.addEventListener('click', ev => { if (ev.target === cap) cap.querySelector('#asFichaCerrar').click(); });
+    }
+    cap.querySelector('#asFichaIf').src = a.getAttribute('href');
+    cap.style.display = 'flex';
+  });
   window.addEventListener('storage', e => { if (e.key === 'propuesta_sel' && TOKEN && INV.length) cargarSeleccion(); });
   $('asEnviar').addEventListener('click', enviar);
   cfg().then(() => { cargarUsuarios(); if (TOKEN) { try { localStorage.setItem('modo_asesor', '1'); } catch (e) {} mostrarApp(); } });
