@@ -162,7 +162,7 @@
     if (pm2) bits.push(AM.money(pm2) + '/m²');
     const unidad = p.operacion === 'RENTA' ? '/mes' : '';
     const url = AM.fichaUrl(p);
-    const wa = encodeURIComponent('Hola, me interesa esta propiedad: ' + p.titulo + ' (' + (p.eb || 'sin código') + ', ' + (p.operacion === 'RENTA' ? 'renta' : 'venta') + ') — ' +
+    const wa = encodeURIComponent('Hola, quiero agendar una visita a esta propiedad: ' + p.titulo + ' (' + (p.eb || 'sin código') + ', ' + (p.operacion === 'RENTA' ? 'renta' : 'venta') + ') — ' +
       location.origin + '/' + url);
     const lugar = (p.colonia ? p.colonia + ', ' : '') + p.municipio;
     const loc = opts.compact
@@ -182,9 +182,9 @@
       <div class="card-meta">${bits.map(b => `<span>${AM.esc(b)}</span>`).join('')}</div>
       <div class="card-cta">
         <a class="btn-outline" href="${url}">Ver ficha</a>
-        <a class="btn-solid" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener">WhatsApp</a>
+        <a class="btn-solid" href="https://wa.me/523333777337?text=${wa}" target="_blank" rel="noopener" title="Te respondemos por WhatsApp de inmediato, las 24 horas">📅 Agendar visita</a>
       </div>
-      <button class="btn-cmp" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false">＋ Comparar</button>
+      <button class="btn-cmp" type="button" data-eb="${AM.esc(AM.clave(p))}" aria-pressed="false" style="opacity:.8;font-size:.82rem">＋ Comparar</button>
     </div>
   </div>`;
   };
