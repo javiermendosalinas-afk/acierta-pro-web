@@ -149,7 +149,18 @@ RENTA_MINIMA = 11000   # política de Acierta Max (oct-2026): no se publican ren
 
 
 def sin_rentas_bajas(filas):
-    """Quita las rentas en pesos menores de RENTA_MINIMA al mes."""
+    """Quita las rentas en pesos menores de RENTA_MINIMA al mes y aplica la limpieza de calidad."""
+    filas = _sin_rentas_bajas(filas)
+    try:
+        import sys as _s; _s.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from limpieza import limpiar_inventario
+        filas, _res = limpiar_inventario(filas); print("Limpieza:", _res, flush=True)
+    except Exception as _e:
+        print("Limpieza no aplicada:", _e, flush=True)
+    return filas
+
+
+def _sin_rentas_bajas(filas):
     return [f for f in filas if not (f.get("operacion") == "RENTA" and (f.get("moneda") in (None, "", "MXN"))
                                      and (f.get("precio") or 0) and f["precio"] < RENTA_MINIMA)]
 
