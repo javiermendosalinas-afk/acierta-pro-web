@@ -281,8 +281,19 @@ def es_duplicado(nj, candidatos):
             continue
         if abs(e["precio"] - nj["precio"]) / max(e["precio"], nj["precio"]) > TOLERANCIA_PRECIO:
             continue
-        if distancia_m(e, nj) <= DIST_DUPLICADO_M:
-            return e
+        if distancia_m(e, nj) > DIST_DUPLICADO_M:
+            continue
+        # 21-nov-2026: cerca y con precio parecido no basta. En torres y desarrollos hay muchas
+        # unidades distintas en el mismo punto, y NeoJaus ubica varias fichas en el centro de la
+        # colonia; sin estas reglas se ocultaban ~1,240 propiedades distintas como "repetidas".
+        if (e.get("tipo") or "").lower() != (nj.get("tipo") or "").lower():
+            continue
+        if any(e.get(k) and nj.get(k) and e[k] != nj[k] for k in ("recamaras", "banos")):
+            continue
+        m_e, m_n = e.get("m2") or 0, nj.get("m2") or 0
+        if m_e and m_n and abs(m_e - m_n) / max(m_e, m_n) > 0.10:
+            continue
+        return e
     return None
 
 
