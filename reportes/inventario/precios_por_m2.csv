@@ -19,6 +19,7 @@ EB-WT2429,VENTA,departamento,Guadalajara,MXN,80000.0,50.0,4000000,anuncio,https:
 EB-UG2422,VENTA,terreno,Zapopan,MXN,450.0,9554.0,4299300,anuncio,https://www.aciertamax.com/property/amplio-terreno-en-el-roble-a-solo-15-min-del-club-de-la-udg,$450 MXN por m²
 EB-UG2508,VENTA,terreno,Zapopan,MXN,450.0,2500.0,1125000,anuncio,https://www.aciertamax.com/property/excelente-terreno-en-el-roble,$450 MXN por m²
 EB-QC4203,VENTA,terreno,Zapopan,MXN,700.0,2284.0,1598800,anuncio,https://www.aciertamax.com/property/terreno-en-haciendas-la-herradura-a-un-costado-del-club-deportivo-udeg,$700 MXN por m²
+EB-TJ8212,VENTA,terreno,Zapopan,MXN,1100.0,8712.0,9583200,anuncio,https://www.aciertamax.com/property/terreno-ideal-para-desarrollo-inmobiliario-mixto,"$1,100 MXN por m²"
 EB-TJ8241,VENTA,terreno,Zapopan,MXN,1100.0,10755.0,11830500,anuncio,https://www.aciertamax.com/property/terreno-ideal-para-desarrollo-inmobiliario-mixto-hacienda-copala,"$1,100 MXN por m²"
 EB-OF8897,VENTA,terreno,Zapopan,MXN,1180.0,50000.0,59000000,anuncio,https://www.aciertamax.com/property/en-venta-terreno-en-tesistan-villas-de-tesistan,"$1,180 MXN por m²"
 EB-UD4249,VENTA,terreno industrial,Zapopan,MXN,1300.0,69290.0,90077000,anuncio,https://www.aciertamax.com/property/terreno-6-9-has-carr-colotlan-km-9-zapopan-vta,"$1,300 MXN por m²"
@@ -43,7 +44,6 @@ EB-NJ5202,VENTA,terreno,Zapopan,MXN,9050.0,4200.0,38010000,anuncio,https://www.a
 EB-XI7502,VENTA,terreno industrial,Zapopan,MXN,10000.0,5050.0,50500000,anuncio,https://www.aciertamax.com/property/lotes-industriales-en-venta-periferico-lopez-mateos,"$10,000 MXN por m²"
 EB-MC3359,VENTA,terreno,Zapopan,MXN,14000.0,8000.0,112000000,anuncio,https://www.aciertamax.com/property/terreno-en-venta-en-zapopan-puerta-del-bosque,"$14,000 MXN por m²"
 EB-XI1364,VENTA,terreno,Zapopan,MXN,14900.0,676.83,10084767,anuncio,https://www.aciertamax.com/property/coto-exclusivo-de-4-lotes-hda-san-acasio-la-mojonera,"$14,900 MXN por m²"
-EB-WF2457,VENTA,terreno comercial,Zapopan,MXN,15000.0,10000.0,150000000,anuncio,https://www.aciertamax.com/property/terreno-en-venta-en-mariano-otero-zapopan,"$15,000 MXN por m²"
 EB-PJ2671,VENTA,terreno comercial,Zapopan,MXN,15200.0,1052.33,15995416,anuncio,https://www.aciertamax.com/property/terreno-comercial-en-los-robles-los-robles,"$15,200 MXN por m²"
 EB-NE2923,VENTA,terreno,Zapopan,MXN,16000.0,285000.0,4560000000,anuncio,https://www.aciertamax.com/property/terreno-en-av-universidad,"$16,000 MXN por m²"
 EB-PU8376,VENTA,terreno,Zapopan,MXN,19479.0,4877.0,94999083,anuncio,https://www.aciertamax.com/property/terreno-en-las-fuentes-las-fuentes-terreno,"$19,479 MXN por m²"
@@ -64,6 +64,9 @@ EB-XB0693,VENTA,terreno industrial,Zapopan,MXN,31111.11,1350.0,41999998,anuncio,
 EB-KL2687,VENTA,terreno,Zapopan,MXN,32500.0,2000.0,65000000,anuncio,https://www.aciertamax.com/property/terreno-en-venta-lomas-del-valle-677a29a7-39df-4929-91a6-4d6a58f7e494,"$32,500 MXN por m²"
 EB-XL7052,VENTA,terreno,Zapopan,MXN,33000.0,486.23,16045590,anuncio,https://www.aciertamax.com/property/terreno-en-venta-frente-a-parque-metropolitano,"$33,000 MXN por m²"
 EB-TW2476,VENTA,terreno,Zapopan,MXN,35000.0,702.0,24570000,anuncio,https://www.aciertamax.com/property/terreno-en-venta-san-wenceslao,"$35,000 MXN por m²"
+EB-WI3775,VENTA,terreno,Zapopan,MXN,35000.0,441.58,15455300,anuncio,https://www.aciertamax.com/property/terrenos-residenciales-lote-11,"$35,000 MXN por m²"
+EB-WI7911,VENTA,terreno,Zapopan,MXN,35000.0,583.07,20407450,anuncio,https://www.aciertamax.com/property/terrenos-residenciales-punta-loma-12,"$35,000 MXN por m²"
+EB-WI8558,VENTA,terreno,Zapopan,MXN,35000.0,824.11,28843850,anuncio,https://www.aciertamax.com/property/terrenos-residenciales-punta-loma-14,"$35,000 MXN por m²"
 EB-TY2653,VENTA,bodega comercial,Zapopan,MXN,38700.0,526.63,20380581,anuncio,https://www.aciertamax.com/property/frozsea-bodegas-para-almacenamiento,"$38,700 MXN por m²"
 EB-SP0023,VENTA,terreno,Zapopan,MXN,39900.0,3752.0,149704800,anuncio,https://www.aciertamax.com/property/la-calma-terreno-en-venta-la-calma,"$39,900 MXN por m²"
 EB-WB4280,VENTA,terreno,Zapopan,MXN,40000.0,4000.0,160000000,anuncio,https://www.aciertamax.com/property/los-jales-2-terrenos-en-venta,"$40,000 MXN por m²"
@@ -117,7 +120,6 @@ EB-XD3927,VENTA,terreno,Tlajomulco de Zúñiga,MXN,14000.0,385.0,5390000,anuncio
 EB-SI0462,VENTA,terreno industrial,Tlajomulco de Zúñiga,MXN,12500.0,2947.53,36844125,anuncio,https://www.aciertamax.com/property/terreno-comercial-a-la-venta-zona-aeropuerto,"$12,500 MXN por m²"
 EB-XM2833,VENTA,terreno,Tlajomulco de Zúñiga,MXN,10506.0,171.11,1797682,anuncio,https://www.aciertamax.com/property/sendero-de-las-moras-sendero-las-moras-terreno,"$10,506 MXN por m²"
 EB-WN1319,VENTA,terreno comercial,Tlajomulco de Zúñiga,MXN,10500.0,22347.0,234643500,anuncio,https://www.aciertamax.com/property/terreno-en-venta-de-22-348-m-sobre-av-lopez-mateos-uso-mixto-au-24-ideal-pa,"$10,500 MXN por m²"
-EB-WS6219,VENTA,terreno,Tlajomulco de Zúñiga,MXN,9500.0,192.9,1832550,anuncio,https://www.aciertamax.com/property/terreno-residencial-en-venta-en-hacienda-casa-fuerte-zapopan,"$9,500 MXN por m²"
 EB-SP3350,VENTA,terreno,Tlajomulco de Zúñiga,MXN,8500.0,2755.0,23417500,anuncio,https://www.aciertamax.com/property/terreno-en-venta-en-carr-chapala-guadalajara-el-salto,"$8,500 MXN por m²"
 EB-CA1830,VENTA,terreno comercial,Tlajomulco de Zúñiga,MXN,7997.0,21700.0,173534900,anuncio,https://www.aciertamax.com/property/av-adolf-horn-ideal-plaza-comercial-naves-industriales,"$7,997 MXN por m²"
 EB-UD6858,VENTA,terreno,Tlajomulco de Zúñiga,MXN,5900.0,862.0,5085800,anuncio,https://www.aciertamax.com/property/terreno-cortijo-san-agustin-cortijo-de-san-agustin,"$5,900 MXN por m²"
@@ -193,9 +195,7 @@ EB-OV8502,RENTA,terreno comercial,Zapopan,MXN,35.0,22000.0,770000,anuncio,https:
 EB-XK6904,RENTA,bodega industrial,Tlaquepaque,MXN,125.0,4000.0,500000,anuncio,https://www.aciertamax.com/property/bodega-en-renta-alamo-oriente,$125 MXN por m²
 EB-RQ4690,RENTA,bodega comercial,Tlaquepaque,MXN,125.0,5000.0,625000,anuncio,https://www.aciertamax.com/property/bodega-de-16-000-metros,$125 MXN por m²
 EB-WN3888,RENTA,nave industrial,Tlaquepaque,USD,6.3,3360.0,21168,anuncio,https://www.aciertamax.com/property/en-renta-bodega-industrial-tlaquepaque-jalisco-3-360-m2,$6.30 USD por m²
-EB-XJ2237,RENTA,bodega industrial,Tlaquepaque,MXN,110.0,876.0,96360,anuncio,https://www.aciertamax.com/property/bodega-industrial-equipada-en-renta-876-m-col-artesanos-artesanos,$110 MXN por m²
 EB-XF7938,RENTA,bodega comercial,Tlaquepaque,MXN,110.0,11361.85,1249804,anuncio,https://www.aciertamax.com/property/bodega-en-renta-tlaquepaque-jalisco-san-pedro,$110 MXN por m²
-EB-WL7777,RENTA,bodega industrial,Tlaquepaque,MXN,110.0,876.0,96360,anuncio,https://www.aciertamax.com/property/bodega-industrial-equipada-en-renta-876-m-col-artesanos,$110 MXN por m²
 EB-XM3585,RENTA,bodega industrial,Tlaquepaque,MXN,100.0,11362.0,1136200,anuncio,https://www.aciertamax.com/property/bodega-industrial-estrategica-alamo-industrial-renta,$100 MXN por m²
 EB-WJ1239,RENTA,terreno industrial,Tlaquepaque,MXN,30.0,800.0,24000,inferido,https://www.aciertamax.com/property/renta-de-terrenos-camino-real-a-colima-desde-800m2,$30 MXN
 EB-VE7753,RENTA,local comercial,Tlajomulco de Zúñiga,MXN,370.0,150.0,55500,anuncio,https://www.aciertamax.com/property/local-comercial-semi-acondicionado-en-renta-dentro-de-plaza-la-rioja,$370 MXN por m²
@@ -203,9 +203,10 @@ EB-XB3265,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,140.0,3700.0,518000
 EB-XB3424,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,135.0,4702.6,634851,anuncio,https://www.aciertamax.com/property/venta-de-bodega-dentro-de-parque-industrial-el-salto-5-mn-carretera-chapala-el-zapote-del-valle,$135 MXN por m²
 EB-VZ5381,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,125.0,764.57,95571,anuncio,https://www.aciertamax.com/property/bodegas-en-renta-frente-al-aeropuerto-ac43b9fb-7a57-4d72-b8e9-2ed08a4320af,$125 MXN por m²
 EB-VZ5282,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,125.0,436.5,54562,anuncio,https://www.aciertamax.com/property/bodegas-en-renta-frente-al-aeropuerto-guadalajara-miguel-hidalgo-y-costilla-tlajomulco-de-zuniga,$125 MXN por m²
-EB-VZ4470,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,125.0,293.0,36625,anuncio,https://www.aciertamax.com/property/bodegas-en-renta-frente-al-aeropuerto-guadalajara-miguel-hidalgo-y-costilla,$125 MXN por m²
+EB-VZ4470,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,125.0,173.0,21625,anuncio,https://www.aciertamax.com/property/bodegas-en-renta-frente-al-aeropuerto-guadalajara-miguel-hidalgo-y-costilla,$125 MXN por m²
 EB-VZ4449,RENTA,bodega industrial,Tlajomulco de Zúñiga,MXN,125.0,157.0,19625,anuncio,https://www.aciertamax.com/property/bodegas-en-renta-frente-al-aeropuerto,$125 MXN por m²
 EB-DS4380,RENTA,terreno,Tlajomulco de Zúñiga,MXN,30.0,700.21,21006,anuncio,https://www.aciertamax.com/property/antiguo-real-a-colima-terreno-en-renta,$30 MXN por m²
+EB-RU5069,RENTA,nave industrial,El Salto,USD,7.5,34681.0,260108,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-el-salto-centro-el-salto,$7.50 USD por m²
 EB-XJ9537,RENTA,nave industrial,El Salto,MXN,140.0,39153.0,5481420,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco-556fd8bf-a9ec-4182-b225-eda8a353a610,$140 MXN por m²
 EB-XJ9534,RENTA,nave industrial,El Salto,MXN,140.0,29773.0,4168220,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco-62a34521-85af-4d09-8f46-00241f5d92b2,$140 MXN por m²
 EB-XJ9527,RENTA,nave industrial,El Salto,MXN,140.0,21428.0,2999920,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco-ea7f5b87-13f6-49fb-b75c-e8586683e541,$140 MXN por m²
@@ -215,11 +216,10 @@ EB-XJ9463,RENTA,nave industrial,El Salto,MXN,140.0,28555.0,3997700,anuncio,https
 EB-XJ9452,RENTA,nave industrial,El Salto,MXN,140.0,20105.0,2814700,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco-el-salto-centro-nave-industrial,$140 MXN por m²
 EB-XJ9435,RENTA,nave industrial,El Salto,MXN,140.0,10560.0,1478400,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco-el-salto-centro-el-salto,$140 MXN por m²
 EB-LH6560,RENTA,bodega industrial,El Salto,MXN,140.0,35768.0,5007520,anuncio,https://www.aciertamax.com/property/en-renta-bodega-industrial-el-salto-jalisco,$140 MXN por m²
-EB-RU5069,RENTA,nave industrial,El Salto,USD,7.5,34681.0,260108,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-el-salto-centro-el-salto,$7.50 USD por m²
-EB-VD8883,RENTA,nave industrial,El Salto,MXN,130.0,1826.0,237380,anuncio,https://www.aciertamax.com/property/naves-en-parque-industrial-elite-aeropuerto-el-laurel-los-laureles,$130 MXN por m²
 EB-WN3867,RENTA,nave industrial,El Salto,USD,7.0,18018.0,126126,anuncio,https://www.aciertamax.com/property/en-renta-bodega-industrial-el-salto-jalisco-18-018-m2,$7 USD por m²
 EB-WJ4696,RENTA,bodega industrial,El Salto,USD,7.0,18758.86,131312,inferido,https://www.aciertamax.com/property/renta-de-bodega-industrial-tipo-a-en-el-corredor-industrial-el-salto-jalisco,$7 USD
 EB-RV1720,RENTA,nave industrial,El Salto,USD,7.0,19462.0,136234,anuncio,https://www.aciertamax.com/property/en-renta-nave-industrial-el-salto-jalisco,$7 USD por m²
+EB-VD8883,RENTA,nave industrial,El Salto,MXN,130.0,1826.0,237380,anuncio,https://www.aciertamax.com/property/naves-en-parque-industrial-elite-aeropuerto-el-laurel-los-laureles,$130 MXN por m²
 EB-WN3873,RENTA,nave industrial,El Salto,USD,6.5,9773.0,63524,anuncio,https://www.aciertamax.com/property/en-renta-bodega-industrial-el-salto-jalisco-9-773-m2,$6.50 USD por m²
 EB-WN0289,RENTA,bodega comercial,El Salto,MXN,115.0,1415.0,162725,anuncio,https://www.aciertamax.com/property/bodega-nueva-por-el-aeropuerto,$115 MXN por m²
 EB-SH7280,RENTA,bodega comercial,El Salto,MXN,115.0,1155.0,132825,anuncio,https://www.aciertamax.com/property/bodega-nueva-a-estrena-zona-aeropuerto,$115 MXN por m²
