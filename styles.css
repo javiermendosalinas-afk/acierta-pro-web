@@ -793,3 +793,7 @@ tr.acciones .btn-outline { display: inline-block; padding: 7px 12px; border-radi
 .header-coach:hover{color:#fff;border-color:#fff}
 .nav-coach{display:none}
 @media (max-width:640px){.header-coach{display:none}.header-nav.nav5 > a.nav-coach{display:inline-block;font-size:14px;padding:6px 2px}.header-nav.nav5 > a,.header-nav.nav5 summary{padding-left:4px;padding-right:4px}}
+
+/* Tiras que se deslizan con el dedo: sin barra de desplazamiento visible (en teléfono se ve inconclusa) */
+.rec-tira,.header-nav.nav5{scrollbar-width:none;-ms-overflow-style:none}
+.rec-tira::-webkit-scrollbar,.header-nav.nav5::-webkit-scrollbar{display:none}
