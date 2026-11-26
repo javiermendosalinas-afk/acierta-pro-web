@@ -18,8 +18,8 @@ const TIPOS_FILTRO = {
 };
 // Rangos de precio máximo según segmento y operación (sin piso: cualquier precio)
 const PRECIOS_FILTRO = {
-  'vivienda|VENTA': [500000, 1000000, 1500000, 2000000, 3000000, 5000000, 8000000, 12000000, 20000000, 40000000],
-  'vivienda|RENTA': [8000, 12000, 18000, 25000, 40000, 60000, 100000],
+  'vivienda|VENTA': [500000, 1000000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000, 4500000, 5000000, 6000000, 7000000, 8000000, 10000000, 12000000, 15000000, 20000000, 30000000, 40000000],
+  'vivienda|RENTA': [8000, 10000, 12000, 15000, 18000, 20000, 25000, 30000, 35000, 40000, 50000, 60000, 80000, 100000],
   'comercial|VENTA': [1000000, 2000000, 5000000, 10000000, 20000000, 50000000, 100000000],
   'comercial|RENTA': [15000, 30000, 50000, 100000, 200000, 500000],
 };
@@ -34,13 +34,15 @@ function armarOpcionesTipo() {
 }
 
 function armarOpcionesPrecio() {
-  const sel = document.getElementById('fPrecioMax');
-  const previo = sel.value;
   const clave = currentSeg + '|' + (currentOp === 'RENTA' ? 'RENTA' : 'VENTA');
   const lista = PRECIOS_FILTRO[clave];
-  sel.innerHTML = '<option value="">Sin límite</option>' +
-    lista.map(n => `<option value="${n}">${money0(n)}${currentOp === 'RENTA' ? '/mes' : ''}</option>`).join('');
-  if (lista.map(String).includes(previo)) sel.value = previo;
+  [['fPrecioMax', 'Sin límite'], ['fPrecioMin', 'Sin mínimo']].forEach(([id, vacio]) => {
+    const sel = document.getElementById(id);
+    const previo = sel.value;
+    sel.innerHTML = `<option value="">${vacio}</option>` +
+      lista.map(n => `<option value="${n}">${money0(n)}${currentOp === 'RENTA' ? '/mes' : ''}</option>`).join('');
+    if (lista.map(String).includes(previo)) sel.value = previo;
+  });
 }
 
 function armarColonias() {
@@ -72,6 +74,7 @@ function applyFilters(opts) {
   const municipio = document.getElementById('fMunicipio').value;
   const tipo = document.getElementById('fTipo').value;
   const precioMax = document.getElementById('fPrecioMax').value;
+  const precioMin = document.getElementById('fPrecioMin').value;
   const recamaras = document.getElementById('fRecamaras').value;
   const banos = document.getElementById('fBanos').value;
   const m2Min = document.getElementById('fM2Min').value;
@@ -88,6 +91,7 @@ function applyFilters(opts) {
     if (municipio && p.municipio !== municipio) return false;
     if (gruposTipo && !gruposTipo.includes(p.tipo)) return false;
     if (precioMax && (!AM.esMXN(p) || p.precio > parseInt(precioMax))) return false;
+    if (precioMin && (!AM.esMXN(p) || p.precio < parseInt(precioMin))) return false;
     if (recamaras) {
       const min = parseInt(recamaras);
       if (!p.recamaras) return false;
@@ -106,7 +110,7 @@ function applyFilters(opts) {
     return true;
   });
 
-  filtered = AM.ordenar(filtered, orden, fotoPrimero);
+  filtered = AM.ordenar(filtered, orden, fotoPrimero, precioMax ? parseInt(precioMax) : 0);
 
   shown = 0;
   grid.innerHTML = '';
@@ -151,7 +155,7 @@ function renderStats() {
 
 function cambiarSegmento(seg) {
   currentSeg = seg;
-  ['fTipo', 'fPrecioMax', 'fRecamaras', 'fBanos', 'fNiveles'].forEach(id => { document.getElementById(id).value = ''; });
+  ['fTipo', 'fPrecioMax', 'fPrecioMin', 'fRecamaras', 'fBanos', 'fNiveles'].forEach(id => { document.getElementById(id).value = ''; });
   const u = new URL(location.href);
   if (seg === 'comercial') u.searchParams.set('seg', 'comercial'); else u.searchParams.delete('seg');
   history.replaceState(null, '', u);
@@ -178,7 +182,7 @@ document.getElementById('opToggle').addEventListener('click', (e) => {
 
 document.getElementById('btnBuscar').addEventListener('click', applyFilters);
 loadMoreBtn.addEventListener('click', renderNextPage);
-['fTipo', 'fPrecioMax', 'fRecamaras', 'fBanos', 'fM2Min', 'fM2Max', 'fNiveles', 'fOrden', 'fFotoPrimero'].forEach(id => {
+['fTipo', 'fPrecioMax', 'fPrecioMin', 'fRecamaras', 'fBanos', 'fM2Min', 'fM2Max', 'fNiveles', 'fOrden', 'fFotoPrimero'].forEach(id => {
   document.getElementById(id).addEventListener('change', applyFilters);
 });
 document.getElementById('fMunicipio').addEventListener('change', () => { armarColonias(); applyFilters(); });
@@ -189,7 +193,7 @@ document.getElementById('fTexto').addEventListener('input', () => {
 });
 
 // ── La búsqueda vive en la liga (se puede compartir) y se recupera al regresar de una ficha ──
-const CAMPOS_URL = { mun: 'fMunicipio', tipo: 'fTipo', pmax: 'fPrecioMax', rec: 'fRecamaras', ban: 'fBanos', m2min: 'fM2Min', m2max: 'fM2Max', niv: 'fNiveles', orden: 'fOrden', q: 'fTexto' };
+const CAMPOS_URL = { mun: 'fMunicipio', tipo: 'fTipo', pmin: 'fPrecioMin', pmax: 'fPrecioMax', rec: 'fRecamaras', ban: 'fBanos', m2min: 'fM2Min', m2max: 'fM2Max', niv: 'fNiveles', orden: 'fOrden', q: 'fTexto' };
 function guardarEnURL() {
   const u = new URL(location.href);
   u.searchParams.set('op', currentOp || 'todas');
