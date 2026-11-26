@@ -93,6 +93,42 @@ def verificada(p):
 SELLO = '<span style="position:absolute;right:10px;top:10px;background:#0f7a4a;color:#fff;font-weight:800;font-size:12px;border-radius:999px;padding:5px 10px;z-index:2">✅ Verificado por Acierta</span>'
 
 
+_SING = {"casa": "casa", "departamento": "departamento", "terreno": "terreno", "local": "local comercial", "oficina": "oficina", "bodega": "bodega", "edificio": "edificio"}
+_GENERICOS = re.compile(r"^(casa|departamento|depto|terreno|local|oficina|bodega|propiedad|inmueble)s?( (en|de))? ?(venta|renta)?( (en|de) (venta|renta))?$")
+_MUNIS = re.compile(r"\b(zapopan|guadalajara|tlaquepaque|san pedro|tonala|tlajomulco( de zuniga)?|el salto|jalisco|jal|mexico|col(onia)?|fracc(ionamiento)?)\b")
+_CONTACTO = re.compile(r"(?i)(inmobiliaria|real ?estate|bienes ra[ií]ces|brokers?|realtor|asesor(a|es)? inmobiliari|grupo inmobiliario|ll[aá]ma(me|nos)|cont[aá]cta(me|nos)|escr[ií]be(me|nos)|whats ?app|informes|m[aá]s informaci[oó]n al|agenda tu cita|ag[eé]ndala|www\.|https?:|@|facebook|instagram|tiktok)")
+_TEL = re.compile(r"(\+?52[\s.-]*)?(\(?\d{2,3}\)?[\s.-]*)?\d{3,4}[\s.-]?\d{4}")
+
+
+def _norm(t):
+    return unicodedata.normalize("NFD", str(t or "")).encode("ascii", "ignore").decode().lower().strip()
+
+
+def mejorar_titulo(p):
+    """Mismo criterio que AM.mejorarTitulo en js/comun.js: títulos que solo repiten la colonia o dicen
+    'Casa en venta' se publican como 'Casa en venta en <colonia> · 3 recámaras'."""
+    t = (p.get("titulo") or "").strip()
+    n, col = _norm(t), _norm(p.get("colonia"))
+    resto = re.sub(r"[^a-z0-9]", "", _MUNIS.sub("", n[len(col):])) if col and n.startswith(col) else None
+    if t and len(t) >= 12 and not _GENERICOS.match(n) and resto != "":
+        return p
+    g = grupo_de(p.get("tipo")) or ""
+    op = "en renta" if p.get("operacion") == "RENTA" else "en venta"
+    lugar = p.get("colonia") or p.get("municipio") or ""
+    rec = p.get("recamaras")
+    nuevo = (_SING.get(g, "propiedad").capitalize() + f" {op}" + (f" en {lugar}" if lugar else "")
+             + (f" · {rec} recámara{'s' if rec > 1 else ''}" if rec and g in ("casa", "departamento") else ""))
+    return dict(p, titulo=nuevo, titulo_orig=t)
+
+
+def limpiar_descripcion(txt):
+    """Quita nombre y datos de contacto de la inmobiliaria que publicó: el cliente trata con Acierta."""
+    if not txt:
+        return ""
+    lineas = [_TEL.sub("", re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+", "", l)).rstrip() for l in str(txt).split("\n") if not _CONTACTO.search(l)]
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lineas)).strip()
+
+
 def cargar():
     with open(os.path.join(RAIZ, "data.json"), encoding="utf-8") as fh:
         eb = json.load(fh)
@@ -120,7 +156,7 @@ def cargar():
         if k in vistos:
             continue
         vistos.add(k)
-        p = dict(p, grupo=g, colonia=(p.get("colonia") or "").strip())
+        p = mejorar_titulo(dict(p, grupo=g, colonia=(p.get("colonia") or "").strip()))
         if p["eb"] in detalle:
             p["detalle"] = detalle[p["eb"]]
         props.append(p)
@@ -219,7 +255,7 @@ def pagina_prop(p, comps_muni, comps_col, similares):
             analisis = f"""<section class="seo-card"><h2>¿Está bien de precio?</h2><p>Su precio por m² ({dinero(v)}) {frase} la mediana de {E(nombre)} ({dinero(st['pm2'])} por m², {st['n_pm2']} propiedades comparables).</p>
 <div class="seo-stats"><div><b>{dinero(v)}</b><span>por m² esta propiedad</span></div><div><b>{dinero(st['pm2'])}</b><span>por m² mediana de la zona</span></div><div><b>{dinero(st['mediana'])}</b><span>precio mediano de la zona</span></div></div></section>"""
             break
-    texto = d.get("descripcion") or (f"{p['tipo'].capitalize()} en {op} en {lugar}. " + (f"Cuenta con {', '.join(datos[:-1])}. " if len(datos) > 1 else "") +
+    texto = limpiar_descripcion(d.get("descripcion")) or (f"{p['tipo'].capitalize()} en {op} en {lugar}. " + (f"Cuenta con {', '.join(datos[:-1])}. " if len(datos) > 1 else "") +
                                      f"Precio: {precio_txt} MXN. Código de la propiedad: {p['eb']}. Un asesor de Acierta Max te acompaña en la visita, la revisión de documentos y la negociación.")
     wa = f"https://wa.me/{WA}?text=" + re.sub(r"\s", "%20", html.escape(f"Hola, me interesa esta propiedad: {p['titulo']} ({p['eb']}, {op}) — {SITIO}{url_prop(p)}"))
     zona_url = url_zona(p["municipio"], p["colonia"], p["grupo"], p["operacion"]) if p["colonia"] and len(comps_col) >= 3 else url_zona(p["municipio"], None, p["grupo"], p["operacion"])
