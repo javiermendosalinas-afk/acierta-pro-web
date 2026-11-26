@@ -93,7 +93,8 @@
         <div><b>${menorQue}%</b><span>de las comparables cuestan menos por m²</span></div>
       </div>
       ${barraPosicion(an)}
-      ${an.atipico ? '<p class="an-alerta">⚠️ Este precio se aleja mucho de lo normal en la zona. Puede ser un error de captura: confírmalo con un asesor antes de decidir.</p>' : ''}
+      ${an.atipico ? '<p class="an-alerta">⚠️ Este precio se aleja bastante de lo normal en la zona. Pídele a tu asesor que confirme el precio y el estado de la propiedad antes de decidir.</p>' : ''}
+      ${an.lejano ? '<p class="muted">En la colonia todavía hay pocas propiedades parecidas, por eso la comparación es contra todo el municipio y es solo orientativa.</p>' : ''}
       <p class="muted an-aviso">${AM.esc(AM.AVISO_ANALISIS)}</p>`;
   }
 
@@ -164,8 +165,7 @@
 
     ${AM.confianzaHTML()}
 
-    ${/aciertamax\.com/.test(p.liga || '') ? `<p class="ficha-original">¿Quieres ver la publicación original con más fotos y descripción?
-      <a href="${AM.esc(p.liga)}" target="_blank" rel="noopener">Abrir en aciertamax.com ↗</a></p>` : ''}`;
+    `;
 
     // "Hablar con un asesor": la primera vez pide nombre y WhatsApp para asignar un asesor real
     document.getElementById('btnHablarAsesor').addEventListener('click', function (e) {
@@ -205,8 +205,9 @@
         const extras = [d.estacionamientos ? d.estacionamientos + ' estacionamiento' + (d.estacionamientos > 1 ? 's' : '') : '', d.medios_banos ? d.medios_banos + ' medio baño' + (d.medios_banos > 1 ? 's' : '') : '',
           d.mantenimiento ? 'Mantenimiento ' + AM.money(d.mantenimiento) + '/mes' : '', d.anio ? 'Construida en ' + d.anio : '', d.piso ? 'Piso ' + d.piso : ''].filter(Boolean);
         const amen = (d.amenidades || []).map(a => String(a).replace(/_/g, ' ')).map(a => a.charAt(0).toUpperCase() + a.slice(1));
-        if (d.descripcion || extras.length || amen.length) document.getElementById('fichaDetalle').innerHTML = `<section class="ficha-card"><h2>Descripción</h2>
-          ${d.descripcion ? `<div class="ficha-desc${d.descripcion.length > 700 ? ' corta' : ''}">${AM.esc(d.descripcion)}</div>${d.descripcion.length > 700 ? '<button type="button" class="btn-link" id="verMasDesc">Leer la descripción completa</button>' : ''}` : ''}
+        const desc = AM.limpiarDescripcion(d.descripcion);
+        if (desc || extras.length || amen.length) document.getElementById('fichaDetalle').innerHTML = `<section class="ficha-card"><h2>Descripción</h2>
+          ${desc ? `<div class="ficha-desc${desc.length > 700 ? ' corta' : ''}">${AM.esc(desc)}</div>${desc.length > 700 ? '<button type="button" class="btn-link" id="verMasDesc">Leer la descripción completa</button>' : ''}` : ''}
           ${extras.length ? `<h3 class="ficha-sub">Características</h3><div class="chips">${extras.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>` : ''}
           ${amen.length ? `<h3 class="ficha-sub">Amenidades</h3><div class="chips">${amen.map(c => `<span>${AM.esc(c)}</span>`).join('')}</div>` : ''}</section>`;
         const vm = document.getElementById('verMasDesc'); if (vm) vm.addEventListener('click', () => { document.querySelector('.ficha-desc').classList.remove('corta'); vm.remove(); });
